@@ -7,14 +7,14 @@ RESERVATION_API_CURRENT_RES_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entr
 BOOKING_SYSTEM_URL=https://apps-ref.lib.kth.se/guestcomputers
 REGISTER_ACCOUNT_URL=https://apps.lib.kth.se/formtools/api/v1/kthbform?formid=libraryaccount_kiosk&lang=sv&kiosk=true
 EXTERNAL_URL_TIMEOUT=30000
-ALMA_LOGIN=false
+ALMA_LOGIN=true
 PRINTER=true
 COMPUTER_TYPE=guestcomputer
 COMPUTER_NAME="KTH Library guest computer"
 SESSION_IDLE=5
-SCREENSAVER=true
+SCREENSAVER=false
 SCREENSAVER_IDLE=00:10:00
 KIOSK=
 WEBSITES="https://www.kth.se/biblioteket"
 WHITE_LIST="file:///home/guest,chrome://print,chrome-untrusted://print,chrome://newtab,chrome://downloads,kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se,wagnerguide.com,libris.kb.se"
-BLACK_LIST="google.com"
+BLACK_LIST="*,google.com"

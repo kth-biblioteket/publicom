@@ -864,10 +864,17 @@ curl -o /usr/local/bin/config/.config $REMOTE_CONFIG_URL
 
 source "$ENV_FILE"
 
-# Skärmsläckarfil
+# Skärmsläckarfiler
 rm -rf /usr/local/bin/screensaver/*
-cp /usr/local/bin/screensavers/$SCREENSAVER_FILE /usr/local/bin/screensaver/$SCREENSAVER_FILE
-
+IFS=',' read -ra FILE_ARRAY <<< "$SCREENSAVER_FILES"
+for file in "${FILE_ARRAY[@]}"; do
+    echo "Downloading $file..."
+    if curl -s -o "/usr/local/bin/screensaver/$file" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/$file"; then
+        echo "Successfully downloaded $file"
+    else
+        echo "Error downloading $file"
+    fi
+done
 EOL
 chmod +x /usr/local/bin/init.sh
 

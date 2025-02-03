@@ -53,15 +53,6 @@ sudo mkdir /usr/local/bin/config
 sudo curl -o "/usr/local/bin/config/.config" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_xxx
 ```
 
-```bash
-# Skapa folder för skärmsläckare
-sudo mkdir /usr/local/bin/screensaver
-# Ladda ner lämlig bild till skärmsläckare
-sudo curl -o "/usr/local/bin/screensaver/screen_bg_kth_logo_navy_grupprum.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_grupprum.png
-sudo curl -o "/usr/local/bin/screensaver/screen_bg_kth_logo_navy_search.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_search.png
-sudo curl -o "/usr/local/bin/screensaver/screen_bg_kth_logo_navy_guest.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_guest.png
-```
-
 Aktivera/konfiguera firewall UFW
 ```bash
 # Endast tillgång från KTH-nätverket
@@ -148,4 +139,9 @@ menuentry "Ubuntu (Recovery Mode)" --restricted {
 sudo chmod -x /etc/grub.d/10_linux
 ## Uppdatera grub
 sudo update-grub
+```
+
+#### Skapa en avbildning av en kiosk-dator
+```bash
+sudo dd if=/dev/sda bs=4M status=progress | smbclient //NAS_SERVER_IP/SHARE_NAME -U NAS_USERNAME%NAS_PASSWORD -c "put - backup.img"
 ```

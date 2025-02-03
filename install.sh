@@ -576,6 +576,13 @@ if zenity --question --text="Are you sure you want to log out?"; then
 fi
 EOL
 
+# Skapa folder för skärmsläckare
+mkdir /usr/local/bin/screensavers
+# Ladda ner lämlig bild till skärmsläckare
+curl -o "/usr/local/bin/screensavers/screen_bg_kth_logo_navy_grupprum.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_grupprum.png
+curl -o "/usr/local/bin/screensavers/screen_bg_kth_logo_navy_search.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_search.png
+curl -o "/usr/local/bin/screensavers/screen_bg_kth_logo_navy_guest.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_guest.png
+
 # Skapa fil för att konfigurera screensaver
 cat <<'EOL' > /home/guest/.xscreensaver
 timeout:        0:00:10
@@ -796,6 +803,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
     fi
   fi
 else
+  # Sökdator / Kiosk
   log_message "Starting session for search computer."
   # Starta om session after X minuters inaktivitet
   xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
@@ -853,6 +861,13 @@ fi
 # Hämta configfil från GitHub och spara till den lokala datorn
 URL=REMOTE_CONFIG_URL
 curl -o /usr/local/bin/config/.config $REMOTE_CONFIG_URL
+
+source "$ENV_FILE"
+
+# Skärmsläckarfil
+rm -rf /usr/local/bin/screensaver/*
+cp /usr/local/bin/screensavers/$SCREENSAVER_FILE /usr/local/bin/screensaver/$SCREENSAVER_FILE
+
 EOL
 chmod +x /usr/local/bin/init.sh
 

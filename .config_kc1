@@ -17,5 +17,5 @@ SCREENSAVER_IDLE=00:30:00
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_grupprum.png"
 KIOSK=
 WEBSITES="https://apps.lib.kth.se/mrbsgrupprumkiosk https://apps.lib.kth.se/mrbsreadingstudioskiosk"
-WHITE_LIST="file:///home/guest,chrome://print,chrome-untrusted://print,chrome://newtab,chrome://downloads,kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se,wagnerguide.com,libris.kb.se"
+WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
 BLACK_LIST="*,google.com"

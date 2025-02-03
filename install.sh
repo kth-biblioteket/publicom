@@ -576,13 +576,6 @@ if zenity --question --text="Are you sure you want to log out?"; then
 fi
 EOL
 
-# Skapa folder för skärmsläckare
-mkdir /usr/local/bin/screensavers
-# Ladda ner lämlig bild till skärmsläckare
-curl -o "/usr/local/bin/screensavers/screen_bg_kth_logo_navy_grupprum.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_grupprum.png
-curl -o "/usr/local/bin/screensavers/screen_bg_kth_logo_navy_search.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_search.png
-curl -o "/usr/local/bin/screensavers/screen_bg_kth_logo_navy_guest.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/screen_bg_kth_logo_navy_guest.png
-
 # Skapa fil för att konfigurera screensaver
 cat <<'EOL' > /home/guest/.xscreensaver
 timeout:        0:00:10

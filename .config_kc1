@@ -14,6 +14,7 @@ COMPUTER_NAME="KTH Library guest computer"
 SESSION_IDLE=5
 SCREENSAVER=true
 SCREENSAVER_IDLE=00:10:00
+SCREENSAVER_FILES="screen_bg_kth_logo_navy_grupprum.png"
 KIOSK=
 WEBSITES="https://www.kth.se/biblioteket"
 WHITE_LIST="file:///home/guest,chrome://print,chrome-untrusted://print,chrome://newtab,chrome://downloads,kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se,wagnerguide.com,libris.kb.se"

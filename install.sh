@@ -870,11 +870,11 @@ for file in "${FILE_ARRAY[@]}"; do
 done
 
 # Chrome policy
-echo "Downloading $file..."
+echo "Downloading policy $POLICY_FILE"
 if curl -s -o "/var/snap/chromium/current/policies/managed/policies.json" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE"; then
-  echo "Successfully downloaded $file"
+  echo "Successfully downloaded $POLICY_FILE"
 else
-  echo "Error downloading $file"
+  echo "Error downloading $POLICY_FILE"
 fi
 EOL
 chmod +x /usr/local/bin/init.sh

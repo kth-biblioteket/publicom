@@ -1,0 +1,31 @@
+{
+    "DefaultBrowserSettingEnabled": false,
+    "IncognitoModeAvailability": 2,
+    "PasswordManagerEnabled": false,
+    "ClearBrowsingDataOnExitList": [
+      "browsing_history",
+      "download_history",
+      "cookies_and_other_site_data",
+      "cached_images_and_files",
+      "password_signin",
+      "autofill",
+      "site_settings",
+      "hosted_app_data"
+    ],
+    "BookmarkBarEnabled": true,
+    "EditBookmarksEnabled": false,
+    "ManagedBookmarks": [
+      {
+          "toplevel_name": "Downloads"
+      },
+      {
+          "name": "Files",
+          "url": "file:///home/guest/snap/chromium/current/Downloads"
+      }
+    ],
+    "TranslateEnabled": false,
+    "DeveloperToolsAvailability": 2,
+    "PrintingEnabled": false,
+    "URLBlocklist": [],
+    "URLAllowlist": []
+  }

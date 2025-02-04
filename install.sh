@@ -868,6 +868,14 @@ for file in "${FILE_ARRAY[@]}"; do
         echo "Error downloading $file"
     fi
 done
+
+# Chrome policy
+echo "Downloading $file..."
+if curl -s -o "/var/snap/chromium/current/policies/managed/policies.json" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE"; then
+  echo "Successfully downloaded $file"
+else
+  echo "Error downloading $file"
+fi
 EOL
 chmod +x /usr/local/bin/init.sh
 
@@ -936,69 +944,7 @@ EOL
 
 mkdir /var/snap/chromium/current/policies
 mkdir /var/snap/chromium/current/policies/managed
-cat <<EOL > /var/snap/chromium/current/policies/managed/policies.json
-{
-  "DefaultBrowserSettingEnabled": false,
-  "IncognitoModeAvailability": 2,
-  "PasswordManagerEnabled": false,
-  "ClearBrowsingDataOnExitList": [
-    "browsing_history",
-    "download_history",
-    "cookies_and_other_site_data",
-    "cached_images_and_files",
-    "password_signin",
-    "autofill",
-    "site_settings",
-    "hosted_app_data"
-  ],
-  "BookmarkBarEnabled": true,
-  "EditBookmarksEnabled": false,
-  "ManagedBookmarks": [
-    {
-        "toplevel_name": "Downloads"
-    },
-    {
-        "name": "Files",
-        "url": "file:///home/guest/snap/chromium/current/Downloads"
-    }
-  ],
-  "TranslateEnabled": false,
-  "DeveloperToolsAvailability": 2,
-  "PrintingEnabled": false,
-  "URLBlocklist": [],
-  "URLAllowlist": []
-}
-EOL
-
-# Skapa policies för chromium för searchcomputer
-if [ "$COMPUTER_TYPE" == "searchcomputer" ]; then
-cat <<EOL > /var/snap/chromium/current/policies/managed/policies.json
-{
-  "DefaultBrowserSettingEnabled": false,
-  "PromptForDownloadLocation": false,
-  "DownloadRestrictions": 3,
-  "IncognitoModeAvailability": 2,
-  "PasswordManagerEnabled": false,
-  "ClearBrowsingDataOnExitList": [
-    "browsing_history",
-    "download_history",
-    "cookies_and_other_site_data",
-    "cached_images_and_files",
-    "password_signin",
-    "autofill",
-    "site_settings",
-    "hosted_app_data"
-  ],
-  "BookmarkBarEnabled": false,
-  "EditBookmarksEnabled": false,
-  "TranslateEnabled": false,
-  "DeveloperToolsAvailability": 2,
-  "PrintingEnabled": false,
-  "URLBlocklist": [],
-  "URLAllowlist": []
-}
-EOL
-fi
+curl -s -o "/var/snap/chromium/current/policies/managed/policies.json" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE"
 
 chmod 777 /var/snap/chromium/current/policies/managed/policies.json
 

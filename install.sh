@@ -975,6 +975,8 @@ if [ "$COMPUTER_TYPE" == "searchcomputer" ]; then
 cat <<EOL > /var/snap/chromium/current/policies/managed/policies.json
 {
   "DefaultBrowserSettingEnabled": false,
+  "PromptForDownloadLocation": false,
+  "DownloadRestrictions": 3,
   "IncognitoModeAvailability": 2,
   "PasswordManagerEnabled": false,
   "ClearBrowsingDataOnExitList": [

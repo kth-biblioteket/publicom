@@ -853,8 +853,11 @@ fi
 
 # Hämta configfil från GitHub och spara till den lokala datorn
 URL=REMOTE_CONFIG_URL
-curl -o /usr/local/bin/config/.config $REMOTE_CONFIG_URL
-
+if curl -s -o /usr/local/bin/config/.config $REMOTE_CONFIG_URL; then
+   echo "Successfully downloaded $REMOTE_CONFIG_URL"
+else
+   echo "Error downloading $REMOTE_CONFIG_URL"
+fi
 source "$ENV_FILE"
 
 # Skärmsläckarfiler

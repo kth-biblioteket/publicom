@@ -67,7 +67,7 @@ lpadmin -d KTH-Print
 # Skrivarinställningar
 lpadmin -p KTH-Print -o PageSize=A4
 
-# Installera GUI/Fönsterhanterare mm
+# Installera GUI/Fönsterhanterare/chromium etc.
 apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra
 
 # Installera xautolock för att kunna starta om sessioner efter inaktivitet
@@ -702,6 +702,7 @@ sed -i "s/^timeout:.*$/timeout: $SCREENSAVER_IDLE/" /home/guest/.xscreensaver
 if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
   # Öppen gästdator(utan login)
   if [ "$ALMA_LOGIN" != "true" ]; then
+      log_message "Öppen gästdator"
       # Starta om session after X minuters inaktivitet
       xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
       # Ta bort högerklick
@@ -1083,7 +1084,7 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: path.resolve(__dirname, '../config', '.config') });
 
-const { API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CURRENT_RES_URL, EXTERNAL_URL_TIMEOUT } = process.env;
+const { API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CURRENT_RES_URL, EXTERNAL_URL_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
 
 let mainWindow;
 let newWindow;
@@ -1167,6 +1168,7 @@ function createMainWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
+            devTools: ELECTRON_DEV_TOOLS === 'true'
         },
     });
 
@@ -1215,6 +1217,7 @@ function createNewWindow(url) {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
             sandbox: false,
+            devTools: ELECTRON_DEV_TOOLS === 'true'
         },
     });
 

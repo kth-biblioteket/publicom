@@ -68,7 +68,7 @@ lpadmin -d KTH-Print
 lpadmin -p KTH-Print -o PageSize=A4
 
 # Installera GUI/Fönsterhanterare/chromium etc.
-apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra
+apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xprintidle xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra
 
 # Installera xautolock för att kunna starta om sessioner efter inaktivitet
 apt install -y xautolock
@@ -332,7 +332,7 @@ border_color_pressed = #000000 30
 
 #-------------------------------------
 # Panel
-panel_items = T:P:F:E:E:C
+panel_items = T:P:F:E:E:E:C
 panel_size = 100% 30
 panel_margin = 0 0
 panel_padding = 2 0 2
@@ -404,7 +404,7 @@ execp_uwheel_command =
 execp_dwheel_command =
 execp_font = Droid Sans Fallback 12
 execp_font_color = #EBE5E0 100
-execp_padding = 100 10
+execp_padding = 100 100 10
 execp_background_id = 0
 execp_centered = 0
 execp_icon_w = 0
@@ -412,25 +412,43 @@ execp_icon_h = 0
 
 # Executor 2
 execp = new
-execp_command = echo "Remaining time: $(/usr/local/bin/show_remaining_time.sh)"
+execp_command = echo "$(/usr/local/bin/show_remaining_time.sh)"
 execp_interval = 1
-execp_has_icon = 0
+execp_has_icon = 1
 execp_cache_icon = 1
+execp_icon_w = 16  # Width of the icon
+execp_icon_h = 16  # Height of the icon
 execp_continuous = 0
 execp_markup = 1
 execp_tooltip = Left click for hardinfo
 execp_lclick_command = hardinfo
-execp_rclick_command = 
-execp_mclick_command = 
-execp_uwheel_command = 
-execp_dwheel_command = 
+execp_rclick_command =
+execp_mclick_command =
+execp_uwheel_command =
+execp_dwheel_command =
 execp_font = Droid Sans Fallback 12
 execp_font_color = #6298D2 100
-execp_padding = 100 10
+execp_padding = 100 10 10
 execp_background_id = 0
 execp_centered = 0
-execp_icon_w = 0
-execp_icon_h = 0
+
+# Executor 3 - Inaktivitetsvarning
+execp = new
+execp_command = cat /tmp/tint2_inactivity_warning.txt
+execp_interval = 1
+execp_has_icon = 1
+execp_icon_w = 16  # Width of the icon
+execp_icon_h = 16  # Height of the icon
+execp_cache_icon = 1
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip = Left click to clear
+execp_lclick_command = echo "" > /tmp/tint2_inactivity_warning.txt
+execp_font = Droid Sans Fallback 12
+execp_font_color = #FF0000 100
+execp_padding = 100 100 10
+execp_background_id = 0
+execp_centered = 0
 
 #-------------------------------------
 # Button 1
@@ -449,6 +467,33 @@ button_centered = 0
 button_max_icon_size = 28
 EOL
 
+# Inaktivetetsvarning, anropas av autolock vid sessionsstart
+cat <<'EOL' > /usr/local/bin/tint2_inactivity_warning.sh 
+#!/bin/bash
+
+WARNING_FILE="/tmp/tint2_inactivity_warning.txt"
+
+# Skriv meddelande till tint2
+echo -e "/usr/share/icons/Humanity/actions/32/gtk-cancel.svg\nInactive session will terminate soon!" > "$WARNING_FILE"
+
+# Vänta så idle_time hinner uppdateras
+sleep 2
+
+# Övervaka aktivitet
+for i in {1..30}; do
+    IDLE_TIME=$(xprintidle)
+    if [[ $IDLE_TIME -lt 1000 ]]; then
+        # Användaren aktiv, rensa meddelande
+        echo "" > "$WARNING_FILE"
+        exit 0
+    fi
+    sleep 1
+done
+
+exit 0
+EOL
+
+chmod +x /usr/local/bin/tint2_inactivity_warning.sh
 
 # Ser till att konsol inte visas
 systemctl disable getty@tty1
@@ -456,6 +501,20 @@ systemctl disable getty@tty1
 # Ser till att högerklick inaktiveras (kontextmenyer etc)
 cat <<'EOL' > /home/guest/.Xmodmap 
 pointer = 1 2 0 4 5 6 7 8 9
+EOL
+
+# Stäng av magic sysrq
+cat <<'EOL' > /etc/sysctl.d/99-disable-sysrq.conf
+kernel.sysrq = 0
+EOL
+
+# Stäng av hårdvaruknappar/funktionsknappar
+mkdir -p /etc/systemd/logind.conf.d
+cat <<'EOL' > /etc/systemd/logind.conf.d/50-disable-sleep.conf
+[Login]
+HandleSuspendKey=ignore
+HandleHibernateKey=ignore
+HandlePowerKey=ignore
 EOL
 
 # Mappa tangenter
@@ -503,7 +562,13 @@ Control + l
 Control + m
 
 "NoSymbol"
+Control + Shift + m
+
+"NoSymbol"
 Control + n
+
+"NoSymbol"
+Control + Shift + n
 
 "NoSymbol"
 Control + o
@@ -530,6 +595,9 @@ Control + u
 Control + w
 
 "NoSymbol"
+Control + Shift + w
+
+"NoSymbol"
 Control + x
 
 "NoSymbol"
@@ -537,6 +605,45 @@ Control + y
 
 "NoSymbol"
 Control + z
+
+"NoSymbol"
+Control + Alt + Delete
+
+"NoSymbol"
+Alt + F1
+
+"NoSymbol"
+Alt + F2
+
+"NoSymbol"
+Alt + F3
+
+"NoSymbol"
+Alt + F4
+
+"NoSymbol"
+Alt + F5
+
+"NoSymbol"
+Alt + F6
+
+"NoSymbol"
+Alt + F7
+
+"NoSymbol"
+Alt + F8
+
+"NoSymbol"
+Alt + F9
+
+"NoSymbol"
+Alt + F10
+
+"NoSymbol"
+Alt + F11
+
+"NoSymbol"
+Alt + F12
 EOL
 
 # Skapa skript som rensar nedladdningar och andra filer
@@ -638,7 +745,13 @@ while true; do
     else
         REMAINING_MINUTES=$((REMAINING_TIME / 60))
         REMAINING_SECONDS=$((REMAINING_TIME % 60))
-        printf "%02d:%02d\n" $REMAINING_MINUTES $REMAINING_SECONDS > "$REMAINING_TIME_FILE"
+        FORMATTED_TIME=$(printf "%02d:%02d" $REMAINING_MINUTES $REMAINING_SECONDS)
+        # Visa varning är det är x minuter kvar av tiden
+        if [ $REMAINING_TIME -le 60 ]; then
+            echo -e "/usr/share/icons/Humanity/actions/32/gtk-cancel.svg\nYour session will end soon $FORMATTED_TIME" > "$REMAINING_TIME_FILE"
+        else
+            echo -e "/usr/share/icons/Humanity/apps/32/clock.svg\nRemaning time: $FORMATTED_TIME" > "$REMAINING_TIME_FILE"
+        fi
     fi
     sleep 1
 done
@@ -696,6 +809,9 @@ source "$ENV_FILE"
 # Ta bort filen som innehåller starttiden för sessionen
 rm -f /tmp/logout_timer.txt
 
+# Rensa tint2 warnings
+echo "" > /tmp/tint2_inactivity_warning.txt
+
 # Uppdatera timeout för skärmsläckare
 sed -i "s/^timeout:.*$/timeout: $SCREENSAVER_IDLE/" /home/guest/.xscreensaver
 
@@ -731,6 +847,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
       done
   else
     # Gästdator som kräver login
+    CURRENT_BOOKING_ID_FILE="/tmp/current_booking_id.txt"
     current_user=$(whoami)
     log_message "Current user: $current_user"
 
@@ -749,9 +866,13 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
       status=$?
 
       if [[ $status -eq 0 ]]; then
+        # Bokningsdata
+        entry_id=$(echo "$form_input" | jq -r '.booking_data.id')
         start_time=$(echo "$form_input" | jq -r '.booking_data.start_time')
         end_time=$(echo "$form_input" | jq -r '.booking_data.end_time')
-        log_message "Extracted start_time: $start_time, end_time: $end_time"
+
+        # Spara entry_id från bokningen
+        echo "$entry_id" > "$CURRENT_BOOKING_ID_FILE"
 
         current_time=$(date +%s)
         seconds=$((end_time - current_time))
@@ -760,20 +881,29 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         # Starta logout_timer.sh med antal sekunder som ska gå innan logout
         /usr/local/bin/logout_timer.sh "$seconds" &
 
+        # Starta om X-session after X minuters inaktivitet, visa en varning 1 minut innan avslut
+        xautolock -time $SESSION_IDLE -notify 60 -notifier "/usr/local/bin/tint2_inactivity_warning.sh" -locker "pkill X" &
+       
         # Ta bort högerklick
         xmodmap /home/guest/.Xmodmap &
+       
         # Mappning tangentbord
         xbindkeys &
+       
         # Se till att skärmen inte blir blank
         xset s off
         xset -dpms
         xset s noblank
+       
         # Bakgrund
         feh --bg-scale /usr/local/bin/screen_bg_kth_logo_navy.png
+       
         # Starta openbox windows manager
         openbox &
+       
         # Starta tint2 Dock
         tint2 -c /home/guest/.config/tint2/tint2rc-alma &
+       
         # Starta Chromium i fullskärm, och se till att den startar om ifall den avslutas helt av någon anledning
         while true; do
             chromium-browser --start-maximized --user-data-dir=/tmp/chromium-temp-profile --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
@@ -937,6 +1067,107 @@ EOL
 
 systemctl enable guest.service
 
+# Skapa service som körs vid avslut av session
+cat <<'EOL' > /etc/systemd/system/session-cleanup.service
+[Unit]
+Description=Cleanup after guest session
+After=guest.service
+Requires=guest.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/session_cleanup.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+systemctl enable session-cleanup.service
+
+# Skapa skript som körs vid avslut av session
+cat <<'EOL' > /usr/local/bin/session_cleanup.sh
+#!/bin/bash
+
+# Uppdatera aktuell boknings sluttid med nuvarande tid.
+# Så att datorn blir ledig igen när användaren loggar ut eller när sessionen avslutas pga inaktivitet.
+# Config-parameter som styr om det ska vara aktivt. BOOKING_TYPE=dropin
+# Kontroll i api om nuvarande tid är större än end_time, då ska inte end_time uppdateras
+
+
+ENV_FILE="/usr/local/bin/config/.config"
+SECRET_FILE="/usr/local/bin/secrets/.secrets"
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo "Fel: $ENV_FILE hittades inte"
+    exit 0
+else
+    # Gör variabler tillgängliga i script
+    source "$ENV_FILE"
+    echo "Hittade $ENV_FILE"
+fi
+
+if [ ! -f "$SECRET_FILE" ]; then
+    echo "Fel: $SECRET_FILE hittades inte"
+    exit 0
+else
+    # Gör variabler tillgängliga i script
+    source "$SECRET_FILE"
+    echo "Hittade $SECRET_FILE"
+fi
+
+if [ "$BOOKING_TYPE" == "dropin" ]; then
+    if [ -z "$BOOKING_API_KEY" ]; then
+        echo "Error: API key (BOOKING_API_KEY) not found in $SECRET_FILE" >> /var/log/guest_cleanup.log
+        exit 0
+    else
+        echo "BOOKING_API_KEY: $BOOKING_API_KEY"
+    fi
+
+    if [ -z "$RESERVATION_API_UPDATE_URL" ]; then
+        echo "Error: API key (RESERVATION_API_UPDATE_URL) not found in $ENV_FILE" >> /var/log/guest_cleanup.log
+        exit 0
+    fi
+
+    BOOKING_ID=$(cat /tmp/current_booking_id.txt)
+
+    if [ -z "$BOOKING_ID" ]; then
+        echo "Error: booking_id not found in /tmp/current_booking_id.txt" >> /var/log/guest_cleanup.log
+        exit 0
+    else
+        echo "Booking id: $BOOKING_ID"
+    fi
+
+    END_TIME=$(date +%s)
+
+    echo "end_time: $END_TIME"
+
+    API_URL="$RESERVATION_API_UPDATE_URL$BOOKING_ID?end_time=$END_TIME"
+
+    echo "API_URL: $API_URL"
+
+    API_RESPONSE=$(curl -s -w "%{http_code}" -o /tmp/api_response.json -X POST "$API_URL" \
+        -H "Content-Type: application/json" \
+        -d "{\"status\": \"ended\", \"apikey\": \"$BOOKING_API_KEY\"}")
+
+    # Extract the HTTP response code from the curl response
+    HTTP_CODE="${API_RESPONSE: -3}"
+
+    # Check if the HTTP code indicates success (e.g., 200 OK)
+    if [ "$HTTP_CODE" -eq 200 ]; then
+        echo "API request successful. Response logged." >> /var/log/guest_cleanup.log
+    else
+        echo "Error: API request failed with HTTP status code $HTTP_CODE. Response logged in /tmp/api_response.json" >> /var/log/guest_cleanup.log
+        cat /tmp/api_response.json >> /var/log/guest_cleanup.log
+        exit 0
+    fi
+else
+   echo "Drop in bookings not activated" >> /var/log/guest_cleanup.log
+fi
+EOL
+
+chmod +x /usr/local/bin/session_cleanup.sh
+
 ## Tillåt alla att starta x11
 cat <<'EOL' > /etc/X11/Xwrapper.config
 allowed_users=anybody
@@ -1077,19 +1308,20 @@ chmod +x /usr/local/bin/allowlist_from_ezproxy.sh
 mkdir /usr/local/bin/electron-login
 
 cat <<'EOL' > /usr/local/bin/electron-login/main.js
-const { app, BrowserWindow, screen, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, Menu, globalShortcut } = require('electron');
 const path = require('path');
 const axios = require('axios');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: path.resolve(__dirname, '../config', '.config') });
 
-const { API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CURRENT_RES_URL, EXTERNAL_URL_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
+const { BOOKING_TYPE, DEFAULT_BOOKING_TIME, API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CREATE_URL, RESERVATION_API_UPDATE_URL, RESERVATION_API_CURRENT_RES_URL, MAIN_WINDOW_TIMEOUT, EXTERNAL_URL_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
 
 let mainWindow;
 let newWindow;
 let storedUsername = '';
 let inactivityTimer = null;
+let authToken = null;
 
 /**
  * Verifies the user's code (PIN or password).
@@ -1104,7 +1336,10 @@ async function verifyCode(username, code) {
         const response = await axios.post(endpoint, data, { timeout: 10000 });
         switch (response.data.message) {
             //Skicka tillbaks almas primary_id om allt är ok
-            case 'Success': return response.data.data.primary_id;
+            case 'Success': {
+                authToken = response.data.token;
+                return response.data.data.primary_id;
+            }
             default: return 'invalid';
         }
     } catch (error) {
@@ -1112,7 +1347,7 @@ async function verifyCode(username, code) {
             if (error.response.status === 400) return 'invalid-username';
             if (error.response.status === 401) return 'invalid';
         }
-        console.error('Error: Could not connect to API');
+        console.error('Error: ' + error);
         return 'error';
     }
 }
@@ -1155,6 +1390,66 @@ async function checkCurrentReservationStatus() {
 }
 
 /**
+ * Creates a reservation for a given username.
+ * @param {string} room_id - The id for the computer/resource.
+ * @returns {Promise<Object|string>} The reservation data or an error message.
+ * reservationapi: "RESERVATION_API_CREATE_URL:room_id"
+ */
+async function createReservation(create_by, name, start_time, end_time) {
+    try {
+        const response = await axios.post(
+          `${RESERVATION_API_CREATE_URL}${RESOURCE_ID}`,
+          {
+              create_by,
+              name,
+              start_time,
+              end_time
+          },
+          {
+              timeout: 10000,  
+              headers: { 
+                "Content-Type": "application/json",
+                "x-access-token": authToken,
+              }  
+          }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error creating reservation:', error.message);
+        return 'Error: Could not create reservation';
+    }
+}
+
+/**
+ * Updates a reservation for a given entry_id.
+ * @param {string}
+ * @returns {Promise<Object|string>} The reservation data or an error message.
+ * reservationapi: "RESERVATION_API_UPDATE_URL:entry_i"
+ */
+async function resetReservation(entry_id) {
+    try {
+        // Sätt sluttid till nu minus 10 sekunder för att säkerställa att en kontroll inte visar att bokning finns.
+        const end_time = new Date();
+        const endTimestamp = Math.floor(end_time.getTime() / 1000) - 10;
+        const response = await axios.post(
+          `${RESERVATION_API_UPDATE_URL}${entry_id}?end_time=${endTimestamp}`,
+          {},
+          {
+              timeout: 10000,  
+              headers: { 
+                "Content-Type": "application/json",
+                "x-access-token": authToken,
+              }  
+          }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error updating reservation:', error);
+        return 'Error: Could not update reservation';
+    }
+}
+
+/**
  * Creates the main application window.
  */
 function createMainWindow() {
@@ -1174,7 +1469,7 @@ function createMainWindow() {
 
     const dynamicComputerName = process.env.RESOURCE_ID || '1';
 
-    mainWindow.loadFile('index.html', { query: { computername: dynamicComputerName } });
+    mainWindow.loadFile('index.html', { query: { computername: dynamicComputerName, bookingType: BOOKING_TYPE } });
 
     mainWindow.on('closed', () => {
         if (statusUpdateInterval) clearInterval(statusUpdateInterval);
@@ -1183,14 +1478,20 @@ function createMainWindow() {
 
     let statusUpdateInterval;
 
-    mainWindow.webContents.on('did-finish-load', () => {
-        async function updateReservationStatus() {
-            const currentstatus = await checkCurrentReservationStatus();
-            mainWindow.webContents.send('current-status', currentstatus);
+    mainWindow.webContents.on('did-finish-load', async() => {
+        //Kontrollera om det finns en bokning
+        //Görs inte för dropin-datorer
+        if (BOOKING_TYPE === 'dropin') {
+            //Sätt status till obokad
+            mainWindow.webContents.send('current-status', {valid: false});
+        } else {
+            async function updateReservationStatus() {
+                const currentstatus = await checkCurrentReservationStatus();
+                mainWindow.webContents.send('current-status', currentstatus);
+            }
+            updateReservationStatus();
+            statusUpdateInterval = setInterval(updateReservationStatus, 10000);
         }
-        updateReservationStatus();
-        statusUpdateInterval = setInterval(updateReservationStatus, 10000);
-
         mainWindow.webContents.send('load-username', storedUsername);
         const placeholder = LOGINTYPE === 'pin' ? 'PIN' : 'lösenord / password';
         mainWindow.webContents.executeJavaScript(`
@@ -1236,7 +1537,6 @@ function createNewWindow(url) {
     injectExternalScript(newWindow);
 
     //Timer för att återgå till huvudfönstret om användaren är inaktiv i xxx millisekunder
-    //Skapas i 
     const resetInactivityTimer = () => {
         if (inactivityTimer) clearTimeout(inactivityTimer);
         inactivityTimer = setTimeout(() => {
@@ -1348,16 +1648,43 @@ function setupIPC() {
                 mainWindow.webContents.send('user-message', '<div>An error occurred. Please try again.</div><div>If the error persists contact the info desk.</div><br><div>Ett fel uppstod. Försök igen.</div><div>Om felet kvarstår kontakta informationsdisken.</div>');
                 break;
             default:
-                //kolla bokning med det primary_id som alma returnerar för en giltig bokning
-                const reservation = await checkReservation(verificationResult);
-                if (reservation.valid) {
+                
+                // Avsluta(sätt sluttid) eventuell befintlig bokning på Dropin-datorer 
+                if(BOOKING_TYPE==='dropin') {  
+                    const status = await checkCurrentReservationStatus()
+                    if (status.valid) {
+                        const resetBooking = await resetReservation(status.reservation.id);
+                    }
+                }
+                const reservationstatus = await checkCurrentReservationStatus()
+                let reservation
+                if (!reservationstatus.valid) {
+                  // Om datorn är ledig
+                  // Skapa en bokning för användaren med starttid som är nuvarande tids timme. 
+                  // t ex om kl är 12:23 så ska start_time vara 12:00
+                  // end_time ska vara start_time + x timmar
+                  const start_time = new Date();
+                  //start_time.setMinutes(0);
+                  //start_time.setSeconds(0);
+                  start_time.setMilliseconds(0);
+                  const end_time = new Date(start_time);
+                  end_time.setHours(start_time.getHours() + parseInt(DEFAULT_BOOKING_TIME, 10));
+                  const startTimestamp = Math.floor(start_time.getTime() / 1000);
+                  const endTimestamp = Math.floor(end_time.getTime() / 1000);
+                  reservation = await createReservation(username, username, startTimestamp, endTimestamp);
+                } else {
+                  // Om datorn är upptagen
+                  // Kolla bokning med det primary_id som alma returnerar för en giltig bokning
+                  reservation = await checkReservation(verificationResult);
+                }
+               if (reservation.valid) {
                     mainWindow.webContents.send('spinner-remove', ``);
                     //Skickar data tillbaks till anropande shell-script
                     console.log(JSON.stringify({ booking_data: reservation.reservation }));
                     process.exit(0);
                 } else {
                     mainWindow.webContents.send('spinner-remove', ``);
-                    mainWindow.webContents.send('user-message', `<div>User ${username} does not have a valid reservation.</div><div>Användaren ${username} har inte en giltig bokning.</div>`);
+                    mainWindow.webContents.send('user-message', `<div class="kth-alert warning"> <h2>Login/booking failed</h2> <p>${reservation.message}</p></div>`);
                 }
         }
     });
@@ -1386,7 +1713,6 @@ function setupIPC() {
             inactivityTimer = null;
             ipcMain.removeAllListeners('user-activity');
         }
-        //if (newWindow) newWindow.destroy();
         createMainWindow();
     });
 }
@@ -1422,18 +1748,22 @@ EOL
 cat <<'EOL' > /usr/local/bin/electron-login/index.html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Check-In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     html {
       font-size: 18px;
     }
+
     @media (max-width: 1279px) {
       html {
         font-size: 14px;
@@ -1445,7 +1775,9 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
         font-size: 10px;
       }
     }
-    body, html {
+
+    body,
+    html {
       font-family: "Figtree", Arial, "Helvetica Neue", helvetica, sans-serif;
       font-weight: 300;
       color: #ffffff;
@@ -1461,6 +1793,7 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       background-position: center;
       background-repeat: no-repeat;
     }
+
     .form {
       background: rgba(255, 255, 255, 0);
       padding: 20px;
@@ -1468,12 +1801,14 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       text-align: center;
       margin-top: 0px;
     }
+
     .logintext {
       color: #ffffff;
       font-size: 20px;
       font-weight: 500;
       margin-bottom: 20px;
     }
+
     .form-container {
       display: block;
       text-align: center;
@@ -1483,13 +1818,14 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       margin-top: 0px;
       width: 300px;
     }
-    .message-container, #spinner {
+
+    .message-container,
+    #spinner {
       display: none;
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(255, 255, 255, 0.6);
       padding: 20px;
       border-radius: 8px;
       margin-top: 0px;
@@ -1497,12 +1833,15 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       position: absolute;
       height: 100%;
       width: 100%;
+      margin: 0;
+      padding: 0;
     }
+
     .user-message {
-      font-size: 2em;
-      color: white;
+      color: #Ffffff;
       margin-bottom: 10px;
     }
+
     input {
       display: block;
       margin: 10px auto;
@@ -1511,6 +1850,7 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       border-radius: 10px;
       font-size: 22px;
     }
+
     button {
       padding: 10px 20px;
       background-color: #1e9044;
@@ -1519,17 +1859,21 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       border-radius: 5px;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #45a049;
     }
 
-   #open-book-computer {
-    background-color: #78001A;
-   }
-   #open-register {
-    background-color: #A65900;
-   }
-   #open-book-computer,  #open-register {
+    #open-book-computer {
+      background-color: #78001A;
+    }
+
+    #open-register {
+      background-color: #A65900;
+    }
+
+    #open-book-computer,
+    #open-register {
       position: relative;
       padding: 10px;
       width: 130px;
@@ -1553,12 +1897,12 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       font-weight: 700;
     }
 
-    .computerinfo.sv { 
+    .computerinfo.sv {
       color: #ffffff;
       margin-bottom: 20px;
     }
 
-    .computerinfo.en { 
+    .computerinfo.en {
       color: #6298D2;
       margin-bottom: 40px;
     }
@@ -1575,112 +1919,212 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       font-weight: 700;
     }
 
-/* Styling the container */
-.login-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 300px; /* Adjust width */
-    margin: 50px auto; /* Center the form on the page */
-    font-family: Arial, sans-serif;
-}
+    /* Styling the container */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 300px;
+      /* Adjust width */
+      margin: 50px auto;
+      /* Center the form on the page */
+      font-family: Arial, sans-serif;
+    }
 
-/* Styling the username field */
-#username {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    box-sizing: border-box;
-}
+    /* Styling the username field */
+    #username {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
 
-/* Styling the password field wrapper */
-.password-field {
-    position: relative;
-    width: 100%;
-}
+    /* Styling the password field wrapper */
+    .password-field {
+      position: relative;
+      width: 100%;
+    }
 
-/* Styling the password input */
-.password-field input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    padding-right: 45px; /* Space for button */
-    box-sizing: border-box;
-    margin: 0;
-}
+    /* Styling the password input */
+    .password-field input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      padding-right: 45px;
+      /* Space for button */
+      box-sizing: border-box;
+      margin: 0;
+    }
 
-/* Styling the login button */
-.password-field button {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    height: 100%;
-    width: 35px;
-    border: none;
-    background-color: #ccc;
-    color: black;
-    font-size: 18px;
-    border-radius: 3px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+    /* Styling the login button */
+    .password-field button {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      height: 100%;
+      width: 35px;
+      border: none;
+      background-color: #ccc;
+      color: black;
+      font-size: 18px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-/* Adjusting button hover effect */
-.password-field button:hover {
-    background-color: #bbb;
-}
+    /* Adjusting button hover effect */
+    .password-field button:hover {
+      background-color: #bbb;
+    }
 
-#currentreservationinfo {
-  font-size: 4em;
-  font-weight: 600;
-  display:flex;
-  justify-content:center;
-  align-items: center; 
-  height:100px;
-  color: white;
-}
-.available {
-  background-color: #4DA060;
-}
-.booked {
-  background-color: #E86A58;
-}
-/* https://cssloaders.github.io */
-.loader {
-  width: 48px;
-  height: 48px;
-  border: 5px solid #FFF;
-  border-bottom-color: transparent;
-  border-radius: 50%;
-  display: inline-block;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
-  }
+    #currentreservationinfo {
+      font-size: 4em;
+      font-weight: 600;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+      color: white;
+    }
 
-  @keyframes rotation {
-  0% {
-      transform: rotate(0deg);
-  }
-  100% {
-      transform: rotate(360deg);
-  }
-} 
-</style>
+    .available {
+      background-color: #4DA060;
+    }
+
+    .booked {
+      background-color: #E86A58;
+    }
+
+    /* https://cssloaders.github.io */
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #FFF;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* KTH STYLE*/
+    .kth-alert.warning {
+      border-color: #c7321d;
+    }
+
+    .kth-alert.info {
+      border-color: #004791;
+    }
+
+    .kth-alert {
+      color: #000000;
+      background-color: #ffffff;
+      display: grid;
+      gap: .25rem .5rem;
+      grid-template-columns: auto 1fr;
+      padding-inline: .625rem;
+      padding-block: .5rem 1rem;
+      border-block-start-width: .375rem;
+      border-inline-width: .125rem;
+      border-block-end-width: .125rem;
+      border-style: solid;
+      border-color: var(--color-text);
+    }
+
+    .kth-alert.warning:before {
+      --icon: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20fill%3D%22none%22%3E%3Cpath%20fill%3D%22%23212121%22%20d%3D%22M2.386%2017.085a.848.848%200%200%201-.764-.435.735.735%200%200%201-.109-.43c.007-.16.05-.311.13-.455L9.255%203.062a.708.708%200%200%201%20.324-.313.982.982%200%200%201%20.843%200%20.709.709%200%200%201%20.324.313l7.611%2012.703c.08.144.123.296.13.455a.735.735%200%200%201-.109.43.98.98%200%200%201-.31.313.83.83%200%200%201-.454.122H2.386ZM3.77%2015.43h12.46L10%205.056%203.77%2015.43Zm6.226-.945a.758.758%200%200%200%20.55-.224.736.736%200%200%200%20.229-.546.75.75%200%200%200-.224-.549.74.74%200%200%200-.547-.226.762.762%200%200%200-.55.222.728.728%200%200%200-.229.544c0%20.214.075.398.224.55.15.153.332.23.547.23Zm0-2.485c.21%200%20.39-.072.535-.216a.72.72%200%200%200%20.219-.534V8.805a.728.728%200%200%200-.214-.535.72.72%200%200%200-.532-.215.734.734%200%200%200-.535.215.72.72%200%200%200-.219.535v2.445c0%20.213.071.39.214.534a.72.72%200%200%200%20.532.216Z%22%2F%3E%3C%2Fsvg%3E);
+      content: "";
+      display: inline-block;
+      width: 1.25rem;
+      min-width: 1.25rem;
+      height: 1.25rem;
+      mask-image: var(--icon);
+      mask-size: cover;
+      background-color: currentColor;
+    }
+
+    .kth-alert.info:before {
+      --icon: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20fill%3D%22none%22%3E%3Cpath%20fill%3D%22%23212121%22%20d%3D%22M11%207c-1%200-3.5%202-4%202.5l.5.5c.5-.5%201-1%202-1s-1%204-1%207.5c0%201.5%201%201.5%202%201s2.5-1.5%203-2L13%2015c-1%20.5-1.5%201.5-2%201s1-7%201-8%200-1-1-1ZM12.5%204a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200Z%22%2F%3E%3C%2Fsvg%3E);
+      content: "";
+      display: inline-block;
+      width: 1.25rem;
+      min-width: 1.25rem;
+      height: 1.25rem;
+      mask-image: var(--icon);
+      mask-size: cover;
+      background-color: currentColor;
+    }
+
+    .kth-alert>:is(h2, h3, h4) {
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .kth-alert p:last-child {
+      margin-block-end: 0;
+    }
+
+    .kth-alert p {
+      margin-block: .5rem;
+    }
+
+    .kth-alert>* {
+      grid-column-start: 2;
+    }
+
+    .kth-button.success,
+    .kth-button.next {
+      background: #3d784a;
+      color: #fcfcfc;
+    }
+
+    .kth-button {
+      display: inline-flex;
+      padding: .5rem 1rem;
+      justify-content: center;
+      align-items: center;
+      border: unset;
+      border-radius: 1.25rem;
+      background: none;
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      text-decoration: none;
+    }
+  </style>
 </head>
+
 <body>
   <div class="nav">
     <button id="open-book-computer" class="open-url">
-      <i class="fas fa-desktop" style="color:#ffffff26;font-size: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i><span style="font-weight: 700">Boka dator / Book computer</span>
+      <i class="fas fa-desktop"
+        style="color:#ffffff26;font-size: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i><span
+        style="font-weight: 700">Boka dator / Book computer</span>
     </button>
     <button id="open-register" class="open-url">
-      <i class="fas fa-user-pen" style="color:#ffffff26;font-size: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i><span style="font-weight: 700">Registrera bibliotekskonto / Register library account</span>
+      <i class="fas fa-user-pen"
+        style="color:#ffffff26;font-size: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i><span
+        style="font-weight: 700">Registrera bibliotekskonto / Register library account</span>
     </button>
   </div>
   <div id="form-container" class="form">
@@ -1693,89 +2137,95 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
     <div class="login-container">
       <input id="username" type="text" placeholder="användarnamn / username">
       <div class="password-field">
-          <input id="pin" type="password" placeholder="">
-          <button id="submit-button" aria-label="Login"><i class="fa fa-arrow-right"></i></button>
+        <input id="pin" type="password" placeholder="">
+        <button id="submit-button" aria-label="Login"><i class="fa fa-arrow-right"></i></button>
       </div>
     </div>
   </div>
   <div id="spinner"><span class="loader"></span></div>
   <div class="message-container" id="message-container">
     <div class="user-message" id="user-message"></div>
-    <button id="ok-button">OK</button>
+    <button class="kth-button success" id="ok-button">OK</button>
   </div>
 
   <script>
-        const { ipcRenderer } = require('electron');
-        const formContainer = document.getElementById('form-container');
-        const messageContainer = document.getElementById('message-container');
-        const userMessageElement = document.getElementById('user-message');
-        const spinner = document.getElementById('spinner');
-        const computernameContainer = document.getElementById('computername-container');
+    const { ipcRenderer } = require('electron');
+    const formContainer = document.getElementById('form-container');
+    const messageContainer = document.getElementById('message-container');
+    const userMessageElement = document.getElementById('user-message');
+    const spinner = document.getElementById('spinner');
+    const computernameContainer = document.getElementById('computername-container');
 
-        document.addEventListener('DOMContentLoaded', () => {
-            //Check current status
-            ipcRenderer.on('current-status', (event, status) => {
-              if (status.valid) {
-                computernameContainer.classList.add('booked');
-                computernameContainer.classList.remove('available');
-                document.getElementById('currentreservationinfo').innerHTML = `Bokad / Booked`;
-              } else {
-                computernameContainer.classList.add('available');
-                computernameContainer.classList.remove('booked');
-                document.getElementById('currentreservationinfo').innerHTML = `Ledig / Available`;
-              }
-            });
+    document.addEventListener('DOMContentLoaded', () => {
+      //Check current status
+      ipcRenderer.on('current-status', (event, status) => {
+        if (status.valid) {
+          computernameContainer.classList.add('booked');
+          computernameContainer.classList.remove('available');
+          document.getElementById('currentreservationinfo').innerHTML = `Bokad / Booked`;
+        } else {
+          computernameContainer.classList.add('available');
+          computernameContainer.classList.remove('booked');
+          document.getElementById('currentreservationinfo').innerHTML = `Ledig / Available`;
+        }
+      });
 
-            const params = new URLSearchParams(window.location.search);
-            const computername = params.get('computername') || 'Datornamn saknas';
+      const params = new URLSearchParams(window.location.search);
+      const computername = params.get('computername') || 'Datornamn saknas';
+      const bookingType = params.get('bookingType') || 'bookable'
 
-            document.querySelector('#computername').innerHTML = `${computername}`;
+      document.querySelector('#computername').innerHTML = `${computername}`;
 
-            ipcRenderer.on('load-username', (event, username) => {
-                document.getElementById('username').value = username;
-            });
+      ipcRenderer.on('load-username', (event, username) => {
+        document.getElementById('username').value = username;
+      });
 
-            ipcRenderer.on('user-message', (event, message) => {
-            	//formContainer.style.display = 'none';
-            	userMessageElement.innerHTML = message;
-            	messageContainer.style.display = 'flex';
-            });
+      ipcRenderer.on('user-message', (event, message) => {
+        //formContainer.style.display = 'none';
+        userMessageElement.innerHTML = message;
+        messageContainer.style.display = 'flex';
+      });
 
-            ipcRenderer.on('spinner-start', (event, message) => {
-            	spinner.style.display = 'flex';
-            });
+      ipcRenderer.on('spinner-start', (event, message) => {
+        spinner.style.display = 'flex';
+      });
 
-            ipcRenderer.on('spinner-remove', (event, message) => {
-            	spinner.style.display = 'none';
-            });
+      ipcRenderer.on('spinner-remove', (event, message) => {
+        spinner.style.display = 'none';
+      });
 
-            document.getElementById('ok-button').addEventListener('click', () => {
-            	messageContainer.style.display = 'none';
-            	//formContainer.style.display = 'block';
-            });
+      document.getElementById('ok-button').addEventListener('click', () => {
+        messageContainer.style.display = 'none';
+        //formContainer.style.display = 'block';
+      });
 
-            document.getElementById('submit-button').addEventListener('click', () => {
-                const username = document.getElementById('username').value;
-                const pin = document.getElementById('pin').value;
-                ipcRenderer.send('submit-form', username, pin);
-            });
+      document.getElementById('submit-button').addEventListener('click', () => {
+        const username = document.getElementById('username').value;
+        const pin = document.getElementById('pin').value;
+        ipcRenderer.send('submit-form', username, pin);
+      });
 
-            document.getElementById('pin').addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') {
-                    document.getElementById('submit-button').click();
-                }
-            });
+      document.getElementById('pin').addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+          document.getElementById('submit-button').click();
+        }
+      });
 
-            document.getElementById('open-book-computer').addEventListener('click', () => {
-                ipcRenderer.send('load-external-url', 'book-computer');
-            });
-
-            document.getElementById('open-register').addEventListener('click', () => {
-                ipcRenderer.send('load-external-url', 'register-account');
-            });
+      if (bookingType == 'dropin') {
+        document.getElementById('open-book-computer').remove();
+      } else {
+        document.getElementById('open-book-computer').addEventListener('click', () => {
+          ipcRenderer.send('load-external-url', 'book-computer');
         });
+      }
+
+      document.getElementById('open-register').addEventListener('click', () => {
+        ipcRenderer.send('load-external-url', 'register-account');
+      });
+    });
   </script>
 </body>
+
 </html>
 EOL
 

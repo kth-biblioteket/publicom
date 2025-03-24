@@ -2,9 +2,13 @@ REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/ma
 RESOURCE_ID=x
 LOGINTYPE=password
 API_URL=https://apps-ref.lib.kth.se/almatools/almalogin
+RESERVATION_API_UPDATE_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entry/updateendtime/guestcomputers/
+RESERVATION_API_CREATE_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entry/create/guestcomputers/
 RESERVATION_API_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entry/validate/guestcomputers/
 RESERVATION_API_CURRENT_RES_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entry/check/guestcomputers/
 BOOKING_SYSTEM_URL=https://apps-ref.lib.kth.se/guestcomputers
+BOOKING_TYPE=dropin
+DEFAULT_BOOKING_TIME=1
 REGISTER_ACCOUNT_URL=https://apps.lib.kth.se/formtools/api/v1/kthbform?formid=libraryaccount_kiosk&lang=sv&kiosk=true
 EXTERNAL_URL_TIMEOUT=30000
 ELECTRON_DEV_TOOLS=false

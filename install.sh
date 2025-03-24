@@ -322,8 +322,8 @@ border_width = 0
 border_sides = TBLR
 border_content_tint_weight = 0
 background_content_tint_weight = 0
-background_color = #000000 60
-border_color = #000000 30
+background_color = #000061 60
+border_color = #6298D2 30
 background_color_hover = #000000 60
 border_color_hover = #000000 30
 background_color_pressed = #000000 60
@@ -370,7 +370,7 @@ time1_timezone =
 time2_timezone = 
 clock_font_color = #ffffff 100
 clock_padding = 2 0
-clock_background_id = 0
+clock_background_id = 1
 clock_tooltip = 
 clock_tooltip_timezone = 
 clock_lclick_command = 
@@ -385,7 +385,7 @@ clock_dwheel_command =
 tooltip_show_timeout = 0.5
 tooltip_hide_timeout = 0.1
 tooltip_padding = 4 4
-tooltip_background_id = 5
+tooltip_background_id = 1
 tooltip_font_color = #dddddd 100
 
 # Executor 1
@@ -393,7 +393,7 @@ execp = new
 execp_command = /usr/local/bin/update_tint_computer_name.sh
 execp_interval = 0
 execp_has_icon = 0
-execp_cache_icon = 1
+execp_cache_icon = 0
 execp_continuous = 0
 execp_markup = 1
 execp_tooltip =
@@ -402,13 +402,11 @@ execp_rclick_command =
 execp_mclick_command =
 execp_uwheel_command =
 execp_dwheel_command =
-execp_font = Droid Sans Fallback 12
-execp_font_color = #EBE5E0 100
+execp_font = "Sans" 12
+execp_font_color = #ffffff 100
 execp_padding = 100 100 10
-execp_background_id = 0
+execp_background_id = 1
 execp_centered = 0
-execp_icon_w = 0
-execp_icon_h = 0
 
 # Executor 2
 execp = new
@@ -416,20 +414,20 @@ execp_command = echo "$(/usr/local/bin/show_remaining_time.sh)"
 execp_interval = 1
 execp_has_icon = 1
 execp_cache_icon = 1
-execp_icon_w = 16  # Width of the icon
-execp_icon_h = 16  # Height of the icon
+execp_icon_w = 32  # Width of the icon
+execp_icon_h = 32  # Height of the icon
 execp_continuous = 0
 execp_markup = 1
 execp_tooltip = Left click for hardinfo
 execp_lclick_command = hardinfo
-execp_rclick_command =
-execp_mclick_command =
-execp_uwheel_command =
-execp_dwheel_command =
-execp_font = Droid Sans Fallback 12
-execp_font_color = #6298D2 100
-execp_padding = 100 10 10
-execp_background_id = 0
+execp_rclick_command = 
+execp_mclick_command = 
+execp_uwheel_command = 
+execp_dwheel_command = 
+execp_font = "Sans" 12
+execp_font_color = #ffffff 100
+execp_padding = 100 100 10
+execp_background_id = 1
 execp_centered = 0
 
 # Executor 3 - Inaktivitetsvarning
@@ -437,17 +435,17 @@ execp = new
 execp_command = cat /tmp/tint2_inactivity_warning.txt
 execp_interval = 1
 execp_has_icon = 1
-execp_icon_w = 16  # Width of the icon
-execp_icon_h = 16  # Height of the icon
+execp_icon_w = 32  # Width of the icon
+execp_icon_h = 32  # Height of the icon
 execp_cache_icon = 1
 execp_continuous = 0
 execp_markup = 1
 execp_tooltip = Left click to clear
-execp_lclick_command = echo "" > /tmp/tint2_inactivity_warning.txt
-execp_font = Droid Sans Fallback 12
-execp_font_color = #FF0000 100
+execp_lclick_command = echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inactivity_warning.txt
+execp_font = "Sans" 12
+execp_font_color = #FF0000 100  # Red color for warning
 execp_padding = 100 100 10
-execp_background_id = 0
+execp_background_id = 1
 execp_centered = 0
 
 #-------------------------------------
@@ -462,7 +460,7 @@ button_uwheel_command =
 button_dwheel_command =
 button_font_color = #ffffff 100
 button_padding = 5 0
-button_background_id = 0
+button_background_id = 1
 button_centered = 0
 button_max_icon_size = 28
 EOL
@@ -484,7 +482,7 @@ for i in {1..30}; do
     IDLE_TIME=$(xprintidle)
     if [[ $IDLE_TIME -lt 1000 ]]; then
         # Användaren aktiv, rensa meddelande
-        echo "" > "$WARNING_FILE"
+        echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > "$WARNING_FILE"
         exit 0
     fi
     sleep 1
@@ -810,7 +808,7 @@ source "$ENV_FILE"
 rm -f /tmp/logout_timer.txt
 
 # Rensa tint2 warnings
-echo "" > /tmp/tint2_inactivity_warning.txt
+echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inactivity_warning.txt
 
 # Uppdatera timeout för skärmsläckare
 sed -i "s/^timeout:.*$/timeout: $SCREENSAVER_IDLE/" /home/guest/.xscreensaver
@@ -1635,17 +1633,17 @@ function setupIPC() {
         switch (verificationResult) {
             case 'invalid-username':
                 mainWindow.webContents.send('spinner-remove', ``);
-                mainWindow.webContents.send('user-message', 'Invalid username. Please try again.');
+                mainWindow.webContents.send('user-message', '<div class="kth-alert warning"><h2>Invalid username. / Fel användarnamn.</h2> <p>Please try again. / Försök igen.</p>');
                 break;
             case 'invalid':
                 const message_en = LOGINTYPE === 'pin' ? 'Invalid Username/PIN' : 'Invalid Username/Password';
                 const message_sv = LOGINTYPE === 'pin' ? 'Fel Username/PIN' : 'Fel Username/Password';
                 mainWindow.webContents.send('spinner-remove', ``);
-                mainWindow.webContents.send('user-message', `<div>${message_en}. Please try again.</div> <div>${message_sv}. Försök igen.</div>`);
+                mainWindow.webContents.send('user-message', `<div class="kth-alert warning"><h2>Info</h2><p>${message_en}. Please try again.</p><p>${message_sv}. Försök igen.</p>`);
                 break;
             case 'error':
                 mainWindow.webContents.send('spinner-remove', ``);
-                mainWindow.webContents.send('user-message', '<div>An error occurred. Please try again.</div><div>If the error persists contact the info desk.</div><br><div>Ett fel uppstod. Försök igen.</div><div>Om felet kvarstår kontakta informationsdisken.</div>');
+                mainWindow.webContents.send('user-message', '<div class="kth-alert warning"><h2>An error occurred. Please try again. / Ett fel uppstod. Försök igen.</h2><p>If the error persists contact the info desk. / Om felet kvarstår kontakta informationsdisken.</p>');
                 break;
             default:
                 
@@ -2242,11 +2240,14 @@ npm install electron
 npm install axios
 npm install dotenv
 
-# Ladda ner bakgrunder (Electron/feh)
+# Ladda ner bakgrunder etc (Electron/feh)
 curl -o "/usr/local/bin/KTH_logo_RGB_vit_small.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/KTH_logo_RGB_vit_small.png
 curl -o "/usr/local/bin/screen_bg_gc.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_gc.png
 curl -o "/usr/local/bin/screen_bg_gc_empty.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_gc_empty.png
 curl -o "/usr/local/bin/screen_bg_kth_logo_navy.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_kth_logo_navy.png
+curl -0 "/usr/local/bin/icons/icons8-green-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-green-circle-32.png
+curl -0 "/usr/local/bin/icons/icons8-red-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-green-red-32.png
+
 
 # Hantera ctrl + alt + f1-f6 för att hindra användares åtkomst till konsol.
 cat <<EOL > /usr/share/X11/xorg.conf.d/50-novtswitch.conf

@@ -1,4 +1,4 @@
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_kc1"
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_scsg"
 RESOURCE_ID=x
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin
@@ -8,20 +8,20 @@ RESERVATION_API_URL=https://api.lib.kth.se/bookingsystem/v1/entry/validate/guest
 RESERVATION_API_CURRENT_RES_URL=https://api.lib.kth.se/bookingsystem/v1/entry/check/guestcomputers/
 BOOKING_SYSTEM_URL=https://apps.lib.kth.se/guestcomputers
 BOOKING_TYPE=dropin
-DEFAULT_BOOKING_TIME=1
+DEFAULT_BOOKING_TIME=2
 REGISTER_ACCOUNT_URL=https://apps.lib.kth.se/formtools/api/v1/kthbform?formid=libraryaccount_kiosk&lang=sv&kiosk=true
 EXTERNAL_URL_TIMEOUT=30000
 ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=false
 PRINTER=false
 COMPUTER_TYPE=searchcomputer
-COMPUTER_NAME="KTH Library group rooms"
+COMPUTER_NAME="KTH Library search computer"
 SESSION_IDLE=5
 SCREENSAVER=true
 SCREENSAVER_IDLE=00:30:00
-SCREENSAVER_FILES="screen_bg_kth_logo_navy_grupprum.png"
+SCREENSAVER_FILES="screen_bg_kth_logo_navy_search.png,screen_bg_kth_logo_navy_search_2.png"
 POLICY_FILE="policies_search.json"
 KIOSK=
-WEBSITES="https://apps.lib.kth.se/mrbsgrupprumkiosk https://apps.lib.kth.se/mrbsreadingstudioskiosk"
-WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
+WEBSITES="https://kth-ch.primo.exlibrisgroup.com/discovery/search?vid=46KTH_INST:46KTH_Kiosk&lang=sv https://libris.kb.se/"
+WHITE_LIST="kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se,wagnerguide.com,libris.kb.se"
 BLACK_LIST="*,google.com"

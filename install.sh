@@ -1,7 +1,7 @@
 #!/bin/bash
 ################################################
 ####                                        ####
-####    Installationsfil publika datorer    ####
+####    Installationsfil Publicom           ####
 ####    Ver 2.0                             ####
 ################################################
 
@@ -324,15 +324,15 @@ border_content_tint_weight = 0
 background_content_tint_weight = 0
 background_color = #000061 60
 border_color = #6298D2 30
-background_color_hover = #000000 60
-border_color_hover = #000000 30
-background_color_pressed = #000000 60
-border_color_pressed = #000000 30
+background_color_hover = #000061 60
+border_color_hover = #000061 30
+background_color_pressed = #000061 60
+border_color_pressed = #000061 30
 
 
 #-------------------------------------
 # Panel
-panel_items = T:P:F:E:E:E:C
+panel_items = T:P:F:E:E:E:E:C
 panel_size = 100% 30
 panel_margin = 0 0
 panel_padding = 2 0 2
@@ -388,7 +388,27 @@ tooltip_padding = 4 4
 tooltip_background_id = 1
 tooltip_font_color = #dddddd 100
 
-# Executor 1
+# Executor 1 - Visa inloggad användare
+execp = new
+execp_command = cat /tmp/current_alma_userid_id.txt
+execp_interval = 0
+execp_has_icon = 0
+execp_cache_icon = 0
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip =
+execp_lclick_command =
+execp_rclick_command =
+execp_mclick_command =
+execp_uwheel_command =
+execp_dwheel_command =
+execp_font = "Sans" 12
+execp_font_color = #ffffff 100
+execp_padding = 50 50 10
+execp_background_id = 1
+execp_centered = 0
+
+# Executor 2 - Visa datornamn
 execp = new
 execp_command = /usr/local/bin/update_tint_computer_name.sh
 execp_interval = 0
@@ -404,11 +424,11 @@ execp_uwheel_command =
 execp_dwheel_command =
 execp_font = "Sans" 12
 execp_font_color = #ffffff 100
-execp_padding = 100 100 10
+execp_padding = 50 50 10
 execp_background_id = 1
 execp_centered = 0
 
-# Executor 2
+# Executor 3 - Visa kvarvarande tid för sessionen
 execp = new
 execp_command = echo "$(/usr/local/bin/show_remaining_time.sh)"
 execp_interval = 1
@@ -426,25 +446,25 @@ execp_uwheel_command =
 execp_dwheel_command = 
 execp_font = "Sans" 12
 execp_font_color = #ffffff 100
-execp_padding = 100 100 10
+execp_padding = 50 50 10
 execp_background_id = 1
 execp_centered = 0
 
-# Executor 3 - Inaktivitetsvarning
+# Executor 4 - Inaktivitetsvarning
 execp = new
 execp_command = cat /tmp/tint2_inactivity_warning.txt
 execp_interval = 1
 execp_has_icon = 1
-execp_icon_w = 32  # Width of the icon
-execp_icon_h = 32  # Height of the icon
+execp_icon_w = 32  
+execp_icon_h = 32  
 execp_cache_icon = 1
 execp_continuous = 0
 execp_markup = 1
 execp_tooltip = Left click to clear
-execp_lclick_command = echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inactivity_warning.txt
+execp_lclick_command = /usr/local/bin/clear_inactivity.sh
 execp_font = "Sans" 12
-execp_font_color = #FF0000 100  # Red color for warning
-execp_padding = 100 100 10
+execp_font_color = #FF8282 100
+execp_padding = 50 50 10
 execp_background_id = 1
 execp_centered = 0
 
@@ -472,13 +492,13 @@ cat <<'EOL' > /usr/local/bin/tint2_inactivity_warning.sh
 WARNING_FILE="/tmp/tint2_inactivity_warning.txt"
 
 # Skriv meddelande till tint2
-echo -e "/usr/share/icons/Humanity/actions/32/gtk-cancel.svg\nInactive session will terminate soon!" > "$WARNING_FILE"
+echo -e "/usr/local/bin/icons/icons8-red-circle-32.png\nInactive session will terminate soon!" > "$WARNING_FILE"
 
 # Vänta så idle_time hinner uppdateras
 sleep 2
 
 # Övervaka aktivitet
-for i in {1..30}; do
+for i in {1..60}; do
     IDLE_TIME=$(xprintidle)
     if [[ $IDLE_TIME -lt 1000 ]]; then
         # Användaren aktiv, rensa meddelande
@@ -492,6 +512,14 @@ exit 0
 EOL
 
 chmod +x /usr/local/bin/tint2_inactivity_warning.sh
+
+# Rensa aktivitetsvarning
+cat <<'EOL' > /usr/local/bin/clear_inactivity.sh
+#!/bin/bash
+echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inactivity_warning.txt
+EOL
+
+chmod +x /usr/local/bin/clear_inactivity.sh
 
 # Ser till att konsol inte visas
 systemctl disable getty@tty1
@@ -681,6 +709,9 @@ if zenity --question --text="Are you sure you want to log out?"; then
 fi
 EOL
 
+# Skapa screensaver-folder
+mkdir -p /usr/local/bin/screensaver
+
 # Skapa fil för att konfigurera screensaver
 cat <<'EOL' > /home/guest/.xscreensaver
 timeout:        0:00:10
@@ -846,6 +877,12 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
   else
     # Gästdator som kräver login
     CURRENT_BOOKING_ID_FILE="/tmp/current_booking_id.txt"
+    CURRENT_ALMA_USER_ID_FILE="/tmp/current_alma_userid_id.txt"
+    
+    # Rensa filerna
+    rm -f "$CURRENT_BOOKING_ID_FILE"
+    rm -f "$CURRENT_ALMA_USER_ID_FILE"
+
     current_user=$(whoami)
     log_message "Current user: $current_user"
 
@@ -866,11 +903,15 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
       if [[ $status -eq 0 ]]; then
         # Bokningsdata
         entry_id=$(echo "$form_input" | jq -r '.booking_data.id')
+        create_by=$(echo "$form_input" | jq -r '.booking_data.create_by')
         start_time=$(echo "$form_input" | jq -r '.booking_data.start_time')
         end_time=$(echo "$form_input" | jq -r '.booking_data.end_time')
 
         # Spara entry_id från bokningen
         echo "$entry_id" > "$CURRENT_BOOKING_ID_FILE"
+
+        # Spara create_by från bokningen(för att visa usernamen i tint2)
+        echo "$create_by" > "$CURRENT_ALMA_USER_ID_FILE"
 
         current_time=$(date +%s)
         seconds=$((end_time - current_time))
@@ -1863,10 +1904,12 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
     }
 
     #open-book-computer {
+      display: none;
       background-color: #78001A;
     }
 
     #open-register {
+      display: none;
       background-color: #A65900;
     }
 
@@ -2240,13 +2283,15 @@ npm install electron
 npm install axios
 npm install dotenv
 
+# Skapa icons-folder
+mkdir -p /usr/local/bin/icons
 # Ladda ner bakgrunder etc (Electron/feh)
 curl -o "/usr/local/bin/KTH_logo_RGB_vit_small.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/KTH_logo_RGB_vit_small.png
 curl -o "/usr/local/bin/screen_bg_gc.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_gc.png
 curl -o "/usr/local/bin/screen_bg_gc_empty.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_gc_empty.png
 curl -o "/usr/local/bin/screen_bg_kth_logo_navy.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_kth_logo_navy.png
-curl -0 "/usr/local/bin/icons/icons8-green-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-green-circle-32.png
-curl -0 "/usr/local/bin/icons/icons8-red-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-green-red-32.png
+curl -o "/usr/local/bin/icons/icons8-green-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-green-circle-32.png
+curl -o "/usr/local/bin/icons/icons8-red-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-red-circle-32.png
 
 
 # Hantera ctrl + alt + f1-f6 för att hindra användares åtkomst till konsol.

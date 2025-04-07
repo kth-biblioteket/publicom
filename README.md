@@ -10,14 +10,16 @@ Datorer i bibliotekets publika miljöer
 - Installera en Ubuntu Server (20.04 eller nyare) på en dator.
 - Välj att installera SSH
 - Uppgradera vid behov
-- apt upgrade -y
-- do-release-upgrade
+    - apt upgrade -y
+    - do-release-upgrade
 - BIOS Tillåt endast boot från HD
 - BIOS Lösenordsskydda
 - BIOS quiet etc
 ```bash
 sudo nano /etc/default/grub
 ```
+För Ubuntu 22.04 
+GRUB_CMDLINE_LINUX_DEFAULT="quiet systemd.unified_cgroup_hierarchy=0"
 ```
 GRUB_DEFAULT="Ubuntu"
 GRUB_TIMEOUT_STYLE=hidden
@@ -67,19 +69,24 @@ Kontrollera access till SSH från KTH-nätverket
 
 Kopiera install.sh från github, gör den exekverbar och starta den
 ```bash
-curl -L -o ./install.sh https://raw.githubusercontent.com/kth-biblioteket/publicom/main/install.sh
-chmod +x install.sh
+sudo curl -L -o ./install.sh https://raw.githubusercontent.com/kth-biblioteket/publicom/main/install.sh
+sudo chmod +x install.sh
 sudo ./install.sh
 ```
 
 #### Config Exempel
 ```
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_xxxx"
 RESOURCE_ID=x
 LOGINTYPE=password
-API_URL=https://apps-ref.lib.kth.se/almatools/almalogin
-RESERVATION_API_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entry/validate/guestcomputers/
-RESERVATION_API_CURRENT_RES_URL=https://api-ref.lib.kth.se/bookingsystem/v1/entry/check/guestcomputers/
-BOOKING_SYSTEM_URL=https://apps-ref.lib.kth.se/guestcomputers
+API_URL=https://apps.lib.kth.se/almatools/almalogin
+RESERVATION_API_UPDATE_URL=https://api.lib.kth.se/bookingsystem/v1/entry/updateendtime/guestcomputers/
+RESERVATION_API_CREATE_URL=https://api.lib.kth.se/bookingsystem/v1/entry/create/guestcomputers/
+RESERVATION_API_URL=https://api.lib.kth.se/bookingsystem/v1/entry/validate/guestcomputers/
+RESERVATION_API_CURRENT_RES_URL=https://api.lib.kth.se/bookingsystem/v1/entry/check/guestcomputers/
+BOOKING_SYSTEM_URL=https://apps.lib.kth.se/guestcomputers
+BOOKING_TYPE=dropin
+DEFAULT_BOOKING_TIME=2
 REGISTER_ACCOUNT_URL=https://apps.lib.kth.se/formtools/api/v1/kthbform?formid=libraryaccount_kiosk&lang=sv&kiosk=true
 EXTERNAL_URL_TIMEOUT=30000
 ELECTRON_DEV_TOOLS=false
@@ -89,7 +96,9 @@ COMPUTER_TYPE=searchcomputer
 COMPUTER_NAME="KTH Library Search computer"
 SESSION_IDLE=5
 SCREENSAVER=false
-SCREENSAVER_IDLE=00:30:00
+SCREENSAVER_IDLE=00:10:00
+SCREENSAVER_FILES="screen_bg_kth_logo_navy_guest.png"
+POLICY_FILE="policies_guest.json"
 KIOSK=--kiosk
 WEBSITES="https://www.kth.se/biblioteket"
 WHITE_LIST="file:///home/guest,chrome://print,chrome-untrusted://print,chrome://newtab,chrome://downloads,kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se"

@@ -1385,6 +1385,7 @@ async function verifyCode(username, code) {
         if (error.response) {
             if (error.response.status === 400) return 'invalid-username';
             if (error.response.status === 401) return 'invalid';
+            if (error.response.status === 402) return 'inactive';
         }
         console.error('Error: ' + error);
         return 'error';
@@ -1671,16 +1672,24 @@ function setupIPC() {
     ipcMain.on('submit-form', async (event, username, pin) => {
         mainWindow.webContents.send('spinner-start', ``);
         const verificationResult = await verifyCode(username, pin);
+        let message_en
+        let message_sv
         switch (verificationResult) {
             case 'invalid-username':
                 mainWindow.webContents.send('spinner-remove', ``);
                 mainWindow.webContents.send('user-message', '<div class="kth-alert warning"><h2>Invalid username. / Fel användarnamn.</h2> <p>Please try again. / Försök igen.</p>');
                 break;
             case 'invalid':
-                const message_en = LOGINTYPE === 'pin' ? 'Invalid Username/PIN' : 'Invalid Username/Password';
-                const message_sv = LOGINTYPE === 'pin' ? 'Fel Username/PIN' : 'Fel Username/Password';
+                message_en = LOGINTYPE === 'pin' ? 'Invalid Username/PIN' : 'Invalid Username/Password';
+                message_sv = LOGINTYPE === 'pin' ? 'Fel Username/PIN' : 'Fel Username/Password';
                 mainWindow.webContents.send('spinner-remove', ``);
                 mainWindow.webContents.send('user-message', `<div class="kth-alert warning"><h2>Info</h2><p>${message_en}. Please try again.</p><p>${message_sv}. Försök igen.</p>`);
+                break;
+            case 'inactive':
+                message_en = 'You need to activate your account, contact the library.';
+                message_sv = 'Du måste aktivera ditt konto, kontakta biblioteket.';
+                mainWindow.webContents.send('spinner-remove', ``);
+                mainWindow.webContents.send('user-message', `<div class="kth-alert warning"><h2>Info</h2><p>${message_en}</p><p>${message_sv}</p>`);
                 break;
             case 'error':
                 mainWindow.webContents.send('spinner-remove', ``);

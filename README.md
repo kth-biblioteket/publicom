@@ -42,6 +42,7 @@ sudo nano /usr/local/bin/secrets/.secrets
 ```
 GITHUB_TOKEN=xxxxxxx
 VNC_PASSWORD=xxxxxxx
+BOOKING_API_KEY=xxxxxxx
 ```
 ```bash
 sudo chown root:root /usr/local/bin/secrets/.secrets

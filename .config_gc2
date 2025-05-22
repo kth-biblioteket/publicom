@@ -1,4 +1,4 @@
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_gc1"
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_gc2"
 RESOURCE_ID=2
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin

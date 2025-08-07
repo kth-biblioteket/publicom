@@ -1354,12 +1354,13 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: path.resolve(__dirname, '../config', '.config') });
 
-const { BOOKING_TYPE, DEFAULT_BOOKING_TIME, API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CREATE_URL, RESERVATION_API_UPDATE_URL, RESERVATION_API_CURRENT_RES_URL, MAIN_WINDOW_TIMEOUT, EXTERNAL_URL_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
+const { BOOKING_TYPE, DEFAULT_BOOKING_TIME, API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CREATE_URL, RESERVATION_API_UPDATE_URL, RESERVATION_API_CURRENT_RES_URL, MAIN_WINDOW_TIMEOUT, EXTERNAL_URL_TIMEOUT, CLEAR_FIELDS_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
 
 let mainWindow;
 let newWindow;
 let storedUsername = '';
 let inactivityTimer = null;
+let inactivityClearFieldsTimer = null;
 let authToken = null;
 
 /**
@@ -1488,6 +1489,16 @@ async function resetReservation(entry_id) {
         console.error('Error updating reservation:', error);
         return 'Error: Could not update reservation';
     }
+}
+
+function startInactivityClearFieldsTimer() {
+    if (inactivityClearFieldsTimer) clearTimeout(inactivityClearFieldsTimer);
+
+    inactivityClearFieldsTimer = setTimeout(() => {
+        if (mainWindow) {
+            mainWindow.webContents.send('clear-fields');
+        }
+    }, CLEAR_FIELDS_TIMEOUT);
 }
 
 /**
@@ -1769,6 +1780,10 @@ function setupIPC() {
             ipcMain.removeAllListeners('user-activity');
         }
         createMainWindow();
+    });
+
+    ipcMain.on('user-activity', () => {
+       startInactivityClearFieldsTimer();
     });
 }
 
@@ -2214,6 +2229,18 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
     const computernameContainer = document.getElementById('computername-container');
 
     document.addEventListener('DOMContentLoaded', () => {
+
+      // Skicka aktivitet till main när användaren gör något
+      ['mousemove', 'keydown', 'wheel', 'click'].forEach(evt =>
+        document.addEventListener(evt, () => ipcRenderer.send('user-activity'))
+      );
+
+      // Ta emot signal att rensa formulär
+      ipcRenderer.on('clear-fields', () => {
+        document.getElementById('username').value = '';
+        document.getElementById('pin').value = '';
+      });
+
       //Check current status
       ipcRenderer.on('current-status', (event, status) => {
         if (status.valid) {

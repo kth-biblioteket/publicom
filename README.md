@@ -156,3 +156,93 @@ sudo update-grub
 ```bash
 sudo dd if=/dev/sda bs=4M status=progress | smbclient //NAS_SERVER_IP/SHARE_NAME -U NAS_USERNAME%NAS_PASSWORD -c "put - backup.img"
 ```
+
+##### Filer/Struktur
+
+/usr/local/bin/ -la
+total 118940
+drwxr-xr-x  7 root root      4096 May 22 11:03 .
+drwxr-xr-x 11 root root      4096 Jan 13  2025 ..
+-rwxr-xr-x  1 root root      3615 May 22 10:10 allowlist_from_ezproxy.sh
+-rwxr-xr-x  1 root root       382 May 22 10:10 clean-up.sh
+-rwxr-xr-x  1 root root       109 May 22 10:10 clear_inactivity.sh
+drwxr-xr-x  2 root root      4096 May 22 10:22 config
+lrwxrwxrwx  1 root root        45 May 22 10:10 corepack -> ../lib/node_modules/corepack/dist/corepack.js
+drwxr-xr-x  3 root root      4096 Jan 13  2025 electron-login
+drwxr-xr-x  2 root root      4096 Apr  3 07:17 icons
+-rwxr-xr-x  1 root root      1504 May 22 10:10 init.sh
+-rw-r--r--  1 root root     11401 May 22 10:10 KTH_logo_RGB_vit_small.png
+-rwxr-xr-x  1 root root       129 May 22 10:10 logout_and_cancel.sh
+-rwxr-xr-x  1 root root      1918 May 22 10:10 logout_timer.sh
+lrwxrwxrwx  1 root root        27 May 22 10:10 n -> ../lib/node_modules/n/bin/n
+-rwxr-xr-x  1 root root 121509208 May 22 10:10 node
+lrwxrwxrwx  1 root root        38 May 22 10:10 npm -> ../lib/node_modules/npm/bin/npm-cli.js
+lrwxrwxrwx  1 root root        38 May 22 10:10 npx -> ../lib/node_modules/npm/bin/npx-cli.js
+-rw-r--r--  1 root root     18683 May 22 10:10 screen_bg_gc_empty.png
+-rw-r--r--  1 root root     75513 May 22 10:10 screen_bg_gc.png
+-rw-r--r--  1 root root     94886 May 22 10:10 screen_bg_kth_logo_navy.png
+drwxr-xr-x  2 root root      4096 Aug  4 11:14 screensaver
+drwxr-xr-x  2 root root      4096 May 22 11:03 secrets
+-rwxr-xr-x  1 root root      2502 May 22 10:10 session_cleanup.sh
+-rwxr-xr-x  1 root root       223 May 22 10:10 show_remaining_time.sh
+-rwxr-xr-x  1 root root       547 May 22 10:10 tint2_inactivity_warning.sh
+-rwxr-xr-x  1 root root       126 May 22 10:10 update_tint_computer_name.sh
+
+/usr/local/bin/config/ -la
+total 12
+drwxr-xr-x 2 root root 4096 May 22 10:22 .
+drwxr-xr-x 7 root root 4096 May 22 11:03 ..
+-rw-r--r-- 1 root root 1345 Aug  4 11:14 .config
+
+/usr/local/bin/electron-login/ -la
+total 92
+drwxr-xr-x  3 root root  4096 Jan 13  2025 .
+drwxr-xr-x  7 root root  4096 May 22 11:03 ..
+-rw-r--r--  1 root root 13766 May 22 10:10 index.html
+-rw-r--r--  1 root root 17270 May 22 10:10 main.js
+drwxr-xr-x 76 root root  4096 May 22 10:10 node_modules
+-rw-r--r--  1 root root   103 May 22 10:10 package.json
+-rw-r--r--  1 root root 33386 May 22 10:10 package-lock.json
+-rw-r--r--  1 root root   348 May 22 10:10 preload.js
+
+/usr/local/bin/icons/ -la
+total 16
+drwxr-xr-x 2 root root 4096 Apr  3 07:17 .
+drwxr-xr-x 7 root root 4096 May 22 11:03 ..
+-rw-r--r-- 1 root root 1303 May 22 10:10 icons8-green-circle-32.png
+-rw-r--r-- 1 root root 1185 May 22 10:10 icons8-red-circle-32.png
+
+/usr/local/bin/screensaver/ -la
+total 168
+drwxr-xr-x 2 root root   4096 Aug  4 11:14 .
+drwxr-xr-x 7 root root   4096 May 22 11:03 ..
+-rw-r--r-- 1 root root 160611 Aug  4 11:14 screen_bg_kth_logo_navy_guest.png
+
+/usr/local/bin/secrets/ -la
+total 12
+drwxr-xr-x 2 root root 4096 May 22 11:03 .
+drwxr-xr-x 7 root root 4096 May 22 11:03 ..
+-rw-r--r-- 1 root root  276 May 22 11:03 .secrets
+
+
+/home/guest -la
+total 80
+drwxr-xr-x 9 guest guest 4096 Aug  5 08:15 .
+drwxr-xr-x 4 root  root  4096 Jan 13  2025 ..
+-rw-r--r-- 1 guest guest  220 Jan 13  2025 .bash_logout
+-rw-r--r-- 1 guest guest 3771 Jan 13  2025 .bashrc
+drwxr-xr-x 8 guest guest 4096 May 22 10:12 .cache
+drwxr-xr-x 6 guest guest 4096 May 22 10:19 .config
+drwx------ 3 guest guest 4096 Jan 13  2025 .dbus
+-rwxr-xr-- 1 guest guest   82 Aug  4 11:16 .fehbg
+drwx------ 3 guest guest 4096 Jan 13  2025 .local
+drwxr-xr-x 5 guest guest 4096 May 22 10:12 .npm
+drwx------ 3 guest guest 4096 May 22 10:12 .pki
+-rw-r--r-- 1 guest guest  807 Jan 13  2025 .profile
+-rwxr-xr-x 1 root  root    73 May 22 10:10 restart_x.sh
+drwx------ 3 guest guest 4096 Jan 13  2025 snap
+-rw------- 1 guest guest  195 May 22 11:05 .Xauthority
+-rw-r--r-- 1 root  root  1005 May 22 10:10 .xbindkeysrc
+-rwxr-xr-x 1 guest guest 6386 May 22 10:10 .xinitrc
+-rw-r--r-- 1 root  root    28 May 22 10:10 .Xmodmap
+-rw-r--r-- 1 guest guest  205 Aug  4 15:02 .xscreensaver

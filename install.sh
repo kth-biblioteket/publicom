@@ -721,7 +721,7 @@ mode:           one
 selected:       0
 
 programs: \
-- GL:   glslideshow -root -duration 10 -zoom 100 -pan 1 -fade 0 \n\
+- GL:   glslideshow -root -duration 15 -zoom 100 -pan 15 -fade 5 \n\
 EOL
 
 chmod +x /usr/local/bin/logout_and_cancel.sh

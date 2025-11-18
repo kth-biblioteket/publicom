@@ -44,6 +44,10 @@ GITHUB_TOKEN=xxxxxxx
 VNC_PASSWORD=xxxxxxx
 BOOKING_API_KEY=xxxxxxx
 ```
+Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
+
+Expires on Mon, Nov 24 2025
+
 ```bash
 sudo chown root:root /usr/local/bin/secrets/.secrets
 sudo chmod 600 /usr/local/bin/secrets/.secrets

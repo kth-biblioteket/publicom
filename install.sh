@@ -828,7 +828,7 @@ function log_message() {
 
 ## Starta electron-appen för login
 function prompt_for_code() {
-  form_input=$(npx electron /usr/local/bin/electron-login/main.js)
+  form_input=$(/usr/local/bin/electron-login/node_modules/.bin/electron /usr/local/bin/electron-login/main.js)
   log_message "Raw JSON output: $form_input"
   return $?
 }
@@ -915,6 +915,13 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         create_by=$(echo "$form_input" | jq -r '.booking_data.create_by')
         start_time=$(echo "$form_input" | jq -r '.booking_data.start_time')
         end_time=$(echo "$form_input" | jq -r '.booking_data.end_time')
+
+        # Kolla om bokningsdata existerar
+        if [[ -z "$entry_id" || -z "$create_by" || -z "$start_time" || -z "$end_time" ]]; then
+            log_message "ERROR: Electron output invalid or crashed, booking data missing."
+            xmessage -center -buttons "" -timeout 0 "Inloggningen kunde inte starta. Kontakta biblioteket. / The login process failed, please contact the library" &
+            sleep infinity
+        fi
 
         # Spara entry_id från bokningen
         echo "$entry_id" > "$CURRENT_BOOKING_ID_FILE"
@@ -1361,7 +1368,10 @@ const path = require('path');
 const axios = require('axios');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: path.resolve(__dirname, '../config', '.config') });
+dotenv.config({ 
+  path: path.resolve(__dirname, '../config', '.config'),
+  debug: false
+});
 
 const { BOOKING_TYPE, DEFAULT_BOOKING_TIME, API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CREATE_URL, RESERVATION_API_UPDATE_URL, RESERVATION_API_CURRENT_RES_URL, MAIN_WINDOW_TIMEOUT, EXTERNAL_URL_TIMEOUT, CLEAR_FIELDS_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
 
@@ -2331,9 +2341,9 @@ npm install -g npm@latest
 hash -r
 # Installera Electron och beroenden
 cd /usr/local/bin/electron-login
-npm install electron
+npm install -g electron@39.2.1
 npm install axios
-npm install dotenv
+npm install dotenv@16.6.1
 
 # Skapa icons-folder
 mkdir -p /usr/local/bin/icons

@@ -844,6 +844,14 @@ fi
 # Gör variabler tillgängliga i script
 source "$ENV_FILE"
 
+# Skärmlayout
+if [ -n "$SCREEN_ROTATION" ] && [ "$SCREEN_ROTATION" != "normal" ]; then
+    log_message "Roterar skärm till: $SCREEN_ROTATION"
+    # Hittar namnet på den aktiva skärmen och roterar den
+    MONITOR=$(xrandr | grep " connected" | cut -d' ' -f1 | head -n1)
+    xrandr --output "$MONITOR" --rotate "$SCREEN_ROTATION"
+fi
+
 # Ta bort filen som innehåller starttiden för sessionen
 rm -f /tmp/logout_timer.txt
 
@@ -2341,7 +2349,7 @@ npm install -g npm@latest
 hash -r
 # Installera Electron och beroenden
 cd /usr/local/bin/electron-login
-npm install -g electron@39.2.1
+npm install electron@39.2.1
 npm install axios
 npm install dotenv@16.6.1
 

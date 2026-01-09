@@ -7,7 +7,7 @@ Datorer i bibliotekets publika miljöer
 - Gästdatorer
 
 ### Installation
-- Installera en Ubuntu Server (20.04 eller nyare) på en dator.
+- Installera en Ubuntu Server (20.04) på en dator.
 - Välj att installera SSH
 - Uppgradera vid behov
     - apt upgrade -y
@@ -100,6 +100,7 @@ PRINTER=false
 COMPUTER_TYPE=searchcomputer
 COMPUTER_NAME="KTH Library Search computer"
 SESSION_IDLE=5
+SCREEN_ROTATION=left
 SCREENSAVER=false
 SCREENSAVER_IDLE=00:10:00
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_guest.png"

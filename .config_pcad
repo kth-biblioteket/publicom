@@ -1,4 +1,4 @@
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_pcangdomen"
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_pcad"
 RESOURCE_ID=x
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin
@@ -24,6 +24,6 @@ SCREENSAVER_IDLE=00:30:00
 SCREENSAVER_FILES=""
 POLICY_FILE="policies_search.json"
 KIOSK=--kiosk
-WEBSITES="https://apps.lib.kth.se/smartsigntools/api/v1/angdomen/smartsignpage"
+WEBSITES="https://apps.lib.kth.se/smartsigntools/html/angdomen.html?image=0"
 WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
 BLACK_LIST="*,google.com"

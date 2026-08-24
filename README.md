@@ -11,7 +11,7 @@ Datorer i bibliotekets publika miljöer
 - Välj att installera SSH
 - Uppgradera vid behov
     - apt upgrade -y
-    - do-release-upgrade
+    - do-release-upgrade(uppgraderar till nästa version)
 - BIOS Tillåt endast boot från HD
 - BIOS Lösenordsskydda
 - BIOS quiet etc

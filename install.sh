@@ -866,7 +866,9 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
   if [ "$ALMA_LOGIN" != "true" ]; then
       log_message "Öppen gästdator"
       # Starta om session after X minuters inaktivitet
-      xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
+      if [ "${SESSION_IDLE:-0}" -gt 0 ]; then
+        xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
+      fi
       # Ta bort högerklick
       xmodmap /home/guest/.Xmodmap &
       # Mappning tangentbord
@@ -945,7 +947,9 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         /usr/local/bin/logout_timer.sh "$seconds" &
 
         # Starta om X-session after X minuters inaktivitet, visa en varning 1 minut innan avslut
-        xautolock -time $SESSION_IDLE -notify 60 -notifier "/usr/local/bin/tint2_inactivity_warning.sh" -locker "pkill X" &
+        if [ "${SESSION_IDLE:-0}" -gt 0 ]; then
+            xautolock -time $SESSION_IDLE -notify 60 -notifier "/usr/local/bin/tint2_inactivity_warning.sh" -locker "pkill X" &
+        fi
        
         # Ta bort högerklick
         xmodmap /home/guest/.Xmodmap &
@@ -993,7 +997,9 @@ else
   # Sökdator / Kiosk
   log_message "Starting session for search computer."
   # Starta om session after X minuters inaktivitet
-  xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
+  if [ "${SESSION_IDLE:-0}" -gt 0 ]; then
+    xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
+  fi
   # Ta bort högerklick
   xmodmap /home/guest/.Xmodmap &
   # Mappning tangentbord

@@ -22,8 +22,11 @@ SCREEN_ROTATION=left
 SCREENSAVER=false
 SCREENSAVER_IDLE=00:30:00
 SCREENSAVER_FILES=""
+BG_LANDSCAPE="/usr/local/bin/screen_bg_kth_logo_navy.png"
+BG_PORTRAIT="/usr/local/bin/screen_bg_kth_logo_navy_portrait.png"
 POLICY_FILE="policies_search.json"
 KIOSK=--kiosk
+SIGNAGE=true
 WEBSITES="https://apps.lib.kth.se/smartsigntools/html/angdomen.html?image=0"
 WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
 BLACK_LIST="*,google.com"

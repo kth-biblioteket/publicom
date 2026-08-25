@@ -68,7 +68,7 @@ lpadmin -d KTH-Print
 lpadmin -p KTH-Print -o PageSize=A4
 
 # Installera GUI/Fönsterhanterare/chromium etc.
-apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xprintidle xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra
+apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xprintidle xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra unclutter
 
 # Installera xautolock för att kunna starta om sessioner efter inaktivitet
 apt install -y xautolock
@@ -670,6 +670,10 @@ Alt + F11
 
 "NoSymbol"
 Alt + F12
+
+# Öppna lösenordsskyddad terminal
+"/usr/local/bin/open_terminal.sh"
+Control + Shift + T
 EOL
 
 # Skapa skript som rensar nedladdningar och andra filer
@@ -861,6 +865,70 @@ echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inacti
 # Uppdatera timeout för skärmsläckare
 sed -i "s/^timeout:.*$/timeout: $SCREENSAVER_IDLE/" /home/guest/.xscreensaver
 
+# Funktion för att dölja muspekaren om SIGNAGE är true
+function hide_mouse_cursor() {
+    if [ "$SIGNAGE" == "true" ]; then
+        log_message "SIGNAGE is true - hiding mouse cursor with unclutter"
+        # Kontrollera om unclutter är installerat
+        if command -v unclutter &> /dev/null; then
+            # Dölj muspekaren efter 1 sekunds inaktivitet
+            unclutter -idle 1 -root &
+            log_message "unclutter started successfully"
+        else
+            log_message "WARNING: unclutter not installed - cannot hide mouse cursor"
+            # Fallback: försök med xbanish om det finns
+            if command -v xbanish &> /dev/null; then
+                xbanish &
+                log_message "xbanish started as fallback"
+            else
+                log_message "No cursor hiding tool available"
+            fi
+        fi
+    else
+        log_message "SIGNAGE is not true - mouse cursor will be visible"
+    fi
+}
+
+# Funktion för att sätta bakgrund baserat på layout
+function set_background() {
+    # Standard bakgrund (stående/portrait)
+    BG_IMAGE="/usr/local/bin/screen_bg_kth_logo_navy.png"
+    
+    # Kolla om SCREEN_ROTATION är satt och om den är "normal" (liggande) eller roterad (stående)
+    if [ -n "$SCREEN_ROTATION" ]; then
+        case "$SCREEN_ROTATION" in
+            "normal"|"inverted")
+                # Liggande layout
+                if [ -n "$BG_LANDSCAPE" ]; then
+                    BG_IMAGE="$BG_LANDSCAPE"
+                fi
+                ;;
+            "left"|"right")
+                # Stående layout
+                if [ -n "$BG_PORTRAIT" ]; then
+                    BG_IMAGE="$BG_PORTRAIT"
+                fi
+                ;;
+        esac
+    fi
+    
+    log_message "Setting background to: $BG_IMAGE"
+    feh --bg-scale "$BG_IMAGE"
+}
+
+# Kontrollera att bakgrundsbilderna finns
+function check_background_images() {
+    if [ -n "$BG_LANDSCAPE" ] && [ ! -f "$BG_LANDSCAPE" ]; then
+        log_message "Warning: Landscape background image not found: $BG_LANDSCAPE"
+    fi
+    if [ -n "$BG_PORTRAIT" ] && [ ! -f "$BG_PORTRAIT" ]; then
+        log_message "Warning: Portrait background image not found: $BG_PORTRAIT"
+    fi
+}
+
+# Kolla bakgrundsbilder vid start
+check_background_images
+
 if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
   # Öppen gästdator(utan login)
   if [ "$ALMA_LOGIN" != "true" ]; then
@@ -883,7 +951,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         xset s noblank
       fi
       # Bakgrund 
-      feh --bg-scale /usr/local/bin/screen_bg_kth_logo_navy.png
+      set_background
       # Starta openbox windows manager
       openbox &
       # Starta tint2 Dock
@@ -963,7 +1031,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         xset s noblank
        
         # Bakgrund
-        feh --bg-scale /usr/local/bin/screen_bg_kth_logo_navy.png
+        set_background
        
         # Starta openbox windows manager
         openbox &
@@ -1007,9 +1075,16 @@ else
   # Starta screensaver
   if [ "$SCREENSAVER" == "true" ]; then
     xscreensaver -no-splash &
+  else
+    # Se till att skärmen inte blir blank
+    xset s off
+    xset -dpms
+    xset s noblank
   fi
   # Bakgrund
-  feh --bg-scale /usr/local/bin/screen_bg_kth_logo_navy.png
+  set_background
+  # Dölj muspekaren om SIGNAGE är true
+  hide_mouse_cursor
   # Starta openbox windows manager
   openbox &
   # Starta tint2 Dock
@@ -2366,6 +2441,7 @@ curl -o "/usr/local/bin/KTH_logo_RGB_vit_small.png" https://raw.githubuserconten
 curl -o "/usr/local/bin/screen_bg_gc.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_gc.png
 curl -o "/usr/local/bin/screen_bg_gc_empty.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_gc_empty.png
 curl -o "/usr/local/bin/screen_bg_kth_logo_navy.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_kth_logo_navy.png
+curl -o "/usr/local/bin/screen_bg_kth_logo_navy_portrait.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/backgrounds/screen_bg_kth_logo_navy_portrait.png
 curl -o "/usr/local/bin/icons/icons8-green-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-green-circle-32.png
 curl -o "/usr/local/bin/icons/icons8-red-circle-32.png" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/icons/icons8-red-circle-32.png
 

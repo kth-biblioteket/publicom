@@ -114,17 +114,27 @@ rm -rf /etc/cloud && rm -rf /var/lib/cloud/
 systemctl disable session-cleanup.service 2>/dev/null
 rm -f /etc/systemd/system/session-cleanup.service
 
-# Installera alla skript och konfigurationsfiler från GitHub (files.manifest)
+# Installera alla skript och konfigurationsfiler (files.manifest).
+# Normalt hämtas branchen från GitHub. För test kan en lokal kopia av repot anges:
+#   sudo PUBLICOM_SRC=/tmp/publicom ./install.sh
 WORK=$(mktemp -d)
-echo "Hämtar publicom ($BRANCH)"
-if ! curl -fsSL --max-time 120 -o "$WORK/src.tar.gz" "https://github.com/kth-biblioteket/publicom/archive/refs/heads/$BRANCH.tar.gz" \
-    || ! tar -xzf "$WORK/src.tar.gz" -C "$WORK"; then
-    echo "Error: kunde inte hämta branch $BRANCH" 1>&2
+if [ -n "$PUBLICOM_SRC" ]; then
+    echo "Installerar från lokal kopia $PUBLICOM_SRC"
+    SRC="$PUBLICOM_SRC"
+else
+    echo "Hämtar publicom ($BRANCH)"
+    if ! curl -fsSL --max-time 120 -o "$WORK/src.tar.gz" "https://github.com/kth-biblioteket/publicom/archive/refs/heads/$BRANCH.tar.gz" \
+        || ! tar -xzf "$WORK/src.tar.gz" -C "$WORK"; then
+        echo "Error: kunde inte hämta branch $BRANCH" 1>&2
+        exit 1
+    fi
+    SRC=$(find "$WORK" -mindepth 1 -maxdepth 1 -type d | head -n1)
+fi
+if [ ! -f "$SRC/files.manifest" ]; then
+    echo "Error: $SRC/files.manifest saknas" 1>&2
     exit 1
 fi
-SRC=$(find "$WORK" -mindepth 1 -maxdepth 1 -type d | head -n1)
 bash "$SRC/files/usr/local/bin/deploy.sh" "$SRC"
-rm -rf "$WORK"
 
 if [ ! -x /usr/local/bin/electron-login/node_modules/.bin/electron ]; then
     echo "Error: Electron installerades inte, se utskriften ovan" 1>&2
@@ -133,8 +143,24 @@ fi
 
 mkdir -p /usr/local/bin/screensaver
 
-# Hämta config, Chromium-policy och skärmsläckarbilder, och bygg allowlist
+# Hämta config, Chromium-policy och skärmsläckarbilder
 /usr/local/bin/init.sh
+
+# Vid installation från lokal kopia kan filerna saknas på GitHub (t ex en branch som inte är pushad).
+# Ta dem då från den lokala kopian.
+if [ -n "$PUBLICOM_SRC" ]; then
+    source "$ENV_FILE"
+    POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
+    mkdir -p "$(dirname "$POLICY_PATH")"
+    install -o root -g root -m 0644 "$SRC/$POLICY_FILE" "$POLICY_PATH"
+    IFS=',' read -ra FILE_ARRAY <<< "$SCREENSAVER_FILES"
+    for file in "${FILE_ARRAY[@]}"; do
+        [ -n "$file" ] && install -m 0644 "$SRC/screensaver/$file" "/usr/local/bin/screensaver/$file"
+    done
+fi
+rm -rf "$WORK"
+
+# Bygg allowlist i Chromium-policyn
 /usr/local/bin/allowlist_from_ezproxy.sh
 
 # Rätt behörigheter för guest-kontots config

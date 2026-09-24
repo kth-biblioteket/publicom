@@ -6,6 +6,9 @@ After=init.service allowlist_from_ezproxy.service systemd-user-sessions.service
 
 [Service]
 User=guest
+# Skapa en riktig inloggningssession (logind) för gästen. Krävs från Ubuntu 22.04/24.04,
+# där snap-Chromium vägrar starta från en vanlig systemtjänst ("is not a snap cgroup").
+PAMName=login
 Restart=always
 ExecStart=/usr/bin/startx
 # Körs efter varje avslutad session (utloggning, timeout, inaktivitet).

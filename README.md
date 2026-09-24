@@ -46,7 +46,9 @@ BOOKING_API_KEY=xxxxxxx
 ```
 Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
 
-Expires on Mon, Nov 24 2025
+Expires on Mon, Nov 24 2025 – **har gått ut och måste förnyas** på varje dator (behövs för öppna gästdatorer, `ALMA_LOGIN=false`).
+Tokenen används bara för att läsa `kth-biblioteket/ezproxy/db_stanzas.txt`. Skapa den med minsta möjliga behörighet (fine-grained, endast *Contents: Read* på det repot).
+Om hämtningen misslyckas används senast hämtade kopia i `/var/cache/publicom/db_stanzas.txt`, och ett fel syns i `journalctl -u allowlist_from_ezproxy`.
 
 ```bash
 sudo chown root:root /usr/local/bin/secrets/.secrets

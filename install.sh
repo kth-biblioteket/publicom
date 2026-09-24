@@ -833,8 +833,20 @@ function log_message() {
 ## Starta electron-appen för login
 function prompt_for_code() {
   form_input=$(/usr/local/bin/electron-login/node_modules/.bin/electron /usr/local/bin/electron-login/main.js)
-  log_message "Raw JSON output: $form_input"
-  return $?
+  local electron_status=$?
+  # Logga inte själva bokningsdatan, den innehåller användar-id
+  log_message "Electron exited with status $electron_status"
+  return $electron_status
+}
+
+# Chromium-profil som raderas före varje start så att inget följer med till nästa användare.
+# Ligger under snap-katalogen eftersom Chromium (snap) har en egen privat /tmp.
+CHROMIUM_PROFILE="/home/guest/snap/chromium/common/publicom-profile"
+
+## Starta Chromium med ny tom profil. Argument läggs till före standardflaggorna.
+function launch_chromium() {
+  rm -rf "$CHROMIUM_PROFILE"
+  chromium-browser "$@" --start-maximized --user-data-dir="$CHROMIUM_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
 }
 
 ENV_FILE="/usr/local/bin/config/.config"
@@ -958,7 +970,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
       tint2 -c /home/guest/.config/tint2/tint2rc &
       # Starta Chromium i fullskärm, och se till att den startar om ifall den avslutas helt av någon anledning
       while true; do
-          chromium-browser --start-maximized --user-data-dir=/tmp/chromium-temp-profile --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
+          launch_chromium
           sleep 1
       done
   else
@@ -989,10 +1001,11 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
 
       if [[ $status -eq 0 ]]; then
         # Bokningsdata
-        entry_id=$(echo "$form_input" | jq -r '.booking_data.id')
-        create_by=$(echo "$form_input" | jq -r '.booking_data.create_by')
-        start_time=$(echo "$form_input" | jq -r '.booking_data.start_time')
-        end_time=$(echo "$form_input" | jq -r '.booking_data.end_time')
+        # "// empty" ger tom sträng i stället för "null" när fältet saknas
+        entry_id=$(echo "$form_input" | jq -r '.booking_data.id // empty' 2>/dev/null)
+        create_by=$(echo "$form_input" | jq -r '.booking_data.create_by // empty' 2>/dev/null)
+        start_time=$(echo "$form_input" | jq -r '.booking_data.start_time // empty' 2>/dev/null)
+        end_time=$(echo "$form_input" | jq -r '.booking_data.end_time // empty' 2>/dev/null)
 
         # Kolla om bokningsdata existerar
         if [[ -z "$entry_id" || -z "$create_by" || -z "$start_time" || -z "$end_time" ]]; then
@@ -1041,12 +1054,13 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
        
         # Starta Chromium i fullskärm, och se till att den startar om ifall den avslutas helt av någon anledning
         while true; do
-            chromium-browser --start-maximized --user-data-dir=/tmp/chromium-temp-profile --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
+            launch_chromium
             sleep 1
         done
       else
-        log_message "Error: Electron app failed. Displaying error message."
-        #yad --error --text="Something unexpected occurred. Please try again." --center --button="OK:0"
+        log_message "Error: Electron app failed with status $status. Restarting session."
+        # Visa meddelande och vänta så att guest.service inte når systemds gräns för snabba omstarter
+        xmessage -center -buttons "" -timeout 15 "Inloggningen startar om, vänta... / The login is restarting, please wait..."
         exit 1
       fi
     else
@@ -1056,9 +1070,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
       xset -dpms
       xset s noblank
       matchbox-window-manager &
-      chromium-browser --start-maximized --user-data-dir=/tmp/chromium-temp-profile \
-        --incognito --no-first-run --disable-session-crashed-bubble \
-        --disable-features=TranslateUI $WEBSITES
+      launch_chromium
     fi
   fi
 else
@@ -1091,7 +1103,7 @@ else
   tint2 -c /home/guest/.config/tint2/tint2rc-search &
   # Starta Chromium i fullskärm, och se till att den startar om ifall den avslutas helt av någon anledning
   while true; do
-      chromium-browser $KIOSK --start-maximized --user-data-dir=/tmp/chromium-temp-profile --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
+      launch_chromium $KIOSK
       sleep 1
   done
 fi

@@ -1,0 +1,127 @@
+#disable shift+click
+"true"
+m:0x01 + b:1
+
+"NoSymbol"
+Control + a
+
+"NoSymbol"
+Control + b
+
+"NoSymbol"
+Control + d
+
+"NoSymbol"
+Control + e
+
+"NoSymbol"
+Control + f
+
+"NoSymbol"
+Control + g
+
+"NoSymbol"
+Control + h
+
+"NoSymbol"
+Control + i
+
+"NoSymbol"
+Control + j
+
+"NoSymbol"
+Control + k
+
+"NoSymbol"
+Control + l
+
+"NoSymbol"
+Control + m
+
+"NoSymbol"
+Control + Shift + m
+
+"NoSymbol"
+Control + n
+
+"NoSymbol"
+Control + Shift + n
+
+"NoSymbol"
+Control + o
+
+#"NoSymbol"
+#Control + p
+
+"NoSymbol"
+Control + q
+
+"NoSymbol"
+Control + r
+
+"NoSymbol"
+Control + s
+
+"NoSymbol"
+Control + t
+
+"NoSymbol"
+Control + u
+
+"NoSymbol"
+Control + w
+
+"NoSymbol"
+Control + Shift + w
+
+"NoSymbol"
+Control + x
+
+"NoSymbol"
+Control + y
+
+"NoSymbol"
+Control + z
+
+"NoSymbol"
+Control + Alt + Delete
+
+"NoSymbol"
+Alt + F1
+
+"NoSymbol"
+Alt + F2
+
+"NoSymbol"
+Alt + F3
+
+"NoSymbol"
+Alt + F4
+
+"NoSymbol"
+Alt + F5
+
+"NoSymbol"
+Alt + F6
+
+"NoSymbol"
+Alt + F7
+
+"NoSymbol"
+Alt + F8
+
+"NoSymbol"
+Alt + F9
+
+"NoSymbol"
+Alt + F10
+
+"NoSymbol"
+Alt + F11
+
+"NoSymbol"
+Alt + F12
+
+# Öppna lösenordsskyddad terminal
+"/usr/local/bin/open_terminal.sh"
+Control + Shift + T

@@ -1,0 +1,17 @@
+[Unit]
+Description=Guest Mode
+# Vänta tills config och Chromium-policy är klara så att webbläsaren startar med rätt begränsningar.
+# Endast ordning (After), inte Requires, så att sessionen startar även om nätverket saknas.
+After=init.service allowlist_from_ezproxy.service systemd-user-sessions.service
+
+[Service]
+User=guest
+Restart=always
+ExecStart=/usr/bin/startx
+# Körs efter varje avslutad session (utloggning, timeout, inaktivitet).
+# "+" = körs som root så att hemlighetsfilen kan läsas.
+ExecStopPost=+/usr/local/bin/session_cleanup.sh
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=multi-user.target

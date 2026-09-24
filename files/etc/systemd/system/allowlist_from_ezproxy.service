@@ -1,0 +1,12 @@
+[Unit]
+Description=Run allowlist_from_ezproxy script at startup
+# Måste köras efter init.service som laddar ner en ny grundpolicy
+After=network-online.target init.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/allowlist_from_ezproxy.sh
+
+[Install]
+WantedBy=multi-user.target

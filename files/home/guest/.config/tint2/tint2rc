@@ -1,0 +1,94 @@
+# Backgrounds
+# Background 1: Panel
+rounded = 0
+border_width = 0
+border_sides = TBLR
+border_content_tint_weight = 0
+background_content_tint_weight = 0
+background_color = #000000 60
+border_color = #000000 30
+background_color_hover = #000000 60
+border_color_hover = #000000 30
+background_color_pressed = #000000 60
+border_color_pressed = #000000 30
+
+
+#-------------------------------------
+# Panel
+panel_items = T:F:E:C
+panel_size = 100% 30
+panel_margin = 0 0
+panel_padding = 2 0 2
+panel_background_id = 1
+wm_menu = 1
+panel_dock = 0
+panel_pivot_struts = 0
+panel_position = bottom center horizontal
+panel_layer = bottom
+panel_monitor = all
+panel_shrink = 0
+autohide = 0
+autohide_show_timeout = 0
+autohide_hide_timeout = 0.5
+autohide_height = 2
+strut_policy = follow_size
+panel_window_name = tint2
+disable_transparency = 0
+mouse_effects = 1
+font_shadow = 0
+mouse_hover_icon_asb = 100 0 10
+mouse_pressed_icon_asb = 100 0 0
+scale_relative_to_dpi = 0
+scale_relative_to_screen_height = 0
+
+#-------------------------------------
+# Task
+task_padding = 10 5 10
+
+#-------------------------------------
+# Clock
+time1_format = %H:%M
+time2_format = %A %d %B
+time1_timezone = 
+time2_timezone = 
+clock_font_color = #ffffff 100
+clock_padding = 2 0
+clock_background_id = 0
+clock_tooltip = 
+clock_tooltip_timezone = 
+clock_lclick_command = 
+clock_rclick_command = orage
+clock_mclick_command = 
+clock_uwheel_command = 
+clock_dwheel_command = 
+
+
+#-------------------------------------
+# Tooltip
+tooltip_show_timeout = 0.5
+tooltip_hide_timeout = 0.1
+tooltip_padding = 4 4
+tooltip_background_id = 5
+tooltip_font_color = #dddddd 100
+
+# Executor 1
+execp = new
+execp_command = /usr/local/bin/update_tint_computer_name.sh
+execp_interval = 0
+execp_has_icon = 0
+execp_cache_icon = 1
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip =
+execp_lclick_command =
+execp_rclick_command =
+execp_mclick_command =
+execp_uwheel_command =
+execp_dwheel_command =
+execp_font = Droid Sans Fallback 12
+execp_font_color = #EBE5E0 100
+execp_padding = 100 10
+execp_background_id = 0
+execp_centered = 0
+execp_icon_w = 0
+execp_icon_h = 0

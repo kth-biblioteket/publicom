@@ -1,0 +1,10 @@
+[Unit]
+Description=Start x11vnc at startup
+After=display-manager.service
+
+[Service]
+ExecStart=/usr/bin/x11vnc -display :0 -auth /home/guest/.Xauthority -forever -loop -noxdamage -repeat -rfbauth /home/kthb/.vnc/passwd -rfbport 5900 -shared
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,59 @@
+# Filer som deploy.sh installerar på datorerna.
+# Format: <rättigheter> <ägare:grupp> <målsökväg> [källa]
+# Källan är relativ till repots rot. Utan källa används files<målsökväg>.
+# Ny fil i files/ måste läggas till här för att installeras.
+
+# Skript
+0755 root:root   /usr/local/bin/deploy.sh
+0755 root:root   /usr/local/bin/init.sh
+0755 root:root   /usr/local/bin/allowlist_from_ezproxy.sh
+0755 root:root   /usr/local/bin/session_cleanup.sh
+0755 root:root   /usr/local/bin/clean-up.sh
+0755 root:root   /usr/local/bin/logout_and_cancel.sh
+0755 root:root   /usr/local/bin/logout_timer.sh
+0755 root:root   /usr/local/bin/show_remaining_time.sh
+0755 root:root   /usr/local/bin/tint2_inactivity_warning.sh
+0755 root:root   /usr/local/bin/clear_inactivity.sh
+0755 root:root   /usr/local/bin/update_tint_computer_name.sh
+
+# Electron-inloggning (npm ci körs när package.json/package-lock.json ändras)
+0644 root:root   /usr/local/bin/electron-login/main.js
+0644 root:root   /usr/local/bin/electron-login/preload.js
+0644 root:root   /usr/local/bin/electron-login/index.html
+0644 root:root   /usr/local/bin/electron-login/package.json
+0644 root:root   /usr/local/bin/electron-login/package-lock.json
+
+# Bilder
+0644 root:root   /usr/local/bin/KTH_logo_RGB_vit_small.png            backgrounds/KTH_logo_RGB_vit_small.png
+0644 root:root   /usr/local/bin/screen_bg_gc.png                      backgrounds/screen_bg_gc.png
+0644 root:root   /usr/local/bin/screen_bg_gc_empty.png                backgrounds/screen_bg_gc_empty.png
+0644 root:root   /usr/local/bin/screen_bg_kth_logo_navy.png           backgrounds/screen_bg_kth_logo_navy.png
+0644 root:root   /usr/local/bin/screen_bg_kth_logo_navy_portrait.png  backgrounds/screen_bg_kth_logo_navy_portrait.png
+0644 root:root   /usr/local/bin/icons/icons8-green-circle-32.png      icons/icons8-green-circle-32.png
+0644 root:root   /usr/local/bin/icons/icons8-red-circle-32.png        icons/icons8-red-circle-32.png
+
+# Gästsessionen
+0755 guest:guest /home/guest/.xinitrc
+0644 guest:guest /home/guest/.xscreensaver
+0644 guest:guest /home/guest/.config/openbox/rc.xml
+0644 guest:guest /home/guest/.config/tint2/tint2rc
+0644 guest:guest /home/guest/.config/tint2/tint2rc-alma
+0644 guest:guest /home/guest/.config/tint2/tint2rc-search
+# Ägs av root så att gästen inte kan ändra tangentblockering/omstartsskript
+0644 root:root   /home/guest/.Xmodmap
+0644 root:root   /home/guest/.xbindkeysrc
+0755 root:root   /home/guest/restart_x.sh
+
+# systemd
+0644 root:root   /etc/systemd/system/init.service
+0644 root:root   /etc/systemd/system/allowlist_from_ezproxy.service
+0644 root:root   /etc/systemd/system/guest.service
+0644 root:root   /etc/systemd/system/x11vnc.service
+0644 root:root   /etc/systemd/logind.conf.d/50-disable-sleep.conf
+
+# System
+0644 root:root   /etc/apt/apt.conf.d/10periodic
+0644 root:root   /etc/sysctl.d/99-disable-sysrq.conf
+0644 root:root   /etc/modprobe.d/disable-usb-storage.conf
+0644 root:root   /etc/X11/Xwrapper.config
+0644 root:root   /usr/share/X11/xorg.conf.d/50-novtswitch.conf

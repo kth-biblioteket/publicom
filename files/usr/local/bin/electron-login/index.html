@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
+  <!-- Font Awesome installeras lokalt via npm så att ikonerna fungerar även utan nätverk -->
+  <link href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <style>
+    html {
+      font-size: 18px;
+    }
+
+    @media (max-width: 1279px) {
+      html {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      html {
+        font-size: 10px;
+      }
+    }
+
+    body,
+    html {
+      font-family: "Figtree", Arial, "Helvetica Neue", helvetica, sans-serif;
+      font-weight: 300;
+      color: #ffffff;
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-image: url('../screen_bg_gc_empty.png');
+      background-color: #004791;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .form {
+      background: rgba(255, 255, 255, 0);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      margin-top: 0px;
+    }
+
+    .logintext {
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    .form-container {
+      display: block;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 0px;
+      width: 300px;
+    }
+
+    .message-container,
+    #spinner {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 0px;
+      color: white;
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .user-message {
+      color: #Ffffff;
+      margin-bottom: 10px;
+    }
+
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 400px;
+      border-radius: 10px;
+      font-size: 22px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #1e9044;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #open-book-computer {
+      display: none;
+      background-color: #78001A;
+    }
+
+    #open-register {
+      display: none;
+      background-color: #A65900;
+    }
+
+    #open-book-computer,
+    #open-register {
+      position: relative;
+      padding: 10px;
+      width: 130px;
+      height: 80px;
+      font-size: 0.7em;
+      margin: 10px;
+    }
+
+    .open-url:hover {
+      background-color: #af3e77;
+    }
+
+    .nav {
+      display: flex;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .computerinfo {
+      font-size: 4.5em;
+      font-weight: 700;
+    }
+
+    .computerinfo.sv {
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    .computerinfo.en {
+      color: #6298D2;
+      margin-bottom: 40px;
+    }
+
+    #computername-container {
+      justify-content: center;
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+    }
+
+    #computername {
+      font-size: 8em;
+      font-weight: 700;
+    }
+
+    /* Styling the container */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 300px;
+      /* Adjust width */
+      margin: 50px auto;
+      /* Center the form on the page */
+      font-family: Arial, sans-serif;
+    }
+
+    /* Styling the username field */
+    #username {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    /* Styling the password field wrapper */
+    .password-field {
+      position: relative;
+      width: 100%;
+    }
+
+    /* Styling the password input */
+    .password-field input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      padding-right: 45px;
+      /* Space for button */
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    /* Styling the login button */
+    .password-field button {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      height: 100%;
+      width: 35px;
+      border: none;
+      background-color: #ccc;
+      color: black;
+      font-size: 18px;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Adjusting button hover effect */
+    .password-field button:hover {
+      background-color: #bbb;
+    }
+
+    #currentreservationinfo {
+      font-size: 4em;
+      font-weight: 600;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+      color: white;
+    }
+
+    .available {
+      background-color: #4DA060;
+    }
+
+    .booked {
+      background-color: #E86A58;
+    }
+
+    /* https://cssloaders.github.io */
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #FFF;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* KTH STYLE*/
+    .kth-alert.warning {
+      border-color: #c7321d;
+    }
+
+    .kth-alert.info {
+      border-color: #004791;
+    }
+
+    .kth-alert {
+      color: #000000;
+      background-color: #ffffff;
+      display: grid;
+      gap: .25rem .5rem;
+      grid-template-columns: auto 1fr;
+      padding-inline: .625rem;
+      padding-block: .5rem 1rem;
+      border-block-start-width: .375rem;
+      border-inline-width: .125rem;
+      border-block-end-width: .125rem;
+      border-style: solid;
+      border-color: var(--color-text);
+    }
+
+    .kth-alert.warning:before {
+      --icon: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20fill%3D%22none%22%3E%3Cpath%20fill%3D%22%23212121%22%20d%3D%22M2.386%2017.085a.848.848%200%200%201-.764-.435.735.735%200%200%201-.109-.43c.007-.16.05-.311.13-.455L9.255%203.062a.708.708%200%200%201%20.324-.313.982.982%200%200%201%20.843%200%20.709.709%200%200%201%20.324.313l7.611%2012.703c.08.144.123.296.13.455a.735.735%200%200%201-.109.43.98.98%200%200%201-.31.313.83.83%200%200%201-.454.122H2.386ZM3.77%2015.43h12.46L10%205.056%203.77%2015.43Zm6.226-.945a.758.758%200%200%200%20.55-.224.736.736%200%200%200%20.229-.546.75.75%200%200%200-.224-.549.74.74%200%200%200-.547-.226.762.762%200%200%200-.55.222.728.728%200%200%200-.229.544c0%20.214.075.398.224.55.15.153.332.23.547.23Zm0-2.485c.21%200%20.39-.072.535-.216a.72.72%200%200%200%20.219-.534V8.805a.728.728%200%200%200-.214-.535.72.72%200%200%200-.532-.215.734.734%200%200%200-.535.215.72.72%200%200%200-.219.535v2.445c0%20.213.071.39.214.534a.72.72%200%200%200%20.532.216Z%22%2F%3E%3C%2Fsvg%3E);
+      content: "";
+      display: inline-block;
+      width: 1.25rem;
+      min-width: 1.25rem;
+      height: 1.25rem;
+      mask-image: var(--icon);
+      mask-size: cover;
+      background-color: currentColor;
+    }
+
+    .kth-alert.info:before {
+      --icon: url(data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20fill%3D%22none%22%3E%3Cpath%20fill%3D%22%23212121%22%20d%3D%22M11%207c-1%200-3.5%202-4%202.5l.5.5c.5-.5%201-1%202-1s-1%204-1%207.5c0%201.5%201%201.5%202%201s2.5-1.5%203-2L13%2015c-1%20.5-1.5%201.5-2%201s1-7%201-8%200-1-1-1ZM12.5%204a1.5%201.5%200%201%201-3%200%201.5%201.5%200%200%201%203%200Z%22%2F%3E%3C%2Fsvg%3E);
+      content: "";
+      display: inline-block;
+      width: 1.25rem;
+      min-width: 1.25rem;
+      height: 1.25rem;
+      mask-image: var(--icon);
+      mask-size: cover;
+      background-color: currentColor;
+    }
+
+    .kth-alert>:is(h2, h3, h4) {
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .kth-alert p:last-child {
+      margin-block-end: 0;
+    }
+
+    .kth-alert p {
+      margin-block: .5rem;
+    }
+
+    .kth-alert>* {
+      grid-column-start: 2;
+    }
+
+    .kth-button.success,
+    .kth-button.next {
+      background: #3d784a;
+      color: #fcfcfc;
+    }
+
+    .kth-button {
+      display: inline-flex;
+      padding: .5rem 1rem;
+      justify-content: center;
+      align-items: center;
+      border: unset;
+      border-radius: 1.25rem;
+      background: none;
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="nav">
+    <button id="open-book-computer" class="open-url">
+      <i class="fas fa-desktop"
+        style="color:#ffffff26;font-size: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i><span
+        style="font-weight: 700">Boka dator / Book computer</span>
+    </button>
+    <button id="open-register" class="open-url">
+      <i class="fas fa-user-pen"
+        style="color:#ffffff26;font-size: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i><span
+        style="font-weight: 700">Registrera bibliotekskonto / Register library account</span>
+    </button>
+  </div>
+  <div id="form-container" class="form">
+    <div class="computerinfo sv">Gästdator för dig som besöker KTH</div>
+    <div class="computerinfo en">Guest computer for visitors to KTH</div>
+    <div id="computername-container">
+      <div id="computername"></div>
+      <div id="currentreservationinfo"></div>
+    </div>
+    <div class="login-container">
+      <input id="username" type="text" placeholder="användarnamn / username">
+      <div class="password-field">
+        <input id="pin" type="password" placeholder="">
+        <button id="submit-button" aria-label="Login"><i class="fa fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+  <div id="spinner"><span class="loader"></span></div>
+  <div class="message-container" id="message-container">
+    <div class="user-message" id="user-message"></div>
+    <button class="kth-button success" id="ok-button">OK</button>
+  </div>
+
+  <script>
+    // Exponeras av preload.js (contextIsolation, ingen Node i sidan)
+    const ipcRenderer = window.electron.ipcRenderer;
+    const formContainer = document.getElementById('form-container');
+    const messageContainer = document.getElementById('message-container');
+    const userMessageElement = document.getElementById('user-message');
+    const spinner = document.getElementById('spinner');
+    const computernameContainer = document.getElementById('computername-container');
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Skicka aktivitet till main när användaren gör något
+      ['mousemove', 'keydown', 'wheel', 'click'].forEach(evt =>
+        document.addEventListener(evt, () => ipcRenderer.send('user-activity'))
+      );
+
+      // Ta emot signal att rensa formulär
+      ipcRenderer.on('clear-fields', () => {
+        document.getElementById('username').value = '';
+        document.getElementById('pin').value = '';
+      });
+
+      //Check current status
+      ipcRenderer.on('current-status', (status) => {
+        if (status.valid) {
+          computernameContainer.classList.add('booked');
+          computernameContainer.classList.remove('available');
+          document.getElementById('currentreservationinfo').innerHTML = `Bokad / Booked`;
+        } else {
+          computernameContainer.classList.add('available');
+          computernameContainer.classList.remove('booked');
+          document.getElementById('currentreservationinfo').innerHTML = `Ledig / Available`;
+        }
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      const computername = params.get('computername') || 'Datornamn saknas';
+      const bookingType = params.get('bookingType') || 'bookable'
+
+      document.querySelector('#computername').textContent = computername;
+
+      ipcRenderer.on('load-username', (username) => {
+        document.getElementById('username').value = username;
+      });
+
+      ipcRenderer.on('user-message', (message) => {
+        //formContainer.style.display = 'none';
+        userMessageElement.innerHTML = message;
+        messageContainer.style.display = 'flex';
+      });
+
+      ipcRenderer.on('spinner-start', () => {
+        spinner.style.display = 'flex';
+      });
+
+      ipcRenderer.on('spinner-remove', () => {
+        spinner.style.display = 'none';
+      });
+
+      document.getElementById('ok-button').addEventListener('click', () => {
+        messageContainer.style.display = 'none';
+        //formContainer.style.display = 'block';
+      });
+
+      document.getElementById('submit-button').addEventListener('click', () => {
+        const username = document.getElementById('username').value;
+        const pin = document.getElementById('pin').value;
+        ipcRenderer.send('submit-form', username, pin);
+      });
+
+      document.getElementById('pin').addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+          document.getElementById('submit-button').click();
+        }
+      });
+
+      if (bookingType == 'dropin') {
+        document.getElementById('open-book-computer').remove();
+      } else {
+        document.getElementById('open-book-computer').addEventListener('click', () => {
+          ipcRenderer.send('load-external-url', 'book-computer');
+        });
+      }
+
+      document.getElementById('open-register').addEventListener('click', () => {
+        ipcRenderer.send('load-external-url', 'register-account');
+      });
+    });
+  </script>
+</body>
+
+</html>

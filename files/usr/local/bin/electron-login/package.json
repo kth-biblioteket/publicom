@@ -1,0 +1,13 @@
+{
+  "name": "publicom-electron-login",
+  "version": "2.2.0",
+  "private": true,
+  "description": "Inloggning för KTH Bibliotekets gästdatorer",
+  "main": "main.js",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "6.7.2",
+    "axios": "1.20.0",
+    "dotenv": "16.6.1",
+    "electron": "39.2.1"
+  }
+}

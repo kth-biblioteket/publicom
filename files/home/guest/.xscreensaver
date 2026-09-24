@@ -1,0 +1,8 @@
+timeout:        0:00:10
+chooseRandomImages: True
+imageDirectory: /usr/local/bin/screensaver
+mode:           one
+selected:       0
+
+programs: \
+- GL:   glslideshow -root -duration 15 -zoom 100 -pan 15 -fade 5 \n\

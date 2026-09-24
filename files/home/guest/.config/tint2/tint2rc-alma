@@ -1,0 +1,168 @@
+# Backgrounds
+# Background 1: Panel
+rounded = 0
+border_width = 0
+border_sides = TBLR
+border_content_tint_weight = 0
+background_content_tint_weight = 0
+background_color = #000061 60
+border_color = #6298D2 30
+background_color_hover = #000061 60
+border_color_hover = #000061 30
+background_color_pressed = #000061 60
+border_color_pressed = #000061 30
+
+
+#-------------------------------------
+# Panel
+panel_items = T:P:F:E:E:E:E:C
+panel_size = 100% 30
+panel_margin = 0 0
+panel_padding = 2 0 2
+panel_background_id = 1
+wm_menu = 1
+panel_dock = 0
+panel_pivot_struts = 0
+panel_position = bottom center horizontal
+panel_layer = bottom
+panel_monitor = all
+panel_shrink = 0
+autohide = 0
+autohide_show_timeout = 0
+autohide_hide_timeout = 0.5
+autohide_height = 2
+strut_policy = follow_size
+panel_window_name = tint2
+disable_transparency = 0
+mouse_effects = 1
+font_shadow = 0
+mouse_hover_icon_asb = 100 0 10
+mouse_pressed_icon_asb = 100 0 0
+scale_relative_to_dpi = 0
+scale_relative_to_screen_height = 0
+
+#-------------------------------------
+# Task
+task_padding = 10 5 10
+
+#-------------------------------------
+# Clock
+time1_format = %H:%M
+time2_format = %A %d %B
+time1_timezone = 
+time2_timezone = 
+clock_font_color = #ffffff 100
+clock_padding = 2 0
+clock_background_id = 1
+clock_tooltip = 
+clock_tooltip_timezone = 
+clock_lclick_command = 
+clock_rclick_command = orage
+clock_mclick_command = 
+clock_uwheel_command = 
+clock_dwheel_command = 
+
+
+#-------------------------------------
+# Tooltip
+tooltip_show_timeout = 0.5
+tooltip_hide_timeout = 0.1
+tooltip_padding = 4 4
+tooltip_background_id = 1
+tooltip_font_color = #dddddd 100
+
+# Executor 1 - Visa inloggad användare
+execp = new
+execp_command = cat /tmp/current_alma_userid_id.txt
+execp_interval = 0
+execp_has_icon = 0
+execp_cache_icon = 0
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip =
+execp_lclick_command =
+execp_rclick_command =
+execp_mclick_command =
+execp_uwheel_command =
+execp_dwheel_command =
+execp_font = "Sans" 12
+execp_font_color = #ffffff 100
+execp_padding = 50 50 10
+execp_background_id = 1
+execp_centered = 0
+
+# Executor 2 - Visa datornamn
+execp = new
+execp_command = /usr/local/bin/update_tint_computer_name.sh
+execp_interval = 0
+execp_has_icon = 0
+execp_cache_icon = 0
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip =
+execp_lclick_command =
+execp_rclick_command =
+execp_mclick_command =
+execp_uwheel_command =
+execp_dwheel_command =
+execp_font = "Sans" 12
+execp_font_color = #ffffff 100
+execp_padding = 50 50 10
+execp_background_id = 1
+execp_centered = 0
+
+# Executor 3 - Visa kvarvarande tid för sessionen
+execp = new
+execp_command = echo "$(/usr/local/bin/show_remaining_time.sh)"
+execp_interval = 1
+execp_has_icon = 1
+execp_cache_icon = 1
+execp_icon_w = 32  # Width of the icon
+execp_icon_h = 32  # Height of the icon
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip = Left click for hardinfo
+execp_lclick_command = hardinfo
+execp_rclick_command = 
+execp_mclick_command = 
+execp_uwheel_command = 
+execp_dwheel_command = 
+execp_font = "Sans" 12
+execp_font_color = #ffffff 100
+execp_padding = 50 50 10
+execp_background_id = 1
+execp_centered = 0
+
+# Executor 4 - Inaktivitetsvarning
+execp = new
+execp_command = cat /tmp/tint2_inactivity_warning.txt
+execp_interval = 1
+execp_has_icon = 1
+execp_icon_w = 32  
+execp_icon_h = 32  
+execp_cache_icon = 1
+execp_continuous = 0
+execp_markup = 1
+execp_tooltip = Left click to clear
+execp_lclick_command = /usr/local/bin/clear_inactivity.sh
+execp_font = "Sans" 12
+execp_font_color = #FF8282 100
+execp_padding = 50 50 10
+execp_background_id = 1
+execp_centered = 0
+
+#-------------------------------------
+# Button 1
+button = new
+button_icon = /usr/share/icons/Humanity/actions/32/xfsm-logout.svg
+button_text = Logout
+button_lclick_command = /usr/local/bin/logout_and_cancel.sh
+button_rclick_command =
+button_mclick_command =
+button_uwheel_command =
+button_dwheel_command =
+button_font_color = #ffffff 100
+button_padding = 5 0
+button_background_id = 1
+button_centered = 0
+button_max_icon_size = 28

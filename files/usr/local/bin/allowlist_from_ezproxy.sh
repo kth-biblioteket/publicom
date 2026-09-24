@@ -1,0 +1,124 @@
+#!/bin/bash
+
+ENV_FILE="/usr/local/bin/config/.config"
+SECRET_FILE="/usr/local/bin/secrets/.secrets"
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo "Fel: $ENV_FILE hittades inte"
+    exit 1
+else
+    # Gör variabler tillgängliga i script
+    source "$ENV_FILE"
+    echo "Hittade $ENV_FILE"
+fi
+
+if [ ! -f "$SECRET_FILE" ]; then
+    echo "Fel: $SECRET_FILE hittades inte"
+    exit 1
+else
+    # Gör variabler tillgängliga i script
+    source "$SECRET_FILE"
+    echo "Hittade $SECRET_FILE"
+fi
+
+POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
+STANZA_CACHE="/var/cache/publicom/db_stanzas.txt"
+
+# Kör ett jq-filter på policyn och ersätt filen atomiskt.
+# Om jq misslyckas behålls den befintliga policyn.
+# Användning: update_policy '<filter>' [jq-argument...]
+function update_policy() {
+  local filter="$1"; shift
+  local tmp
+  tmp=$(mktemp "${POLICY_PATH}.XXXXXX") || return 1
+  if jq "$@" "$filter" "$POLICY_PATH" > "$tmp" && [ -s "$tmp" ]; then
+    chown root:root "$tmp"
+    chmod 644 "$tmp"
+    mv -f "$tmp" "$POLICY_PATH"
+  else
+    echo "Error: could not update policy with filter: $filter"
+    rm -f "$tmp"
+    return 1
+  fi
+}
+
+# Gör om ett värdnamn till den domän som ska tillåtas.
+# t ex www.jstor.org -> jstor.org, men www.cambridge.co.uk -> cambridge.co.uk (inte co.uk)
+function base_domain() {
+  echo "$1" | awk -F. '{
+    if (NF >= 3 && length($NF) == 2 && $(NF-1) ~ /^(co|ac|com|org|net|gov|edu)$/)
+      print $(NF-2)"."$(NF-1)"."$NF
+    else if (NF >= 2)
+      print $(NF-1)"."$NF
+    else
+      print $0
+  }'
+}
+
+# Sätt URLBlocklist och URLAllowlist från listorna i config (+ ev. extra domäner)
+# "*" blockeras alltid så att endast tillåtna domäner går att nå.
+function apply_restrictions() {
+  local blocked allowed
+  IFS=',' read -r -a blocked <<< "$BLACK_LIST"
+  allowed=("$@")
+  update_policy '.URLBlocklist = (["*"] + $ARGS.named.blocked | map(select(. != "")) | unique)
+                 | .URLAllowlist = ($ARGS.named.allowed | map(select(. != "")) | unique)' \
+    --argjson blocked "$(jq -n '$ARGS.positional' --args "${blocked[@]}")" \
+    --argjson allowed "$(jq -n '$ARGS.positional' --args "${allowed[@]}")"
+}
+
+# Aktivera printer för chrome
+if [ "$PRINTER" == "true" ]; then
+  update_policy '.PrintingEnabled = true'
+fi
+
+IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
+
+if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
+  ###########
+  # Gästdator
+  ###########
+  # Om ALMA_LOGIN är true så ska ska inget blockeras
+  if [ "$ALMA_LOGIN" == "true" ]; then
+    update_policy '.URLBlocklist = []'
+  else
+    # Om gästdatorn är öppen(utan login)
+    # Hämta stanzafil(ezproxy) med tillåtna domäner. Senaste lyckade nedladdning sparas
+    # så att den kan användas om hämtningen misslyckas (t ex utgången token).
+    mkdir -p "$(dirname "$STANZA_CACHE")"
+    if [ -z "$GITHUB_TOKEN" ]; then
+      echo "Error: GITHUB_TOKEN is not set in $SECRET_FILE"
+    else
+      URL="https://raw.githubusercontent.com/kth-biblioteket/ezproxy/main/db_stanzas.txt"
+      if curl -fsSL --max-time 30 -H "Authorization: token $GITHUB_TOKEN" -o "${STANZA_CACHE}.new" "$URL"; then
+        mv -f "${STANZA_CACHE}.new" "$STANZA_CACHE"
+      else
+        echo "Error: could not download stanza file (expired GITHUB_TOKEN?), using cached copy if available"
+        rm -f "${STANZA_CACHE}.new"
+      fi
+    fi
+
+    # Lägg till domäner från stanzafil(ezproxy)
+    if [ -f "$STANZA_CACHE" ]; then
+      while IFS= read -r line; do
+        if [[ $line =~ ^(URL|HJ|DJ)[[:space:]] ]]; then
+            DOMAIN=$(echo "$line" | awk '{print $2}')
+            # Ta bort protokoll, sökväg och port
+            DOMAIN="${DOMAIN#*://}"
+            DOMAIN="${DOMAIN%%/*}"
+            DOMAIN="${DOMAIN%%:*}"
+            [ -n "$DOMAIN" ] && ALLOWED_DOMAINS+=("$(base_domain "$DOMAIN")")
+        fi
+      done < "$STANZA_CACHE"
+    else
+      echo "Warning: no stanza file available, only WHITE_LIST is allowed"
+    fi
+
+    apply_restrictions "${ALLOWED_DOMAINS[@]}"
+  fi
+else
+  ###########
+  # Sökdator
+  ###########
+  apply_restrictions "${ALLOWED_DOMAINS[@]}"
+fi

@@ -1,0 +1,11 @@
+[Unit]
+Description=Kör init.sh vid start
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/init.sh
+
+[Install]
+WantedBy=multi-user.target

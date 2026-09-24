@@ -1,4 +1,8 @@
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_gc2"
+# GENERERAD FIL, ändra inte här.
+# Redigera config/base.env, config/profiles/guest-login.env eller config/hosts/gc2.env
+# och kör tools/build-configs.sh
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_gc2"
+PUBLICOM_BRANCH=stable
 RESOURCE_ID=2
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin
@@ -16,13 +20,13 @@ ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=true
 PRINTER=true
 COMPUTER_TYPE=guestcomputer
-COMPUTER_NAME="KTH Library guest computer"
 SESSION_IDLE=5
 SCREENSAVER=true
 SCREENSAVER_IDLE=00:30:00
-SCREENSAVER_FILES="screen_bg_kth_logo_navy_guest.png,screen_bg_kth_logo_heaven_guest.png"
 POLICY_FILE="policies_guest.json"
 KIOSK=
+BLACK_LIST=""
+COMPUTER_NAME="KTH Library guest computer"
+SCREENSAVER_FILES="screen_bg_kth_logo_navy_guest.png,screen_bg_kth_logo_heaven_guest.png"
 WEBSITES="https://www.kth.se/biblioteket"
 WHITE_LIST="file:///home/guest,chrome://print,chrome-untrusted://print,chrome://newtab,chrome://downloads,kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se,wagnerguide.com,libris.kb.se"
-BLACK_LIST=""

@@ -1,4 +1,8 @@
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_pcangdomen"
+# GENERERAD FIL, ändra inte här.
+# Redigera config/base.env, config/profiles/signage.env eller config/hosts/pcangdomen.env
+# och kör tools/build-configs.sh
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_pcangdomen"
+PUBLICOM_BRANCH=stable
 RESOURCE_ID=x
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin
@@ -16,14 +20,14 @@ ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=false
 PRINTER=false
 COMPUTER_TYPE=searchcomputer
-COMPUTER_NAME="KTH Library - Ångdomen"
 SESSION_IDLE=10
-SCREEN_ROTATION=left
 SCREENSAVER=false
 SCREENSAVER_IDLE=00:30:00
-SCREENSAVER_FILES=""
 POLICY_FILE="policies_search.json"
 KIOSK=--kiosk
-WEBSITES="https://apps.lib.kth.se/smartsigntools/api/v1/angdomen/smartsignpage"
-WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
 BLACK_LIST="*,google.com"
+COMPUTER_NAME="KTH Library - Ångdomen"
+SCREEN_ROTATION=left
+SCREENSAVER_FILES=""
+WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
+WEBSITES="https://apps.lib.kth.se/smartsigntools/api/v1/angdomen/smartsignpage"

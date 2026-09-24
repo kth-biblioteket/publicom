@@ -1,4 +1,8 @@
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_scng"
+# GENERERAD FIL, ändra inte här.
+# Redigera config/base.env, config/profiles/search.env eller config/hosts/scng.env
+# och kör tools/build-configs.sh
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_scng"
+PUBLICOM_BRANCH=stable
 RESOURCE_ID=x
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin
@@ -16,13 +20,13 @@ ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=false
 PRINTER=false
 COMPUTER_TYPE=searchcomputer
-COMPUTER_NAME="KTH Library search computer"
 SESSION_IDLE=5
 SCREENSAVER=true
 SCREENSAVER_IDLE=00:30:00
-SCREENSAVER_FILES="screen_bg_kth_logo_navy_search.png,screen_bg_kth_logo_navy_search_2.png"
 POLICY_FILE="policies_search.json"
 KIOSK=
+BLACK_LIST="*,google.com"
+COMPUTER_NAME="KTH Library search computer"
+SCREENSAVER_FILES="screen_bg_kth_logo_navy_search.png,screen_bg_kth_logo_navy_search_2.png"
 WEBSITES="https://kth-ch.primo.exlibrisgroup.com/discovery/search?vid=46KTH_INST:46KTH_Kiosk&lang=sv https://libris.kb.se/"
 WHITE_LIST="kth.se,exlibrisgroup.com,libkey.io,thirdiron.com,kundo.se,wagnerguide.com,libris.kb.se"
-BLACK_LIST="*,google.com"

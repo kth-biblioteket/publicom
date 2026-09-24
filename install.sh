@@ -55,9 +55,8 @@ update-locale LANG=en_GB.UTF-8
 
 # Lägg till en gästanvändare utan lösenord för autologin och anslut till grupper
 id guest > /dev/null 2>&1 || adduser guest --disabled-password --gecos ""
-# OBS: raden har fel syntax (usermod tar bara en användare) och lägger troligen inte till några grupper.
-# Behålls oförändrad tills vidare, eftersom t ex lpadmin skulle ge gästen rätt att administrera skrivare.
-usermod -aG lpadmin video tty input guest
+# Gästen ska inte vara med i några extra grupper (t ex lpadmin skulle ge rätt att administrera skrivare).
+# Tidigare rad "usermod -aG lpadmin video tty input guest" hade fel syntax och gjorde ingenting.
 
 # Installera skrivarfunktion
 # Lägg till KTH-Print-skrivare och drivrutin

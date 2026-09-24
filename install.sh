@@ -1010,8 +1010,10 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         # Kolla om bokningsdata existerar
         if [[ -z "$entry_id" || -z "$create_by" || -z "$start_time" || -z "$end_time" ]]; then
             log_message "ERROR: Electron output invalid or crashed, booking data missing."
-            xmessage -center -buttons "" -timeout 0 "Inloggningen kunde inte starta. Kontakta biblioteket. / The login process failed, please contact the library" &
-            sleep infinity
+            # Visa meddelandet en stund och starta sedan om sessionen (tillbaka till inloggningen)
+            # i stället för att låsa datorn tills personal startar om den
+            xmessage -center -buttons "" -timeout 15 "Inloggningen misslyckades, försök igen. Kontakta biblioteket om felet kvarstår. / The login failed, please try again. Contact the library if the problem persists."
+            exit 1
         fi
 
         # Spara entry_id från bokningen
@@ -1509,19 +1511,53 @@ const path = require('path');
 const axios = require('axios');
 const dotenv = require('dotenv');
 
-dotenv.config({ 
+dotenv.config({
   path: path.resolve(__dirname, '../config', '.config'),
   debug: false
 });
 
-const { BOOKING_TYPE, DEFAULT_BOOKING_TIME, API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CREATE_URL, RESERVATION_API_UPDATE_URL, RESERVATION_API_CURRENT_RES_URL, MAIN_WINDOW_TIMEOUT, EXTERNAL_URL_TIMEOUT, CLEAR_FIELDS_TIMEOUT, ELECTRON_DEV_TOOLS } = process.env;
+const { BOOKING_TYPE, DEFAULT_BOOKING_TIME, API_URL, RESERVATION_API_URL, BOOKING_SYSTEM_URL, RESOURCE_ID, LOGINTYPE, REGISTER_ACCOUNT_URL, RESERVATION_API_CREATE_URL, RESERVATION_API_UPDATE_URL, RESERVATION_API_CURRENT_RES_URL, EXTERNAL_URL_TIMEOUT, CLEAR_FIELDS_TIMEOUT, ELECTRON_DEV_TOOLS, EXTERNAL_ALLOWED_HOSTS } = process.env;
 
 let mainWindow;
 let newWindow;
 let storedUsername = '';
 let inactivityTimer = null;
 let inactivityClearFieldsTimer = null;
+let statusUpdateInterval = null;
 let authToken = null;
+
+/**
+ * Escapes text so that it can be safely inserted as HTML.
+ * @param {string} text - Text from e.g. an API response.
+ * @returns {string} Escaped text.
+ */
+function escapeHtml(text) {
+    return String(text ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
+ * Hosts that external windows (book computer / register account) may navigate to.
+ * The hosts of BOOKING_SYSTEM_URL and REGISTER_ACCOUNT_URL plus optional
+ * comma separated EXTERNAL_ALLOWED_HOSTS from .config.
+ */
+const allowedExternalHosts = [BOOKING_SYSTEM_URL, REGISTER_ACCOUNT_URL]
+    .map((url) => { try { return new URL(url).hostname; } catch { return null; } })
+    .concat((EXTERNAL_ALLOWED_HOSTS || '').split(',').map((host) => host.trim()))
+    .filter(Boolean);
+
+function isAllowedExternalUrl(url) {
+    try {
+        const { protocol, hostname } = new URL(url);
+        return protocol === 'https:' && allowedExternalHosts.includes(hostname);
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Verifies the user's code (PIN or password).
@@ -1608,11 +1644,11 @@ async function createReservation(create_by, name, start_time, end_time) {
               end_time
           },
           {
-              timeout: 10000,  
-              headers: { 
+              timeout: 10000,
+              headers: {
                 "Content-Type": "application/json",
                 "x-access-token": authToken,
-              }  
+              }
           }
         );
         return response.data;
@@ -1637,11 +1673,11 @@ async function resetReservation(entry_id) {
           `${RESERVATION_API_UPDATE_URL}${entry_id}?end_time=${endTimestamp}`,
           {},
           {
-              timeout: 10000,  
-              headers: { 
+              timeout: 10000,
+              headers: {
                 "Content-Type": "application/json",
                 "x-access-token": authToken,
-              }  
+              }
           }
         );
         return response.data;
@@ -1662,9 +1698,16 @@ function startInactivityClearFieldsTimer() {
 }
 
 /**
- * Creates the main application window.
+ * Creates the main application window, or shows it if it already exists.
+ * There is only ever one main window.
  */
 function createMainWindow() {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.show();
+        mainWindow.focus();
+        return;
+    }
+
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
     mainWindow = new BrowserWindow({
@@ -1673,8 +1716,10 @@ function createMainWindow() {
         frame: false,
         transparent: false,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
+            preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
             devTools: ELECTRON_DEV_TOOLS === 'true'
         },
     });
@@ -1683,12 +1728,15 @@ function createMainWindow() {
 
     mainWindow.loadFile('index.html', { query: { computername: dynamicComputerName, bookingType: BOOKING_TYPE } });
 
+    // Inloggningssidan ska aldrig kunna navigera bort eller öppna nya fönster
+    mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
+    mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+
     mainWindow.on('closed', () => {
         if (statusUpdateInterval) clearInterval(statusUpdateInterval);
+        statusUpdateInterval = null;
         mainWindow = null;
     });
-
-    let statusUpdateInterval;
 
     mainWindow.webContents.on('did-finish-load', async() => {
         //Kontrollera om det finns en bokning
@@ -1698,9 +1746,11 @@ function createMainWindow() {
             mainWindow.webContents.send('current-status', {valid: false});
         } else {
             async function updateReservationStatus() {
+                if (!mainWindow) return;
                 const currentstatus = await checkCurrentReservationStatus();
-                mainWindow.webContents.send('current-status', currentstatus);
+                if (mainWindow) mainWindow.webContents.send('current-status', currentstatus);
             }
+            if (statusUpdateInterval) clearInterval(statusUpdateInterval);
             updateReservationStatus();
             statusUpdateInterval = setInterval(updateReservationStatus, 10000);
         }
@@ -1716,10 +1766,31 @@ function createMainWindow() {
 }
 
 /**
+ * Closes the external window (if open) and returns to the main window.
+ */
+function showMainWindow() {
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    if (newWindow && !newWindow.isDestroyed()) newWindow.destroy();
+    newWindow = null;
+    createMainWindow();
+}
+
+//Timer för att återgå till huvudfönstret om användaren är inaktiv i xxx millisekunder
+function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(showMainWindow, EXTERNAL_URL_TIMEOUT);
+}
+
+/**
  * Creates a new window for external URLs or specific content.
  * @param {string} url - The URL to load.
  */
 function createNewWindow(url) {
+    if (newWindow && !newWindow.isDestroyed()) newWindow.destroy();
+
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
     newWindow = new BrowserWindow({
@@ -1729,9 +1800,26 @@ function createNewWindow(url) {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            sandbox: false,
+            nodeIntegration: false,
+            sandbox: true,
             devTools: ELECTRON_DEV_TOOLS === 'true'
         },
+    });
+
+    // Tillåt bara navigering inom bokningssystemet/registreringsformuläret,
+    // så att det inte går att ta sig ut på internet från inloggningsskärmen
+    const blockDisallowed = (event, targetUrl) => {
+        if (!isAllowedExternalUrl(targetUrl)) {
+            console.error('Blocked navigation to ' + targetUrl);
+            event.preventDefault();
+        }
+    };
+    newWindow.webContents.on('will-navigate', blockDisallowed);
+    newWindow.webContents.on('will-redirect', blockDisallowed);
+    newWindow.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
+        // Länkar som vill öppna nytt fönster öppnas i samma fönster om de är tillåtna
+        if (isAllowedExternalUrl(targetUrl)) newWindow.loadURL(targetUrl);
+        return { action: 'deny' };
     });
 
     newWindow.loadURL(url);
@@ -1740,25 +1828,17 @@ function createNewWindow(url) {
         if (currentUrl !== `file://${path.join(__dirname, 'index.html')}`) injectExternalScript(newWindow);
     });
 
-    newWindow.on('closed', () => {
-        mainWindow = null;
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        ipcMain.removeAllListeners('user-activity');
+    const thisWindow = newWindow;
+    thisWindow.on('closed', () => {
+        if (newWindow === thisWindow) {
+            newWindow = null;
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            inactivityTimer = null;
+        }
     });
 
     injectExternalScript(newWindow);
 
-    //Timer för att återgå till huvudfönstret om användaren är inaktiv i xxx millisekunder
-    const resetInactivityTimer = () => {
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            createMainWindow()
-        }, EXTERNAL_URL_TIMEOUT); 
-    };
-
-    ipcMain.on('user-activity', () => {
-        resetInactivityTimer()
-    });
     newWindow.on('focus', resetInactivityTimer);
 
     resetInactivityTimer();
@@ -1841,7 +1921,11 @@ function injectExternalScript(window) {
  * Event handlers for IPC communication.
  */
 function setupIPC() {
+    // Kanaler för inloggningen får bara användas av huvudfönstret, inte av externa sidor
+    const fromMainWindow = (event) => mainWindow && event.sender === mainWindow.webContents;
+
     ipcMain.on('submit-form', async (event, username, pin) => {
+        if (!fromMainWindow(event)) return;
         mainWindow.webContents.send('spinner-start', ``);
         const verificationResult = await verifyCode(username, pin);
         let message_en
@@ -1874,9 +1958,9 @@ function setupIPC() {
                 mainWindow.webContents.send('user-message', '<div class="kth-alert warning"><h2>An error occurred. Please try again. / Ett fel uppstod. Försök igen.</h2><p>If the error persists contact the info desk. / Om felet kvarstår kontakta informationsdisken.</p>');
                 break;
             default:
-                
-                // Avsluta(sätt sluttid) eventuell befintlig bokning på Dropin-datorer 
-                if(BOOKING_TYPE==='dropin') {  
+
+                // Avsluta(sätt sluttid) eventuell befintlig bokning på Dropin-datorer
+                if(BOOKING_TYPE==='dropin') {
                     const status = await checkCurrentReservationStatus()
                     if (status.valid) {
                         const resetBooking = await resetReservation(status.reservation.id);
@@ -1886,7 +1970,7 @@ function setupIPC() {
                 let reservation
                 if (!reservationstatus.valid) {
                   // Om datorn är ledig
-                  // Skapa en bokning för användaren med starttid som är nuvarande tids timme. 
+                  // Skapa en bokning för användaren med starttid som är nuvarande tids timme.
                   // t ex om kl är 12:23 så ska start_time vara 12:00
                   // end_time ska vara start_time + x timmar
                   const start_time = new Date();
@@ -1909,18 +1993,22 @@ function setupIPC() {
                     console.log(JSON.stringify({ booking_data: reservation.reservation }));
                     process.exit(0);
                 } else {
+                    // Texten kommer från API:t och escapas innan den visas som HTML
+                    const apiMessage = escapeHtml(reservation.message || reservation);
                     mainWindow.webContents.send('spinner-remove', ``);
-                    mainWindow.webContents.send('user-message', `<div class="kth-alert warning"> <h2>Login/booking failed</h2> <p>${reservation.message}</p></div>`);
+                    mainWindow.webContents.send('user-message', `<div class="kth-alert warning"> <h2>Login/booking failed</h2> <p>${apiMessage}</p></div>`);
                 }
         }
     });
 
     ipcMain.on('load-username', (event, username) => {
+        if (!fromMainWindow(event)) return;
         storedUsername = username;
         mainWindow.webContents.send('load-username', storedUsername);
     });
 
     ipcMain.on('load-external-url', (event, type) => {
+        if (!fromMainWindow(event)) return;
         if(type === 'book-computer') {
             createNewWindow(BOOKING_SYSTEM_URL + '?room=' + RESOURCE_ID);
             return;
@@ -1930,20 +2018,21 @@ function setupIPC() {
             createNewWindow(REGISTER_ACCOUNT_URL);
             return;
         }
-       
+
     });
 
     ipcMain.on('back-to-main', () => {
-        if (inactivityTimer) {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = null;
-            ipcMain.removeAllListeners('user-activity');
-        }
-        createMainWindow();
+        showMainWindow();
     });
 
-    ipcMain.on('user-activity', () => {
-       startInactivityClearFieldsTimer();
+    // Aktivitet i externt fönster förlänger dess timeout, aktivitet i huvudfönstret
+    // skjuter upp rensningen av inloggningsfälten
+    ipcMain.on('user-activity', (event) => {
+        if (newWindow && event.sender === newWindow.webContents) {
+            resetInactivityTimer();
+        } else {
+            startInactivityClearFieldsTimer();
+        }
     });
 }
 
@@ -1964,13 +2053,20 @@ EOL
 
 cat <<'EOL' > /usr/local/bin/electron-login/preload.js
 const { contextBridge, ipcRenderer } = require('electron');
-const fs = require('fs');
-const path = require('path');
+
+// Endast dessa kanaler exponeras för sidorna. main.js kontrollerar dessutom
+// att inloggningskanalerna bara används av huvudfönstret.
+const SEND_CHANNELS = ['submit-form', 'load-username', 'load-external-url', 'back-to-main', 'user-activity'];
+const RECEIVE_CHANNELS = ['clear-fields', 'current-status', 'load-username', 'user-message', 'spinner-start', 'spinner-remove'];
 
 contextBridge.exposeInMainWorld('electron', {
     ipcRenderer: {
-        send: (channel, data) => ipcRenderer.send(channel, data),
-        on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args))
+        send: (channel, ...args) => {
+            if (SEND_CHANNELS.includes(channel)) ipcRenderer.send(channel, ...args);
+        },
+        on: (channel, func) => {
+            if (RECEIVE_CHANNELS.includes(channel)) ipcRenderer.on(channel, (event, ...args) => func(...args));
+        }
     }
 });
 EOL
@@ -1988,7 +2084,8 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
   <link
     href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
     rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <!-- Font Awesome installeras lokalt via npm så att ikonerna fungerar även utan nätverk -->
+  <link href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
   <style>
     html {
       font-size: 18px;
@@ -2381,7 +2478,8 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
   </div>
 
   <script>
-    const { ipcRenderer } = require('electron');
+    // Exponeras av preload.js (contextIsolation, ingen Node i sidan)
+    const ipcRenderer = window.electron.ipcRenderer;
     const formContainer = document.getElementById('form-container');
     const messageContainer = document.getElementById('message-container');
     const userMessageElement = document.getElementById('user-message');
@@ -2402,7 +2500,7 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       });
 
       //Check current status
-      ipcRenderer.on('current-status', (event, status) => {
+      ipcRenderer.on('current-status', (status) => {
         if (status.valid) {
           computernameContainer.classList.add('booked');
           computernameContainer.classList.remove('available');
@@ -2418,23 +2516,23 @@ cat <<'EOL' > /usr/local/bin/electron-login/index.html
       const computername = params.get('computername') || 'Datornamn saknas';
       const bookingType = params.get('bookingType') || 'bookable'
 
-      document.querySelector('#computername').innerHTML = `${computername}`;
+      document.querySelector('#computername').textContent = computername;
 
-      ipcRenderer.on('load-username', (event, username) => {
+      ipcRenderer.on('load-username', (username) => {
         document.getElementById('username').value = username;
       });
 
-      ipcRenderer.on('user-message', (event, message) => {
+      ipcRenderer.on('user-message', (message) => {
         //formContainer.style.display = 'none';
         userMessageElement.innerHTML = message;
         messageContainer.style.display = 'flex';
       });
 
-      ipcRenderer.on('spinner-start', (event, message) => {
+      ipcRenderer.on('spinner-start', () => {
         spinner.style.display = 'flex';
       });
 
-      ipcRenderer.on('spinner-remove', (event, message) => {
+      ipcRenderer.on('spinner-remove', () => {
         spinner.style.display = 'none';
       });
 
@@ -2485,6 +2583,7 @@ cd /usr/local/bin/electron-login
 npm install electron@39.2.1
 npm install axios
 npm install dotenv@16.6.1
+npm install @fortawesome/fontawesome-free@6.7.2
 
 # Skapa icons-folder
 mkdir -p /usr/local/bin/icons

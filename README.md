@@ -129,6 +129,9 @@ BOOKING_TYPE=dropin
 DEFAULT_BOOKING_TIME=2
 REGISTER_ACCOUNT_URL=https://apps.lib.kth.se/formtools/api/v1/kthbform?formid=libraryaccount_kiosk&lang=sv&kiosk=true
 EXTERNAL_URL_TIMEOUT=30000
+# Valfritt: extra värdnamn (kommaseparerade) som "Registrera konto"/"Boka dator" får navigera till.
+# Värdarna i REGISTER_ACCOUNT_URL och BOOKING_SYSTEM_URL är alltid tillåtna (endast https).
+EXTERNAL_ALLOWED_HOSTS=
 ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=false
 PRINTER=false

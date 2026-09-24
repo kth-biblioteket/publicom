@@ -1,5 +1,7 @@
 {
     "DefaultBrowserSettingEnabled": false,
+    "SyncDisabled": true,
+    "BrowserSignin": 0,
     "PromptForDownloadLocation": false,
     "DownloadRestrictions": 3,
     "IncognitoModeAvailability": 2,

@@ -157,6 +157,14 @@ if changed "$ELECTRON_DIR/package*.json" || [ ! -f "$ELECTRON_DIR/node_modules/e
     fi
 fi
 
+# Chromiums sandlåda i Electron. Ubuntu 24.04 begränsar user namespaces för vanliga användare
+# (AppArmor), och då används SUID-hjälparen chrome-sandbox. Den måste ägas av root med 4755,
+# annars vägrar Electron starta.
+CHROME_SANDBOX="$ELECTRON_DIR/node_modules/electron/dist/chrome-sandbox"
+if [ -f "$CHROME_SANDBOX" ] && [ "$(stat -c '%a %U' "$CHROME_SANDBOX")" != "4755 root" ]; then
+    chown root:root "$CHROME_SANDBOX" && chmod 4755 "$CHROME_SANDBOX" && echo "Installed $CHROME_SANDBOX (4755)"
+fi
+
 # Spara vad som är installerat
 mkdir -p "$STATE_DIR"
 {

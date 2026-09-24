@@ -1126,34 +1126,63 @@ else
     echo "Hittade $SECRET_FILE"
 fi
 
+# Ladda ner till temporärfil, validera och ersätt målfilen först när allt är ok.
+# Vid fel (t ex 404 eller nätverksfel) behålls den befintliga filen.
+# $3 = valideringstyp: env, json eller any
+function safe_download() {
+    local url="$1" dest="$2" type="$3" tmp
+    tmp=$(mktemp "${dest}.XXXXXX") || return 1
+    if ! curl -fsSL --max-time 30 -o "$tmp" "$url"; then
+        echo "Error downloading $url, keeping existing $dest"
+        rm -f "$tmp"
+        return 1
+    fi
+    case "$type" in
+        env)  bash -n "$tmp" && grep -q '^REMOTE_CONFIG_URL=' "$tmp" ;;
+        json) jq empty "$tmp" ;;
+        *)    [ -s "$tmp" ] ;;
+    esac
+    if [ $? -ne 0 ]; then
+        echo "Error: $url failed validation, keeping existing $dest"
+        rm -f "$tmp"
+        return 1
+    fi
+    chmod 644 "$tmp"
+    mv -f "$tmp" "$dest"
+    echo "Successfully downloaded $url"
+}
+
 # Hämta configfil från GitHub och spara till den lokala datorn
-URL=REMOTE_CONFIG_URL
-if curl -s -o /usr/local/bin/config/.config $REMOTE_CONFIG_URL; then
-   echo "Successfully downloaded $REMOTE_CONFIG_URL"
-else
-   echo "Error downloading $REMOTE_CONFIG_URL"
-fi
+safe_download "$REMOTE_CONFIG_URL" /usr/local/bin/config/.config env
 source "$ENV_FILE"
 
 # Skärmsläckarfiler
-rm -rf /usr/local/bin/screensaver/*
+# Ladda ner till separat katalog och byt ut först om alla filer kom ner
+SCREENSAVER_TMP=$(mktemp -d)
+SCREENSAVER_OK=true
 IFS=',' read -ra FILE_ARRAY <<< "$SCREENSAVER_FILES"
 for file in "${FILE_ARRAY[@]}"; do
+    [ -z "$file" ] && continue
     echo "Downloading $file..."
-    if curl -s -o "/usr/local/bin/screensaver/$file" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/$file"; then
-        echo "Successfully downloaded $file"
-    else
+    if ! curl -fsSL --max-time 30 -o "$SCREENSAVER_TMP/$file" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/screensaver/$file"; then
         echo "Error downloading $file"
+        SCREENSAVER_OK=false
     fi
 done
+if [ "$SCREENSAVER_OK" == "true" ]; then
+    rm -rf /usr/local/bin/screensaver/*
+    cp "$SCREENSAVER_TMP"/* /usr/local/bin/screensaver/ 2>/dev/null
+    chmod 644 /usr/local/bin/screensaver/* 2>/dev/null
+else
+    echo "Keeping existing screensaver files"
+fi
+rm -rf "$SCREENSAVER_TMP"
 
 # Chrome policy
 echo "Downloading policy $POLICY_FILE"
-if curl -s -o "/var/snap/chromium/current/policies/managed/policies.json" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE"; then
-  echo "Successfully downloaded $POLICY_FILE"
-else
-  echo "Error downloading $POLICY_FILE"
-fi
+safe_download "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE" /var/snap/chromium/current/policies/managed/policies.json json
+chown root:root /var/snap/chromium/current/policies/managed/policies.json
+chmod 644 /var/snap/chromium/current/policies/managed/policies.json
 EOL
 chmod +x /usr/local/bin/init.sh
 
@@ -1178,12 +1207,12 @@ systemctl enable init.service
 cat <<'EOL' > /etc/systemd/system/allowlist_from_ezproxy.service 
 [Unit]
 Description=Run allowlist_from_ezproxy script at startup
-After=network-online.target
+# Måste köras efter init.service som laddar ner en ny grundpolicy
+After=network-online.target init.service
 Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStartPre=/bin/sleep 5
 ExecStart=/usr/local/bin/allowlist_from_ezproxy.sh
 
 [Install]
@@ -1196,8 +1225,9 @@ systemctl enable allowlist_from_ezproxy.service
 cat <<'EOL' > /etc/systemd/system/guest.service
 [Unit]
 Description=Guest Mode
-# After=allowlist_from_ezproxy.service systemd-user-sessions.service
-# Requires=allowlist_from_ezproxy.service
+# Vänta tills config och Chromium-policy är klara så att webbläsaren startar med rätt begränsningar.
+# Endast ordning (After), inte Requires, så att sessionen startar även om nätverket saknas.
+After=init.service allowlist_from_ezproxy.service systemd-user-sessions.service
 
 [Service]
 User=guest
@@ -1321,11 +1351,15 @@ EOL
 # Skapa policies för chromium för diverse inställningar(allowlists etc)
 ## https://chromeenterprise.google/policies/
 
-mkdir /var/snap/chromium/current/policies
-mkdir /var/snap/chromium/current/policies/managed
-curl -s -o "/var/snap/chromium/current/policies/managed/policies.json" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE"
+mkdir -p /var/snap/chromium/current/policies/managed
+if ! curl -fsSL --max-time 30 -o "/var/snap/chromium/current/policies/managed/policies.json" "https://raw.githubusercontent.com/kth-biblioteket/publicom/main/$POLICY_FILE"; then
+    echo "Error: kunde inte hämta $POLICY_FILE" 1>&2
+    exit 1
+fi
 
-chmod 777 /var/snap/chromium/current/policies/managed/policies.json
+# Endast root får ändra policyn, gästen ska bara kunna läsa den
+chown root:root /var/snap/chromium/current/policies/managed/policies.json
+chmod 644 /var/snap/chromium/current/policies/managed/policies.json
 
 # Skapa script som hämtar domänlista från github och uppdaterar chromiums policy
 # Beroende av att token för github finns i .env filen

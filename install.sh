@@ -1233,6 +1233,9 @@ After=init.service allowlist_from_ezproxy.service systemd-user-sessions.service
 User=guest
 Restart=always
 ExecStart=/usr/bin/startx
+# Körs efter varje avslutad session (utloggning, timeout, inaktivitet).
+# "+" = körs som root så att hemlighetsfilen kan läsas.
+ExecStopPost=+/usr/local/bin/session_cleanup.sh
 Environment=DISPLAY=:0
 
 [Install]
@@ -1241,23 +1244,9 @@ EOL
 
 systemctl enable guest.service
 
-# Skapa service som körs vid avslut av session
-cat <<'EOL' > /etc/systemd/system/session-cleanup.service
-[Unit]
-Description=Cleanup after guest session
-After=guest.service
-Requires=guest.service
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/session_cleanup.sh
-RemainAfterExit=true
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-systemctl enable session-cleanup.service
+# Tidigare separat tjänst som bara kördes en gång vid uppstart, ersatt av ExecStopPost ovan
+systemctl disable session-cleanup.service 2>/dev/null
+rm -f /etc/systemd/system/session-cleanup.service
 
 # Skapa skript som körs vid avslut av session
 cat <<'EOL' > /usr/local/bin/session_cleanup.sh
@@ -1294,8 +1283,6 @@ if [ "$BOOKING_TYPE" == "dropin" ]; then
     if [ -z "$BOOKING_API_KEY" ]; then
         echo "Error: API key (BOOKING_API_KEY) not found in $SECRET_FILE" >> /var/log/guest_cleanup.log
         exit 0
-    else
-        echo "BOOKING_API_KEY: $BOOKING_API_KEY"
     fi
 
     if [ -z "$RESERVATION_API_UPDATE_URL" ]; then
@@ -1303,10 +1290,12 @@ if [ "$BOOKING_TYPE" == "dropin" ]; then
         exit 0
     fi
 
-    BOOKING_ID=$(cat /tmp/current_booking_id.txt)
+    BOOKING_ID=$(cat /tmp/current_booking_id.txt 2>/dev/null)
+    # Ta bort filen så att samma bokning inte avslutas igen vid nästa sessionsslut
+    rm -f /tmp/current_booking_id.txt
 
     if [ -z "$BOOKING_ID" ]; then
-        echo "Error: booking_id not found in /tmp/current_booking_id.txt" >> /var/log/guest_cleanup.log
+        # Ingen inloggad session (t ex öppen dator), inget att göra
         exit 0
     else
         echo "Booking id: $BOOKING_ID"
@@ -1320,7 +1309,8 @@ if [ "$BOOKING_TYPE" == "dropin" ]; then
 
     echo "API_URL: $API_URL"
 
-    API_RESPONSE=$(curl -s -w "%{http_code}" -o /tmp/api_response.json -X POST "$API_URL" \
+    # Timeout så att en långsam API-server inte fördröjer att nästa session startar
+    API_RESPONSE=$(curl -s --max-time 10 -w "%{http_code}" -o /tmp/api_response.json -X POST "$API_URL" \
         -H "Content-Type: application/json" \
         -d "{\"status\": \"ended\", \"apikey\": \"$BOOKING_API_KEY\"}")
 

@@ -136,7 +136,7 @@ if [ ! -f "$SRC/files.manifest" ]; then
 fi
 bash "$SRC/files/usr/local/bin/deploy.sh" "$SRC"
 
-if [ ! -x /usr/local/bin/electron-login/node_modules/.bin/electron ]; then
+if [ ! -f /usr/local/bin/electron-login/node_modules/electron/path.txt ]; then
     echo "Error: Electron installerades inte, se utskriften ovan" 1>&2
     exit 1
 fi

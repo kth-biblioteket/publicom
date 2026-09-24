@@ -135,15 +135,19 @@ if changed "/etc/modprobe.d/*"; then
     update-initramfs -u
 fi
 ELECTRON_DIR="/usr/local/bin/electron-login"
-if changed "$ELECTRON_DIR/package*.json" || [ ! -x "$ELECTRON_DIR/node_modules/.bin/electron" ]; then
+if changed "$ELECTRON_DIR/package*.json" || [ ! -f "$ELECTRON_DIR/node_modules/electron/path.txt" ]; then
     echo "Installerar npm-paket för electron-login"
     # Installera i temporär katalog och byt först när allt lyckats,
     # så att inloggningen fungerar även om nedladdningen avbryts
     NPM_DIR="$WORK/npm"
     mkdir -p "$NPM_DIR"
     cp "$ELECTRON_DIR/package.json" "$ELECTRON_DIR/package-lock.json" "$NPM_DIR/"
-    if (cd "$NPM_DIR" && npm ci --omit=dev --no-audit --no-fund) \
-        && [ -x "$NPM_DIR/node_modules/.bin/electron" ]; then
+    # Electron laddar ner sitt program i ett postinstall-skript. npm 12 blockerar sådana skript
+    # som standard, så skriptet körs uttryckligen. Kontrollera sedan att programmet finns
+    # (.bin/electron finns även när nedladdningen inte har gjorts).
+    if (cd "$NPM_DIR" && npm ci --omit=dev --no-audit --no-fund && node node_modules/electron/install.js) \
+        && [ -f "$NPM_DIR/node_modules/electron/path.txt" ] \
+        && [ -x "$NPM_DIR/node_modules/electron/dist/$(cat "$NPM_DIR/node_modules/electron/path.txt")" ]; then
         rm -rf "$ELECTRON_DIR/node_modules.old"
         [ -d "$ELECTRON_DIR/node_modules" ] && mv "$ELECTRON_DIR/node_modules" "$ELECTRON_DIR/node_modules.old"
         mv "$NPM_DIR/node_modules" "$ELECTRON_DIR/node_modules"

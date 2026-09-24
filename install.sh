@@ -1390,90 +1390,106 @@ else
     echo "Hittade $SECRET_FILE"
 fi
 
+POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
+STANZA_CACHE="/var/cache/publicom/db_stanzas.txt"
+
+# Kör ett jq-filter på policyn och ersätt filen atomiskt.
+# Om jq misslyckas behålls den befintliga policyn.
+# Användning: update_policy '<filter>' [jq-argument...]
+function update_policy() {
+  local filter="$1"; shift
+  local tmp
+  tmp=$(mktemp "${POLICY_PATH}.XXXXXX") || return 1
+  if jq "$@" "$filter" "$POLICY_PATH" > "$tmp" && [ -s "$tmp" ]; then
+    chown root:root "$tmp"
+    chmod 644 "$tmp"
+    mv -f "$tmp" "$POLICY_PATH"
+  else
+    echo "Error: could not update policy with filter: $filter"
+    rm -f "$tmp"
+    return 1
+  fi
+}
+
+# Gör om ett värdnamn till den domän som ska tillåtas.
+# t ex www.jstor.org -> jstor.org, men www.cambridge.co.uk -> cambridge.co.uk (inte co.uk)
+function base_domain() {
+  echo "$1" | awk -F. '{
+    if (NF >= 3 && length($NF) == 2 && $(NF-1) ~ /^(co|ac|com|org|net|gov|edu)$/)
+      print $(NF-2)"."$(NF-1)"."$NF
+    else if (NF >= 2)
+      print $(NF-1)"."$NF
+    else
+      print $0
+  }'
+}
+
+# Sätt URLBlocklist och URLAllowlist från listorna i config (+ ev. extra domäner)
+# "*" blockeras alltid så att endast tillåtna domäner går att nå.
+function apply_restrictions() {
+  local blocked allowed
+  IFS=',' read -r -a blocked <<< "$BLACK_LIST"
+  allowed=("$@")
+  update_policy '.URLBlocklist = (["*"] + $ARGS.named.blocked | map(select(. != "")) | unique)
+                 | .URLAllowlist = ($ARGS.named.allowed | map(select(. != "")) | unique)' \
+    --argjson blocked "$(jq -n '$ARGS.positional' --args "${blocked[@]}")" \
+    --argjson allowed "$(jq -n '$ARGS.positional' --args "${allowed[@]}")"
+}
+
 # Aktivera printer för chrome
 if [ "$PRINTER" == "true" ]; then
-  POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
-  POLICY=$(cat $POLICY_PATH | jq '.PrintingEnabled = true')
-  echo $POLICY | jq '.' > $POLICY_PATH
+  update_policy '.PrintingEnabled = true'
 fi
+
+IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
+
 if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
   ###########
   # Gästdator
   ###########
   # Om ALMA_LOGIN är true så ska ska inget blockeras
   if [ "$ALMA_LOGIN" == "true" ]; then
-    POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
-    POLICY=$(cat $POLICY_PATH | jq '.URLBlocklist = []')
-    echo $POLICY | jq '.' > $POLICY_PATH
+    update_policy '.URLBlocklist = []'
   else
     # Om gästdatorn är öppen(utan login)
-
-    # Finns githubtoken för att hämta stanzafil(ezproxy) med tillåtna domäner
+    # Hämta stanzafil(ezproxy) med tillåtna domäner. Senaste lyckade nedladdning sparas
+    # så att den kan användas om hämtningen misslyckas (t ex utgången token).
+    mkdir -p "$(dirname "$STANZA_CACHE")"
     if [ -z "$GITHUB_TOKEN" ]; then
-      echo "Error: GITHUB_TOKEN is not set in $ENV_FILE"
+      echo "Error: GITHUB_TOKEN is not set in $SECRET_FILE"
     else
-      # Hämta stanzafil(ezproxy)
       URL="https://raw.githubusercontent.com/kth-biblioteket/ezproxy/main/db_stanzas.txt"
-
-      curl -H "Authorization: token $GITHUB_TOKEN" -L -o /tmp/db_stanzas.txt $URL
-
-      # Skapa en lista med tillåtna domäner
-      IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
-
-      # Lägg till domäner från stanzafil(ezproxy)
-      while IFS= read -r line; do
-        if [[ $line =~ ^(URL|HJ|DJ) ]]; then
-            DOMAIN=$(echo $line | cut -d' ' -f2)
-            DOMAIN="${DOMAIN/http:\/\//https:\/\/}"
-            if [[ ! $DOMAIN =~ ^https:// ]]; then
-                DOMAIN="https://$DOMAIN"
-            fi
-            # Ta bort allt efter toppdomänen
-            DOMAIN=$(echo "$DOMAIN" | awk -F[/:] '{print $4}')
-            # Kontrollera om det redan finns en huvuddomän
-            BASE_DOMAIN=$(echo "$DOMAIN" | awk -F. '{print $(NF-1)"."$NF}')
-            # Spara domäner i en lista
-            ALLOWED_DOMAINS+=("$BASE_DOMAIN")
-        fi
-      done < /tmp/db_stanzas.txt
-
-      POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
-
-      POLICY=$(cat $POLICY_PATH)
-
-      POLICY=$(cat $POLICY_PATH | jq '.URLBlocklist = ["*","google.com","google.com"]')
-
-      ALLOWED_DOMAINS_JSON=$(printf '"%s",' "${ALLOWED_DOMAINS[@]}" | sed 's/,$//')
-
-      POLICY=$(echo $POLICY | jq '.URLAllowlist = []')
-
-      POLICY=$(echo $POLICY | jq --argjson domains "[$ALLOWED_DOMAINS_JSON]" '.URLAllowlist += $domains')
-
-      POLICY=$(echo $POLICY | jq '.URLAllowlist |= unique')
-
-      # Spara till policyfilen
-      echo $POLICY | jq '.' > $POLICY_PATH
+      if curl -fsSL --max-time 30 -H "Authorization: token $GITHUB_TOKEN" -o "${STANZA_CACHE}.new" "$URL"; then
+        mv -f "${STANZA_CACHE}.new" "$STANZA_CACHE"
+      else
+        echo "Error: could not download stanza file (expired GITHUB_TOKEN?), using cached copy if available"
+        rm -f "${STANZA_CACHE}.new"
+      fi
     fi
+
+    # Lägg till domäner från stanzafil(ezproxy)
+    if [ -f "$STANZA_CACHE" ]; then
+      while IFS= read -r line; do
+        if [[ $line =~ ^(URL|HJ|DJ)[[:space:]] ]]; then
+            DOMAIN=$(echo "$line" | awk '{print $2}')
+            # Ta bort protokoll, sökväg och port
+            DOMAIN="${DOMAIN#*://}"
+            DOMAIN="${DOMAIN%%/*}"
+            DOMAIN="${DOMAIN%%:*}"
+            [ -n "$DOMAIN" ] && ALLOWED_DOMAINS+=("$(base_domain "$DOMAIN")")
+        fi
+      done < "$STANZA_CACHE"
+    else
+      echo "Warning: no stanza file available, only WHITE_LIST is allowed"
+    fi
+
+    apply_restrictions "${ALLOWED_DOMAINS[@]}"
   fi
 else
   ###########
   # Sökdator
   ###########
-  POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
-  IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
-  POLICY=$(cat $POLICY_PATH)
-
-  POLICY=$(cat $POLICY_PATH | jq '.URLBlocklist = ["*","google.com","google.com"]')
-
-  ALLOWED_DOMAINS_JSON=$(printf '"%s",' "${ALLOWED_DOMAINS[@]}" | sed 's/,$//')
-
-  POLICY=$(echo $POLICY | jq '.URLAllowlist = []')
-  POLICY=$(echo $POLICY | jq --argjson domains "[$ALLOWED_DOMAINS_JSON]" '.URLAllowlist += $domains')
-
-  POLICY=$(echo $POLICY | jq '.URLAllowlist |= unique')
-  echo $POLICY
-  # Spara till policyfilen
-  echo $POLICY | jq '.' > $POLICY_PATH
+  apply_restrictions "${ALLOWED_DOMAINS[@]}"
 fi
 EOL
 

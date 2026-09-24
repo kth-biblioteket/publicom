@@ -59,7 +59,7 @@ sudo chmod 700 /usr/local/bin/secrets
 Skapa en .config-fil kopiera från rätt fil i detta repo
 ```bash
 sudo mkdir /usr/local/bin/config
-sudo curl -o "/usr/local/bin/config/.config" https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_xxx
+sudo curl -o "/usr/local/bin/config/.config" https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_xxx
 ```
 
 Aktivera/konfiguera firewall UFW
@@ -109,14 +109,15 @@ sudo chmod +x /usr/local/bin/open_terminal.sh
 
 Kopiera install.sh från github, gör den exekverbar och starta den
 ```bash
-sudo curl -L -o ./install.sh https://raw.githubusercontent.com/kth-biblioteket/publicom/main/install.sh
+sudo curl -L -o ./install.sh https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/install.sh
 sudo chmod +x install.sh
 sudo ./install.sh
 ```
 
 #### Config Exempel
+Configfilerna `.config_xxx` genereras från `config/`, se [Config](#config) nedan. Exemplet visar vilka variabler som finns.
 ```
-REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/main/.config_xxxx"
+REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_xxxx"
 RESOURCE_ID=x
 LOGINTYPE=password
 API_URL=https://apps.lib.kth.se/almatools/almalogin
@@ -198,6 +199,61 @@ sudo update-grub
 #### Skapa en avbildning av en kiosk-dator
 ```bash
 sudo dd if=/dev/sda bs=4M status=progress | smbclient //NAS_SERVER_IP/SHARE_NAME -U NAS_USERNAME%NAS_PASSWORD -c "put - backup.img"
+```
+
+### Struktur i repot
+```
+install.sh                 Installerar paket och engångsinställningar, kör sedan deploy.sh
+files.manifest             Alla filer som installeras på datorerna, med rättigheter och ägare
+files/                     Filerna, i samma sökväg som på datorn (files/usr/local/bin/init.sh -> /usr/local/bin/init.sh)
+config/base.env            Gemensamma värden
+config/profiles/*.env      En fil per typ av dator (guest-login, search, grouproom, signage)
+config/hosts/*.env         En fil per dator, anger PROFILE och det som skiljer datorn från profilen
+.config_xxx                GENERERADE från config/ med tools/build-configs.sh (checkas in, datorerna hämtar dem)
+policies_*.json            Chromium-policyer
+backgrounds/ icons/ screensaver/   Bilder
+```
+
+### Hur datorerna uppdateras
+Vid varje uppstart kör `init.service` skriptet `init.sh`, som
+1. hämtar datorns `.config_xxx` från branchen i `PUBLICOM_BRANCH` (normalt `stable`),
+2. kör `deploy.sh`, som hämtar hela branchen, validerar alla filer (syntax, JSON) och installerar de som ändrats enligt `files.manifest`. Om något är fel ändras ingenting,
+3. hämtar Chromium-policy och skärmsläckarbilder.
+
+Därefter startar `allowlist_from_ezproxy.service` och sist `guest.service` (sessionen). Ändringar gäller alltså från och med nästa omstart.
+
+Status för senaste deploy: `cat /var/lib/publicom/deployed` och `journalctl -u init`.
+
+### Config
+Ändra aldrig `.config_xxx` direkt. Ändra i `config/` och generera:
+```bash
+tools/build-configs.sh
+```
+Ny dator: skapa `config/hosts/<namn>.env` med minst `PROFILE=<profil>` och kör skriptet. `tools/build-configs.sh --check` kontrollerar att de genererade filerna är aktuella.
+
+För att testa en branch på en enskild dator, sätt `PUBLICOM_BRANCH=<branch>` i datorns host-fil på den branchen.
+
+### Rulla ut en ändring
+Datorerna följer `stable`. `main` är utvecklingsbranch.
+1. Gör ändringen på en egen branch och testa på en testdator (se ovan).
+2. Merga till `main`.
+3. När den är testad: uppdatera `stable`
+```bash
+git push origin main:stable
+```
+4. Datorerna hämtar ändringen vid nästa omstart.
+
+**Viktigt:** `.config_xxx` och `policies_*.json` måste finnas kvar i roten på både `main` och `stable`. Datorer med äldre `init.sh` hämtar dem därifrån utan felkontroll.
+
+### Flytta en befintlig dator till deploy (en gång)
+Datorer installerade före version 3.0 uppdaterar inte sina skript automatiskt. Kör en gång på varje dator:
+```bash
+sudo curl -fsSL -o /tmp/publicom.tar.gz https://github.com/kth-biblioteket/publicom/archive/refs/heads/stable.tar.gz
+sudo tar -xzf /tmp/publicom.tar.gz -C /tmp
+sudo curl -fsSL -o /usr/local/bin/config/.config https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_xxx
+sudo bash /tmp/publicom-stable/files/usr/local/bin/deploy.sh /tmp/publicom-stable
+sudo systemctl disable session-cleanup.service; sudo rm -f /etc/systemd/system/session-cleanup.service
+sudo reboot
 ```
 
 ##### Filer/Struktur

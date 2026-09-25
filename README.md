@@ -65,7 +65,11 @@ Terminal på datorn (Ctrl+Shift+T i gästsessionen)
 - Öppnar `xterm` med `su -l kthb`, så inloggningen kräver kthb-kontots vanliga lösenord. Inget lösenord eller hash lagras i någon fil, och gästen får aldrig ett eget skal (fel lösenord stänger fönstret).
 - Efter fel lösenord väntar `su` 4 sekunder (`pam_faildelay` i `/etc/pam.d/su`). Kontot låses aldrig, så man kan inte låsa ute sig själv. SSH påverkas inte.
 - `/usr/local/bin/open_terminal.sh` installeras av `deploy.sh`. `xterm` och fördröjningen installeras av `install.sh`.
-- Äldre datorer har ett eget `open_terminal.sh` med en lösenordshash. Det ersätts automatiskt vid deploy.
+- Äldre datorer har ett eget `open_terminal.sh` med en lösenordshash. Det ersätts automatiskt vid deploy, men `xterm` och fördröjningen måste läggas till en gång:
+```bash
+sudo apt install -y --no-install-recommends xterm
+grep -q pam_faildelay /etc/pam.d/su || sudo sed -i '0,/^auth/s//auth       optional   pam_faildelay.so delay=4000000\nauth/' /etc/pam.d/su
+```
 
 Kopiera install.sh från github, gör den exekverbar och starta den
 ```bash

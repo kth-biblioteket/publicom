@@ -2,6 +2,13 @@
 
 /usr/local/bin/clean-up.sh
 
+# Tala om för användartjänsterna (systemd --user, D-Bus) vilken skärm som gäller, som en vanlig
+# skrivbordssession gör. Annars kraschar xdg-desktop-portal och GTK 4-program (t ex zenity på 24.04)
+# väntar ca 25 s på den innan de visar något.
+if command -v dbus-update-activation-environment > /dev/null; then
+  dbus-update-activation-environment --systemd DISPLAY XAUTHORITY
+fi
+
 LOG_FILE="/tmp/guest_login.log"
 
 function log_message() {

@@ -10,7 +10,11 @@ User=guest
 # där snap-Chromium vägrar starta från en vanlig systemtjänst ("is not a snap cgroup").
 PAMName=login
 Restart=always
-ExecStart=/usr/bin/startx
+RestartSec=2
+# Vänta (högst 10 s) tills X från föregående session har avslutats, så att den nya sessionen
+# alltid får skärm :0 (x11vnc och skripten förutsätter :0)
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 20); do pgrep -x Xorg > /dev/null || exit 0; sleep 0.5; done; exit 0'
+ExecStart=/usr/bin/startx -- :0
 # Körs efter varje avslutad session (utloggning, timeout, inaktivitet).
 # "+" = körs som root så att hemlighetsfilen kan läsas.
 ExecStopPost=+/usr/local/bin/session_cleanup.sh

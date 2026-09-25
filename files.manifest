@@ -50,6 +50,7 @@
 0644 root:root   /etc/systemd/system/guest.service
 0644 root:root   /etc/systemd/system/x11vnc.service
 0644 root:root   /etc/systemd/logind.conf.d/50-disable-sleep.conf
+0644 root:root   /etc/systemd/logind.conf.d/60-publicom-guest.conf
 
 # System
 0644 root:root   /etc/apt/apt.conf.d/10periodic

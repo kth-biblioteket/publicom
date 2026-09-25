@@ -9,12 +9,8 @@ Datorer i bibliotekets publika miljöer
 ### Installation
 - Installera Ubuntu Server 24.04 LTS på en dator (20.04 fungerar också, men har inte längre standardsupport).
 - Välj att installera SSH
-- Uppgradera vid behov
-    - apt upgrade -y
-    - do-release-upgrade(uppgraderar till nästa version)
-- BIOS Tillåt endast boot från HD
-- BIOS Lösenordsskydda
-- BIOS quiet etc
+- Uppgradera vid behov: `sudo apt upgrade -y`. Byt Ubuntu-version genom att installera om, inte med `do-release-upgrade`.
+- Ställ in BIOS/UEFI enligt [checklistan](#biosuefi-checklista) nedan.
 - GRUB (dold meny, tyst start, lösenordsskydd) ställs in av `install.sh`, se [GRUB](#grub) nedan.
   Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes tidigare för 22.04, men inte längre och fungerar inte på 24.04).
 
@@ -150,6 +146,22 @@ https://medium.com/@yann.cardaillac/ubuntu-22-04-in-simple-kiosk-mode-8d1379fa7b
 
 #### Doc
 https://gist.github.com/yt/45e3bc4b315b834bb0886b9048eb155e
+
+### BIOS/UEFI-checklista
+Görs i datorns egen BIOS/UEFI-meny (oftast F2, F10, F12 eller Del vid påslag, olika för olika tillverkare).
+Detta är det yttersta skyddet: med tillgång till BIOS kan man starta från ett USB-minne och kringgå
+GRUB-lösenordet, kioskläget och alla policyer. GRUB och Ubuntu kan inte skydda BIOS.
+
+- [ ] **Administratörslösenord** (Supervisor/Setup password) satt och antecknat på säker plats
+- [ ] **Start endast från den inbyggda disken**, övriga enheter borttagna ur startordningen
+- [ ] **Start från USB avstängt** (USB boot / External boot)
+- [ ] **Start från nätverk avstängt** (PXE / Network boot)
+- [ ] **Startmeny vid påslag avstängd eller lösenordsskyddad** (Boot menu, ofta F12)
+- [ ] **Secure Boot på** (Ubuntus signerade kärna fungerar med det)
+- [ ] Gärna: **tyst uppstart** (Quiet boot / logotyp i stället för text)
+- [ ] Gärna: **starta efter strömavbrott** (AC power recovery / Restore on AC power loss: On), så att datorn kommer tillbaka av sig själv
+
+Obs: inget av detta skyddar mot att någon öppnar datorn och tar ut disken. Det kräver diskkryptering.
 
 ### GRUB
 `install.sh` gör följande (fungerar på både Ubuntu 20.04 och 24.04):

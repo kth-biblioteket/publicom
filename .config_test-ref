@@ -26,6 +26,7 @@ SCREENSAVER_IDLE=00:30:00
 POLICY_FILE="policies_guest.json"
 KIOSK=
 BLACK_LIST=""
+SSH_ALLOW_FROM="130.237.0.0/16,10.0.2.0/24"
 COMPUTER_NAME="KTH Library TEST (ref)"
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_guest.png,screen_bg_kth_logo_heaven_guest.png"
 WEBSITES="https://www.kth.se/biblioteket"

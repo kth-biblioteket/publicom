@@ -26,6 +26,7 @@ SCREENSAVER_IDLE=00:30:00
 POLICY_FILE="policies_search.json"
 KIOSK=
 BLACK_LIST="*,google.com"
+SSH_ALLOW_FROM="130.237.0.0/16"
 COMPUTER_NAME="KTH Library group rooms"
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_grupprum.png"
 WEBSITES="https://apps.lib.kth.se/mrbsgrupprumkiosk https://apps.lib.kth.se/mrbsreadingstudioskiosk"

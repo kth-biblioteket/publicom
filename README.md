@@ -44,15 +44,14 @@ sudo mkdir /usr/local/bin/config
 sudo curl -o "/usr/local/bin/config/.config" https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_xxx
 ```
 
-Aktivera/konfiguera firewall UFW
+Brandvägg och fjärråtkomst
+- `install.sh` slår på `ufw`: allt inkommande nekas utom SSH (port 22) från `SSH_ALLOW_FROM` i config (standard `130.237.0.0/16`, KTH:s nät).
+- VNC lyssnar bara lokalt på datorn (`x11vnc -localhost`), så port 5900 är aldrig öppen utåt. Anslut via SSH-tunnel:
 ```bash
-# Endast tillgång från KTH-nätverket
-sudo ufw --force enable
-sudo ufw allow from 130.237.0.0/16 to any port 22 comment "Allow SSH from internal KTH network"
-sudo ufw allow from 130.237.0.0/16 to any port 5900 comment "Allow VNC from internal KTH network"
-sudo ufw deny 22
-sudo ufw deny 5900
+ssh -L 5900:localhost:5900 kthb@<dator>
 ```
+  och anslut sedan VNC-klienten till `localhost:5900` (med VNC-lösenordet som vanligt).
+- Äldre datorer får `-localhost` automatiskt vid deploy (x11vnc.service). Den gamla ufw-regeln för 5900 kan tas bort med `sudo ufw delete allow from 130.237.0.0/16 to any port 5900`.
 
 Eventuellt wifi:
 ```bash

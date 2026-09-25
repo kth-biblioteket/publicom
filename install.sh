@@ -214,6 +214,21 @@ systemctl daemon-reload
 systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service
 systemctl start x11vnc
 
+## Brandvägg: allt inkommande nekas utom SSH från SSH_ALLOW_FROM (kommaseparerat, från config).
+## VNC lyssnar bara lokalt (x11vnc -localhost) och nås via SSH-tunnel, så port 5900 öppnas inte.
+## Obs: körs install.sh via SSH från en adress som inte är tillåten bryts anslutningen.
+ufw default deny incoming
+ufw default allow outgoing
+IFS=',' read -ra SSH_SOURCES <<< "${SSH_ALLOW_FROM:-130.237.0.0/16}"
+for src in "${SSH_SOURCES[@]}"; do
+    ufw allow from "$src" to any port 22 proto tcp comment "SSH publicom"
+done
+# Regler från den tidigare manuella instruktionen
+ufw delete allow from 130.237.0.0/16 to any port 5900 2>/dev/null
+ufw delete deny 5900 2>/dev/null
+ufw delete deny 22 2>/dev/null
+ufw --force enable
+
 ## Stäng av USB-access Ubuntu
 BLACKLIST_FILE="/etc/modprobe.d/blacklist.conf"
 

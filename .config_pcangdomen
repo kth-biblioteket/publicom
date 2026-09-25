@@ -26,6 +26,7 @@ SCREENSAVER_IDLE=00:30:00
 POLICY_FILE="policies_search.json"
 KIOSK=--kiosk
 BLACK_LIST="*,google.com"
+SSH_ALLOW_FROM="130.237.0.0/16"
 COMPUTER_NAME="KTH Library - Ångdomen"
 SCREEN_ROTATION=left
 SCREENSAVER_FILES=""

@@ -3,7 +3,9 @@ Description=Start x11vnc at startup
 After=display-manager.service
 
 [Service]
-ExecStart=/usr/bin/x11vnc -display :0 -auth /home/guest/.Xauthority -forever -loop -noxdamage -repeat -rfbauth /home/kthb/.vnc/passwd -rfbport 5900 -shared
+# -localhost: VNC nås bara via SSH-tunnel, t ex
+#   ssh -L 5900:localhost:5900 kthb@<dator>   och sedan VNC mot localhost:5900
+ExecStart=/usr/bin/x11vnc -localhost -display :0 -auth /home/guest/.Xauthority -forever -loop -noxdamage -repeat -rfbauth /home/kthb/.vnc/passwd -rfbport 5900 -shared
 Restart=always
 
 [Install]

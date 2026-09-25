@@ -26,6 +26,7 @@ SCREENSAVER_IDLE=00:30:00
 POLICY_FILE="policies_search.json"
 KIOSK=
 BLACK_LIST="*,google.com"
+SSH_ALLOW_FROM="130.237.0.0/16"
 COMPUTER_NAME="KTH Library search computer"
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_search.png,screen_bg_kth_logo_navy_search_2.png"
 WEBSITES="https://kth-ch.primo.exlibrisgroup.com/discovery/search?vid=46KTH_INST:46KTH_Kiosk&lang=sv https://libris.kb.se/"

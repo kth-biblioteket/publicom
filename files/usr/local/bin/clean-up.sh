@@ -16,3 +16,7 @@ for DIR in "${TARGET_DIRS[@]}"; do
 
   fi
 done
+
+# Chromium-profilen (historik, cache m.m.) ska inte ligga kvar på disken efter sessionen.
+# Samma sökväg som CHROMIUM_PROFILE i .xinitrc.
+rm -rf /home/guest/snap/chromium/common/publicom-profile

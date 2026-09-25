@@ -201,6 +201,13 @@ Ny dator: skapa `config/hosts/<namn>.env` med minst `PROFILE=<profil>` och kör 
 
 För att testa en branch på en enskild dator, sätt `PUBLICOM_BRANCH=<branch>` i datorns host-fil på den branchen.
 
+### Kontroller (CI)
+`tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:
+```bash
+tools/check.sh
+```
+Samma kontroller körs automatiskt i GitHub Actions (`.github/workflows/ci.yml`) vid varje push och pull request. Merga inte till `main` eller `stable` om de misslyckas.
+
 ### Rulla ut en ändring
 Datorerna följer `stable`. `main` är utvecklingsbranch.
 1. Gör ändringen på en egen branch och testa på en testdator (se ovan).

@@ -22,9 +22,10 @@ function prompt_for_code() {
 CHROMIUM_PROFILE="/home/guest/snap/chromium/common/publicom-profile"
 
 ## Starta Chromium med ny tom profil. Argument läggs till före standardflaggorna.
+## CHROMIUM_FLAGS i .config ger extra flaggor, t ex --enable-unsafe-swiftshader i test-VM utan GPU.
 function launch_chromium() {
   rm -rf "$CHROMIUM_PROFILE"
-  chromium-browser "$@" --start-maximized --user-data-dir="$CHROMIUM_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
+  chromium-browser "$@" $CHROMIUM_FLAGS --start-maximized --user-data-dir="$CHROMIUM_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
 }
 
 ENV_FILE="/usr/local/bin/config/.config"

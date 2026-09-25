@@ -133,6 +133,8 @@ EXTERNAL_URL_TIMEOUT=30000
 # Valfritt: extra värdnamn (kommaseparerade) som "Registrera konto"/"Boka dator" får navigera till.
 # Värdarna i REGISTER_ACCOUNT_URL och BOOKING_SYSTEM_URL är alltid tillåtna (endast https).
 EXTERNAL_ALLOWED_HOSTS=
+# Valfritt: extra flaggor till Chromium, t ex "--enable-unsafe-swiftshader" i test-VM utan GPU
+CHROMIUM_FLAGS=
 ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=false
 PRINTER=false

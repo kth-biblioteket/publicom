@@ -120,6 +120,11 @@ apt install -y --no-install-recommends xterm
 # eftersom kthb då kan låsas ute helt. Påverkar inte SSH.
 grep -q "pam_faildelay" /etc/pam.d/su || sed -i '0,/^auth/s//auth       optional   pam_faildelay.so delay=4000000\nauth/' /etc/pam.d/su
 
+# Automatiska säkerhetsuppdateringar (konfigureras av deploy.sh: 10periodic, 52publicom-unattended-upgrades)
+apt install -y unattended-upgrades
+# Snap-paket (Chromium) uppdateras bara nattetid
+snap set system refresh.timer=02:00-04:00
+
 # Inaktivera automatiska uppdateringsmeddelanden
 apt remove -y update-notifier update-notifier-common
 

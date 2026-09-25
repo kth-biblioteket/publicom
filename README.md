@@ -201,6 +201,14 @@ Ny dator: skapa `config/hosts/<namn>.env` med minst `PROFILE=<profil>` och kör 
 
 För att testa en branch på en enskild dator, sätt `PUBLICOM_BRANCH=<branch>` i datorns host-fil på den branchen.
 
+### Automatiska uppdateringar
+- **Säkerhetsuppdateringar** installeras automatiskt av `unattended-upgrades` (bara `-security`, enligt Ubuntus standard): paketlistor ca 01:30, installation ca 02:30.
+- Om en uppdatering kräver omstart (t ex ny kärna) startar datorn om **kl. 03:30**, även med gästsessionen igång.
+- **Chromium (snap)** uppdateras bara mellan 02:00 och 04:00 (`snap set system refresh.timer=02:00-04:00`, görs av `install.sh`).
+- Datorn behöver vara påslagen på natten. Är den avstängd körs uppdateringen när den startas, och en eventuell omstart sker natten efter.
+- Konfigureras av `deploy.sh` (`10periodic`, `52publicom-unattended-upgrades`, tidtagarna i `apt-daily*.timer.d`). Senaste körningen: `/var/log/unattended-upgrades/unattended-upgrades.log`.
+- Obs: Ubuntu 20.04 får bara säkerhetsuppdateringar via Ubuntu Pro (ESM). Utan Pro finns inga nya att installera, ännu ett skäl att gå över till 24.04.
+
 ### Kontroller (CI)
 `tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:
 ```bash

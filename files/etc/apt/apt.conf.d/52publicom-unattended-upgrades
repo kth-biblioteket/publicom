@@ -1,0 +1,8 @@
+// Publicom: tillägg till Ubuntus 50unattended-upgrades (som bara tillåter säkerhetsuppdateringar).
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+// Starta om när en uppdatering kräver det (t ex ny kärna), nattetid.
+Unattended-Upgrade::Automatic-Reboot "true";
+// Gästsessionen är alltid inloggad, annars skulle datorn aldrig starta om.
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+Unattended-Upgrade::Automatic-Reboot-Time "03:30";

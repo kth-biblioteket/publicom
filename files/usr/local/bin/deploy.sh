@@ -128,6 +128,12 @@ if changed "/etc/systemd/system/*"; then
     systemctl daemon-reload
     systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service
 fi
+# Tidtagare räknar om nästa körning först när de startas om
+for timer in apt-daily apt-daily-upgrade; do
+    if changed "/etc/systemd/system/$timer.timer.d/*"; then
+        systemctl restart "$timer.timer"
+    fi
+done
 if changed "/etc/sysctl.d/*"; then
     sysctl --system > /dev/null
 fi

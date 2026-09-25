@@ -3,6 +3,8 @@ Description=Guest Mode
 # Vänta tills config och Chromium-policy är klara så att webbläsaren startar med rätt begränsningar.
 # Endast ordning (After), inte Requires, så att sessionen startar även om nätverket saknas.
 After=init.service allowlist_from_ezproxy.service systemd-user-sessions.service
+# Ge aldrig upp omstarterna, en kioskdator ska alltid komma tillbaka till startskärmen
+StartLimitIntervalSec=0
 
 [Service]
 User=guest
@@ -10,7 +12,7 @@ User=guest
 # där snap-Chromium vägrar starta från en vanlig systemtjänst ("is not a snap cgroup").
 PAMName=login
 Restart=always
-RestartSec=2
+RestartSec=0.5
 # Vänta (högst 10 s) tills X från föregående session har avslutats, så att den nya sessionen
 # alltid får skärm :0 (x11vnc och skripten förutsätter :0)
 ExecStartPre=/bin/sh -c 'for i in $(seq 1 20); do pgrep -x Xorg > /dev/null || exit 0; sleep 0.5; done; exit 0'

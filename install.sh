@@ -46,6 +46,10 @@ BRANCH="${PUBLICOM_BRANCH:-stable}"
 # Uppdatera paketlistan för ubuntu
 apt update
 
+# Datornamnet måste finnas i /etc/hosts. Annars slås det upp till nätverksadresserna,
+# och xauth i startx gör omvända DNS-uppslag som tar ca 5 s vid varje sessionsstart.
+grep -q "^127.0.1.1" /etc/hosts || echo "127.0.1.1 $(hostname)" >> /etc/hosts
+
 # Sätt datum/tid
 timedatectl set-timezone Europe/Stockholm
 

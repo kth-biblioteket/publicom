@@ -9,5 +9,15 @@
       <decor>no</decor>
       <focus>yes</focus>
     </application>
+    <!-- Dialoger från zenity (t ex bekräftelsen vid Logout) ska alltid hamna mitt på skärmen.
+         Matchar instansnamnet, eftersom klassen är "Zenity" i zenity 3 (20.04) men "zenity" i zenity 4 (24.04). -->
+    <application name="zenity">
+      <position force="yes">
+        <x>center</x>
+        <y>center</y>
+      </position>
+      <focus>yes</focus>
+      <layer>above</layer>
+    </application>
   </applications>
 </openbox_config>

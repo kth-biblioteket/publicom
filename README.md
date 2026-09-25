@@ -29,7 +29,7 @@ VNC_PASSWORD=xxxxxxx
 BOOKING_API_KEY=xxxxxxx
 GRUB_PASSWORD_HASH=grub.pbkdf2.sha512.10000.xxxxxxx
 ```
-`GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
+`GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout, så t ex `-`, `å`, `ä`, `ö` och andra specialtecken hamnar på andra tangenter än på ett svenskt tangentbord. Användarnamnet i GRUB är `kthb`. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
 
 Expires on Mon, Nov 24 2025 – **har gått ut och måste förnyas** på varje dator (behövs för öppna gästdatorer, `ALMA_LOGIN=false`).

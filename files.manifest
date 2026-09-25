@@ -15,6 +15,7 @@
 0755 root:root   /usr/local/bin/tint2_inactivity_warning.sh
 0755 root:root   /usr/local/bin/clear_inactivity.sh
 0755 root:root   /usr/local/bin/update_tint_computer_name.sh
+0755 root:root   /usr/local/bin/open_terminal.sh
 
 # Electron-inloggning (npm ci körs när package.json/package-lock.json ändras)
 0644 root:root   /usr/local/bin/electron-login/main.js

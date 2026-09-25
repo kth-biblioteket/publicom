@@ -61,33 +61,11 @@ sudo nmcli dev wifi connect "KTH-IoT" password "xXXXxXxX"
 
 Kontrollera access till SSH från KTH-nätverket
 
-Skapa lösen till terminal
-```bash
-echo -n "xXxXXxxX" | sha256sum
-sudo nano /usr/local/bin/open_terminal.sh
-
-#!/bin/bash
-# Fråga efter lösenord med Zenity
-pass=$(zenity --password --title="Admin-åtkomst" --text="Ange lösenord för terminal:" 2>/dev/null)
-
-# Om användaren klickar avbryt, gör ingenting
-[ -z "$pass" ] && exit 0
-
-# Räkna ut hashen på det som skrevs in
-input_hash=$(echo -n "$pass" | sha256sum | awk '{print $1}')
-
-# Klistra in din kopierade hash här nedanför
-target_hash="xxxxxxx"
-
-if [ "$input_hash" == "$target_hash" ]; then
-    xterm &
-else
-    zenity --error --text="Felaktigt lösenord!" --timeout=3 2>/dev/null
-fi
-
-
-sudo chmod +x /usr/local/bin/open_terminal.sh
-```
+Terminal på datorn (Ctrl+Shift+T i gästsessionen)
+- Öppnar `xterm` med `su -l kthb`, så inloggningen kräver kthb-kontots vanliga lösenord. Inget lösenord eller hash lagras i någon fil, och gästen får aldrig ett eget skal (fel lösenord stänger fönstret).
+- Efter fel lösenord väntar `su` 4 sekunder (`pam_faildelay` i `/etc/pam.d/su`). Kontot låses aldrig, så man kan inte låsa ute sig själv. SSH påverkas inte.
+- `/usr/local/bin/open_terminal.sh` installeras av `deploy.sh`. `xterm` och fördröjningen installeras av `install.sh`.
+- Äldre datorer har ett eget `open_terminal.sh` med en lösenordshash. Det ersätts automatiskt vid deploy.
 
 Kopiera install.sh från github, gör den exekverbar och starta den
 ```bash

@@ -113,6 +113,12 @@ apt install -y --no-install-recommends xorg matchbox-window-manager chromium-bro
 # xautolock för att kunna starta om sessioner efter inaktivitet, feh för bakgrund,
 # jq för json (bokningsdata och policyfil), x11vnc för fjärråtkomst
 apt install -y xautolock feh jq x11vnc
+# xterm för administratörens terminal (Ctrl+Shift+T, /usr/local/bin/open_terminal.sh)
+apt install -y --no-install-recommends xterm
+
+# Fördröjning på 4 s efter fel lösenord för su (terminalgenvägen). Ingen kontolåsning,
+# eftersom kthb då kan låsas ute helt. Påverkar inte SSH.
+grep -q "pam_faildelay" /etc/pam.d/su || sed -i '0,/^auth/s//auth       optional   pam_faildelay.so delay=4000000\nauth/' /etc/pam.d/su
 
 # Inaktivera automatiska uppdateringsmeddelanden
 apt remove -y update-notifier update-notifier-common

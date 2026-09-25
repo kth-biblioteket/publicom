@@ -28,7 +28,7 @@ GRUB_PASSWORD_HASH=grub.pbkdf2.sha512.10000.xxxxxxx
 `GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout, så t ex `-`, `å`, `ä`, `ö` och andra specialtecken hamnar på andra tangenter än på ett svenskt tangentbord. Användarnamnet i GRUB är `kthb`. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
 
-Expires on Mon, Nov 24 2025 – **har gått ut och måste förnyas** på varje dator (behövs för öppna gästdatorer, `ALMA_LOGIN=false`).
+Token: `publiccomputers` (fine-grained). **Går ut 23 november 2026**, förnya den i god tid och byt på datorerna som använder den. Behövs bara för öppna gästdatorer (`ALMA_LOGIN=false`); i dag har ingen config det.
 Tokenen används bara för att läsa `kth-biblioteket/ezproxy/db_stanzas.txt`. Skapa den med minsta möjliga behörighet (fine-grained, endast *Contents: Read* på det repot).
 Om hämtningen misslyckas används senast hämtade kopia i `/var/cache/publicom/db_stanzas.txt`, och ett fel syns i `journalctl -u allowlist_from_ezproxy`.
 

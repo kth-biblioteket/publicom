@@ -7,7 +7,7 @@ Datorer i bibliotekets publika miljöer
 - Gästdatorer
 
 ### Installation
-- Installera en Ubuntu Server (20.04) på en dator.
+- Installera Ubuntu Server 24.04 LTS på en dator (20.04 fungerar också, men har inte längre standardsupport).
 - Välj att installera SSH
 - Uppgradera vid behov
     - apt upgrade -y
@@ -15,24 +15,8 @@ Datorer i bibliotekets publika miljöer
 - BIOS Tillåt endast boot från HD
 - BIOS Lösenordsskydda
 - BIOS quiet etc
-```bash
-sudo nano /etc/default/grub
-```
-För Ubuntu 22.04 
-GRUB_CMDLINE_LINUX_DEFAULT="quiet systemd.unified_cgroup_hierarchy=0"
-```
-GRUB_DEFAULT="Ubuntu"
-GRUB_TIMEOUT_STYLE=hidden
-GRUB_TIMEOUT=0
-GRUB_HIDDEN_TIMEOUT=0
-GRUB_DISABLE_RECOVERY=true
-GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
-GRUB_CMDLINE_LINUX_DEFAULT="quiet"
-GRUB_CMDLINE_LINUX="quiet"
-```
-```bash
-sudo update-grub
-```
+- GRUB (dold meny, tyst start, lösenordsskydd) ställs in av `install.sh`, se [GRUB](#grub) nedan.
+  Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes tidigare för 22.04, men inte längre och fungerar inte på 24.04).
 
 Skapa en hemlighetsfil
 ```bash
@@ -43,7 +27,9 @@ sudo nano /usr/local/bin/secrets/.secrets
 GITHUB_TOKEN=xxxxxxx
 VNC_PASSWORD=xxxxxxx
 BOOKING_API_KEY=xxxxxxx
+GRUB_PASSWORD_HASH=grub.pbkdf2.sha512.10000.xxxxxxx
 ```
+`GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
 
 Expires on Mon, Nov 24 2025 – **har gått ut och måste förnyas** på varje dator (behövs för öppna gästdatorer, `ALMA_LOGIN=false`).
@@ -165,38 +151,25 @@ https://medium.com/@yann.cardaillac/ubuntu-22-04-in-simple-kiosk-mode-8d1379fa7b
 #### Doc
 https://gist.github.com/yt/45e3bc4b315b834bb0886b9048eb155e
 
-### Eventuellt Skydda GRUB boot menu
-```bash
-grub-mkpasswd-pbkdf2
-```
-Kopiera hela hash-strängen (från grub.pbkdf2... och framåt)
+### GRUB
+`install.sh` gör följande (fungerar på både Ubuntu 20.04 och 24.04):
+- `/etc/default/grub.d/99-publicom.cfg`: dold meny, ingen fördröjning, inga recovery-poster, `quiet`.
+- Om `GRUB_PASSWORD_HASH` finns i hemlighetsfilen: `/etc/grub.d/01_publicom_password` sätter superanvändaren `kthb` med lösenord, och Ubuntus vanliga poster i `/etc/grub.d/10_linux` märks `--unrestricted`.
 
-```bash
-sudo nano /etc/grub.d/40_custom
-```
+Resultat: datorn startar utan lösenord, men att ändra menyposter (tangenten `e`), använda GRUB:s kommandorad, "Advanced options" och "UEFI Firmware Settings" kräver lösenordet. Menyposterna genereras av Ubuntu och följer kärnuppdateringar automatiskt, inga kärnversioner eller partitioner är hårdkodade.
 
-Lägg till följande i slutet av filen, ersätt <hashed-password> med den hash-sträng du kopierade ovan
-Ta reda på vilken kärnversion(t ex 5.4.0-205-generic) som används genom att köra `uname -r`
-Ta reda på vilken rotpartition(t ex /dev/mapper/ubuntu--vg-ubuntu--lv) som används genom att köra `blkid`
-```
-set superusers="kthb"
-password_pbkdf2 kthb <hashed-password>
-menuentry "Ubuntu" --unrestricted {
-    linux /vmlinuz-5.4.0-205-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv ro quiet quiet
-    initrd /initrd.img-5.4.0-205-generic
-}
-menuentry "Ubuntu (Recovery Mode)" --restricted {
-    linux /vmlinuz-5.4.0-205-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv ro recovery nomodeset
-    initrd /initrd.img-5.4.0-205-generic
-}
+Kontrollera efteråt:
+```bash
+sudo grep -E "^set superusers|^menuentry" /boot/grub/grub.cfg
 ```
 
+#### Datorer som använder det gamla upplägget
+Tidigare beskrevs egna poster i `40_custom` med hårdkodad kärnversion och `chmod -x /etc/grub.d/10_linux`. Det slutar fungera när den kärnan tas bort vid en uppdatering. För att byta:
 ```bash
-## Inaktivera vanliga grubmenyn
-sudo chmod -x /etc/grub.d/10_linux
-## Uppdatera grub
-sudo update-grub
+sudo nano /etc/grub.d/40_custom        # ta bort de egna menuentry-blocken och password-raderna
+sudo chmod +x /etc/grub.d/10_linux
 ```
+Kör sedan GRUB-delen av `install.sh` (eller installera om), och kontrollera med kommandot ovan innan omstart.
 
 #### Skapa en avbildning av en kiosk-dator
 ```bash

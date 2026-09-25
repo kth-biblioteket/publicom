@@ -50,6 +50,32 @@ apt update
 # och xauth i startx gör omvända DNS-uppslag som tar ca 5 s vid varje sessionsstart.
 grep -q "^127.0.1.1" /etc/hosts || echo "127.0.1.1 $(hostname)" >> /etc/hosts
 
+# GRUB: dold meny och tyst start. Fungerar på både 20.04 och 24.04.
+# Ubuntus vanliga menyposter (10_linux) behålls så att kärnuppdateringar följs automatiskt.
+cat > /etc/default/grub.d/99-publicom.cfg <<'EOF'
+GRUB_DEFAULT=0
+GRUB_TIMEOUT_STYLE=hidden
+GRUB_TIMEOUT=0
+GRUB_DISABLE_RECOVERY=true
+GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+EOF
+# Lösenordsskydd: datorn startar utan lösenord, men att ändra menyposter eller använda
+# GRUB:s kommandorad kräver lösenordet. Hash skapas med grub-mkpasswd-pbkdf2.
+if [ -n "$GRUB_PASSWORD_HASH" ]; then
+    cat > /etc/grub.d/01_publicom_password <<EOF
+#!/bin/sh
+cat <<'GRUBEOF'
+set superusers="kthb"
+password_pbkdf2 kthb $GRUB_PASSWORD_HASH
+GRUBEOF
+EOF
+    chmod 700 /etc/grub.d/01_publicom_password
+    sed -i 's/^CLASS="--class gnu-linux --class gnu --class os"$/CLASS="--class gnu-linux --class gnu --class os --unrestricted"/' /etc/grub.d/10_linux
+else
+    echo "Varning: GRUB_PASSWORD_HASH saknas i $SECRET_FILE, GRUB-menyn lösenordsskyddas inte"
+fi
+update-grub
+
 # Sätt datum/tid
 timedatectl set-timezone Europe/Stockholm
 

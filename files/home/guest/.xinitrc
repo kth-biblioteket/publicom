@@ -60,8 +60,9 @@ rm -f /tmp/logout_timer.txt
 # Rensa tint2 warnings
 echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inactivity_warning.txt
 
-# Uppdatera timeout för skärmsläckare
-sed -i "s/^timeout:.*$/timeout: $SCREENSAVER_IDLE/" /home/guest/.xscreensaver
+# Skärmsläckarens inställningar skapas från mallen vid varje session. deploy.sh uppdaterar bara mallen,
+# så att xscreensaver (som läser om ~/.xscreensaver när den ändras) inte påverkas mitt i en session.
+sed "s/^timeout:.*$/timeout: ${SCREENSAVER_IDLE:-00:30:00}/" /usr/local/share/publicom/xscreensaver > /home/guest/.xscreensaver
 
 # Funktion för att dölja muspekaren om SIGNAGE är true
 function hide_mouse_cursor() {

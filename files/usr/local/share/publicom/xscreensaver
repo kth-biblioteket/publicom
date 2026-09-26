@@ -1,4 +1,4 @@
-timeout:        0:00:10
+timeout:        0:30:00
 chooseRandomImages: True
 imageDirectory: /usr/local/bin/screensaver
 mode:           one

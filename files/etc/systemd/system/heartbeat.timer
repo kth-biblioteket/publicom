@@ -1,0 +1,11 @@
+[Unit]
+Description=Skicka status till publicomtools var 5:e minut
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

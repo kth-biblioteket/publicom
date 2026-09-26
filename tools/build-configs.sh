@@ -47,6 +47,8 @@ for host_file in config/hosts/*.env; do
 # Redigera config/base.env, $profile_file eller $host_file
 # och kör tools/build-configs.sh
 REMOTE_CONFIG_URL=\"https://raw.githubusercontent.com/kth-biblioteket/publicom/${branch:-main}/.config_$host\"
+PUBLICOM_HOST=$host
+PUBLICOM_PROFILE=$profile
 $merged"
 
     target=".config_$host"

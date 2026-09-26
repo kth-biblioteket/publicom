@@ -2,6 +2,8 @@
 # Redigera config/base.env, config/profiles/search.env eller config/hosts/scsg.env
 # och kör tools/build-configs.sh
 REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_scsg"
+PUBLICOM_HOST=scsg
+PUBLICOM_PROFILE=search
 PUBLICOM_BRANCH=stable
 RESOURCE_ID=x
 LOGINTYPE=password
@@ -27,6 +29,7 @@ POLICY_FILE="policies_search.json"
 KIOSK=
 BLACK_LIST="*,google.com"
 SSH_ALLOW_FROM="130.237.0.0/16"
+HEARTBEAT_URL=https://apps.lib.kth.se/publicomtools/api/heartbeat
 COMPUTER_NAME="KTH Library search computer"
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_search.png,screen_bg_kth_logo_navy_search_2.png"
 WEBSITES="https://kth-ch.primo.exlibrisgroup.com/discovery/search?vid=46KTH_INST:46KTH_Kiosk&lang=sv https://libris.kb.se/"

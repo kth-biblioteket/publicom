@@ -2,6 +2,8 @@
 # Redigera config/base.env, config/profiles/signage.env eller config/hosts/pcangdomen.env
 # och kör tools/build-configs.sh
 REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_pcangdomen"
+PUBLICOM_HOST=pcangdomen
+PUBLICOM_PROFILE=signage
 PUBLICOM_BRANCH=stable
 RESOURCE_ID=x
 LOGINTYPE=password
@@ -27,6 +29,7 @@ POLICY_FILE="policies_search.json"
 KIOSK=--kiosk
 BLACK_LIST="*,google.com"
 SSH_ALLOW_FROM="130.237.0.0/16"
+HEARTBEAT_URL=https://apps.lib.kth.se/publicomtools/api/heartbeat
 COMPUTER_NAME="KTH Library - Ångdomen"
 SCREEN_ROTATION=left
 SCREENSAVER_FILES=""

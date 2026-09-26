@@ -24,7 +24,9 @@ GITHUB_TOKEN=xxxxxxx
 VNC_PASSWORD=xxxxxxx
 BOOKING_API_KEY=xxxxxxx
 GRUB_PASSWORD_HASH=grub.pbkdf2.sha512.10000.xxxxxxx
+HEARTBEAT_TOKEN=xxxxxxx
 ```
+`HEARTBEAT_TOKEN` är valfri, se [Statussida](#statussida-heartbeat).
 `GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout, så t ex `-`, `å`, `ä`, `ö` och andra specialtecken hamnar på andra tangenter än på ett svenskt tangentbord. Användarnamnet i GRUB är `kthb`. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
 
@@ -208,6 +210,13 @@ För att testa en branch på en enskild dator, sätt `PUBLICOM_BRANCH=<branch>` 
 - Datorn behöver vara påslagen på natten. Är den avstängd körs uppdateringen när den startas, och en eventuell omstart sker natten efter.
 - Konfigureras av `deploy.sh` (`10periodic`, `52publicom-unattended-upgrades`, tidtagarna i `apt-daily*.timer.d`). Senaste körningen: `/var/log/unattended-upgrades/unattended-upgrades.log`.
 - Obs: Ubuntu 20.04 får bara säkerhetsuppdateringar via Ubuntu Pro (ESM). Utan Pro finns inga nya att installera, ännu ett skäl att gå över till 24.04.
+
+### Statussida (heartbeat)
+Varje dator skickar sin status till [publicomtools](https://github.com/kth-biblioteket/publicomtools) (`https://apps.lib.kth.se/publicomtools`) var 5:e minut: senaste deploy, uptime, om gästsessionen körs, kraschade tjänster, ledigt diskutrymme och om en omstart väntar. Statussidan kräver KTH-inloggning.
+- Skickas av `heartbeat.sh` via `heartbeat.timer` (installeras och aktiveras av `deploy.sh`).
+- Adressen är `HEARTBEAT_URL` i config (`config/base.env`). Token är `HEARTBEAT_TOKEN` i `.secrets`, samma värde som `HEARTBEAT_TOKEN` i publicomtools. **Utan token skickas ingenting**, så funktionen slås på dator för dator.
+- Datorn identifieras med `PUBLICOM_HOST` (namnet på host-filen, t ex `gc1`), som `tools/build-configs.sh` skriver in i `.config_<dator>`.
+- Kontrollera på datorn: `journalctl -u heartbeat.service -n 5`. Kör direkt: `sudo systemctl start heartbeat.service`.
 
 ### Kontroller (CI)
 `tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:

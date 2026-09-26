@@ -128,7 +128,18 @@ if changed "/etc/systemd/system/*"; then
     systemctl daemon-reload
     systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service
 fi
+# Nya tjänster aktiveras utifrån läget, inte bara när filerna ändras. Första gången en ny fil
+# installeras görs det av den äldre deploy.sh som redan finns på datorn, och den känner inte till tjänsten.
+for unit in heartbeat.timer; do
+    if [ -f "/etc/systemd/system/$unit" ] && ! systemctl is-enabled -q "$unit"; then
+        systemctl daemon-reload
+        systemctl enable --now "$unit"
+    fi
+done
 # Tidtagare räknar om nästa körning först när de startas om
+if changed "/etc/systemd/system/heartbeat.*"; then
+    systemctl restart heartbeat.timer
+fi
 for timer in apt-daily apt-daily-upgrade; do
     if changed "/etc/systemd/system/$timer.timer.d/*"; then
         systemctl restart "$timer.timer"
@@ -174,7 +185,12 @@ fi
 # Spara vad som är installerat
 mkdir -p "$STATE_DIR"
 {
-    echo "branch=$BRANCH"
+    # Visas på statussidan, så att datorer med en lokal testkopia syns
+    if [ -n "$1" ]; then
+        echo "branch=lokal $SRC"
+    else
+        echo "branch=$BRANCH"
+    fi
     echo "date=$(date '+%Y-%m-%d %H:%M:%S')"
     echo "files_changed=${#CHANGED[@]}"
 } > "$STATE_DIR/deployed"

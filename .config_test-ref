@@ -2,6 +2,8 @@
 # Redigera config/base.env, config/profiles/guest-login.env eller config/hosts/test-ref.env
 # och kör tools/build-configs.sh
 REMOTE_CONFIG_URL="https://raw.githubusercontent.com/kth-biblioteket/publicom/stable/.config_test-ref"
+PUBLICOM_HOST=test-ref
+PUBLICOM_PROFILE=guest-login
 PUBLICOM_BRANCH=stable
 RESOURCE_ID=1
 LOGINTYPE=password
@@ -27,6 +29,7 @@ POLICY_FILE="policies_guest.json"
 KIOSK=
 BLACK_LIST=""
 SSH_ALLOW_FROM="130.237.0.0/16,10.0.2.0/24"
+HEARTBEAT_URL=http://10.0.2.2:3002/api/heartbeat
 COMPUTER_NAME="KTH Library TEST (ref)"
 SCREENSAVER_FILES="screen_bg_kth_logo_navy_guest.png,screen_bg_kth_logo_heaven_guest.png"
 WEBSITES="https://www.kth.se/biblioteket"

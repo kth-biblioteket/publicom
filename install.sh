@@ -146,6 +146,9 @@ apt remove --purge -y ubuntu-desktop
 apt autoremove --purge -y
 systemctl stop gdm3
 systemctl disable gdm3
+# På 24.04 följer cups med som snap. Den krockar med cups från apt (som används för KTH-Print)
+# och kraschar vid varje uppstart.
+snap list cups > /dev/null 2>&1 && snap remove --purge cups
 
 ## Avinstallera cloud-init
 apt purge cloud-init -y
@@ -216,7 +219,7 @@ cp /home/guest/.Xauthority /home/kthb/.Xauthority 2>/dev/null
 chown kthb:kthb /home/kthb/.Xauthority 2>/dev/null
 
 systemctl daemon-reload
-systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service
+systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service heartbeat.timer
 systemctl start x11vnc
 
 ## Brandvägg: allt inkommande nekas utom SSH från SSH_ALLOW_FROM (kommaseparerat, från config).

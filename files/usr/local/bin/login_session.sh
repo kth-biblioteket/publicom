@@ -22,8 +22,9 @@ POLICY="/var/snap/chromium/current/policies/managed/policies.json"
 GUEST_POLICY="$STATE_DIR/policies-guest.json"
 LOGIN_POLICY_SUM="$STATE_DIR/policies-login.sha256"
 
-[ -f "$ENV_FILE" ] && source "$ENV_FILE"
-[ -f "$SECRET_FILE" ] && source "$SECRET_FILE"
+source /usr/local/bin/config_lib.sh
+load_config "$ENV_FILE"
+load_config "$SECRET_FILE"
 
 function log() {
     echo "$1"

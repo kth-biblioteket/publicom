@@ -15,8 +15,9 @@ RUN_DIR="/run/publicom"
 # Svarar inte publicomtools på så här många försök (2 s mellan) startas sessionen om (och Electron används då)
 MAX_FAILURES=15
 
-[ -f "$ENV_FILE" ] && source "$ENV_FILE"
-[ -f "$SECRET_FILE" ] && source "$SECRET_FILE"
+source /usr/local/bin/config_lib.sh
+load_config "$ENV_FILE"
+load_config "$SECRET_FILE"
 
 ticket=$(cat "$RUN_DIR/login-ticket" 2>/dev/null)
 [ -z "$ticket" ] && exit 0

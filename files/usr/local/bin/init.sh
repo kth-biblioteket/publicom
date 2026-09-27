@@ -8,7 +8,8 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 else
     # Gör variabler tillgängliga i script
-    source "$ENV_FILE"
+    source /usr/local/bin/config_lib.sh
+    load_config "$ENV_FILE"
     echo "Hittade $ENV_FILE"
 fi
 
@@ -17,7 +18,7 @@ if [ ! -f "$SECRET_FILE" ]; then
     exit 1
 else
     # Gör variabler tillgängliga i script
-    source "$SECRET_FILE"
+    load_config "$SECRET_FILE"
     echo "Hittade $SECRET_FILE"
 fi
 
@@ -49,9 +50,10 @@ function safe_download() {
 
 # Hämta configfil från GitHub och spara till den lokala datorn
 safe_download "$REMOTE_CONFIG_URL" /usr/local/bin/config/.config env
-# Nollställ så att värdet från den gamla filen inte ligger kvar om den nya saknar det
+# Nollställ så att värdet från den gamla filen inte ligger kvar om den nya saknar det.
+# load_config (inte source) så att den nyss hämtade filen inte kan köra kod som root.
 unset PUBLICOM_BRANCH
-source "$ENV_FILE"
+load_config "$ENV_FILE"
 
 # Branch som filerna hämtas från (äldre configfiler saknar PUBLICOM_BRANCH)
 RAW_BASE="https://raw.githubusercontent.com/kth-biblioteket/publicom/${PUBLICOM_BRANCH:-main}"

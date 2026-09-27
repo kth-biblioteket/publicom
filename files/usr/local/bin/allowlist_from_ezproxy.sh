@@ -8,7 +8,8 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 else
     # Gör variabler tillgängliga i script
-    source "$ENV_FILE"
+    source /usr/local/bin/config_lib.sh
+    load_config "$ENV_FILE"
     echo "Hittade $ENV_FILE"
 fi
 
@@ -17,7 +18,7 @@ if [ ! -f "$SECRET_FILE" ]; then
     exit 1
 else
     # Gör variabler tillgängliga i script
-    source "$SECRET_FILE"
+    load_config "$SECRET_FILE"
     echo "Hittade $SECRET_FILE"
 fi
 

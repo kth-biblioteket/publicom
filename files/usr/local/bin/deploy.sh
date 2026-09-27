@@ -23,7 +23,8 @@ if [ "$(id -u)" -ne "0" ]; then
     exit 1
 fi
 
-[ -f "$ENV_FILE" ] && source "$ENV_FILE"
+source "$(dirname "$(readlink -f "$0")")/config_lib.sh"
+load_config "$ENV_FILE"
 BRANCH="${PUBLICOM_BRANCH:-stable}"
 
 WORK=$(mktemp -d)

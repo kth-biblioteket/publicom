@@ -13,8 +13,9 @@ SECRET_FILE="/usr/local/bin/secrets/.secrets"
 DEPLOYED_FILE="/var/lib/publicom/deployed"
 CLIENT_VERSION=1
 
-[ -f "$ENV_FILE" ] && source "$ENV_FILE"
-[ -f "$SECRET_FILE" ] && source "$SECRET_FILE"
+source /usr/local/bin/config_lib.sh
+load_config "$ENV_FILE"
+load_config "$SECRET_FILE"
 
 # PUBLICOM_DEVICE_TOKEN används för alla anrop till publicomtools (HEARTBEAT_TOKEN är det äldre namnet)
 HEARTBEAT_TOKEN="${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"

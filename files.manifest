@@ -5,6 +5,7 @@
 
 # Skript
 0755 root:root   /usr/local/bin/deploy.sh
+0755 root:root   /usr/local/bin/config_lib.sh
 0755 root:root   /usr/local/bin/init.sh
 0755 root:root   /usr/local/bin/allowlist_from_ezproxy.sh
 0755 root:root   /usr/local/bin/session_cleanup.sh

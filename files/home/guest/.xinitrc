@@ -89,7 +89,8 @@ else
 fi
 
 # Gör variabler tillgängliga i script
-source "$ENV_FILE"
+source /usr/local/bin/config_lib.sh
+load_config "$ENV_FILE"
 
 # Skärmlayout
 if [ -n "$SCREEN_ROTATION" ] && [ "$SCREEN_ROTATION" != "normal" ]; then

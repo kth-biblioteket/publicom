@@ -244,6 +244,7 @@ Inget som en gäst har sparat får finnas kvar till nästa användare. Chromiums
 Genomgång av vad en angripare kan göra och vad som skyddar mot det.
 
 **Görs automatiskt av install.sh / deploy.sh:**
+- `.config` läses in säkert (`config_lib.sh`, `load_config`) i stället för med `source`, så att en config som hämtats från GitHub inte kan köra kod som root vid uppstart.
 - Chromium-policyn (`allowlist_from_ezproxy.sh`): blockerar `file://` utom Chromiums egen katalog, blockerar `localhost`/`127.0.0.1`/`[::1]` (datorns CUPS 631 och VNC 5900), stänger av helskärm (F11), tillägg och utvecklarverktyg. Öppna gäst- och sökdatorer har dessutom en allowlist.
 - CUPS: webbgränssnittet av, ingen jobbhistorik eller sparade filer (annars kan en gäst se tidigare gästers utskrifter, alla gäster är användaren `guest`).
 - Gästens hem rensas vid varje session (`clean-up.sh`), Chromium kör inkognito med ny profil.

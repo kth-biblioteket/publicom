@@ -12,6 +12,7 @@ Datorer i bibliotekets publika miljöer
 - Uppgradera vid behov: `sudo apt upgrade -y`. Byt Ubuntu-version genom att installera om, inte med `do-release-upgrade`.
 - Ställ in BIOS/UEFI enligt [checklistan](#biosuefi-checklista) nedan.
 - GRUB (dold meny, tyst start, lösenordsskydd) ställs in av `install.sh`, se [GRUB](#grub) nedan.
+- Testa en ny version på en riktig dator innan den rullas ut: [docs/hardvarutest.md](docs/hardvarutest.md).
   Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes tidigare för 22.04, men inte längre och fungerar inte på 24.04).
 
 Skapa en hemlighetsfil

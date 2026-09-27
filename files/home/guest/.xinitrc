@@ -36,15 +36,17 @@ LOGIN_PROFILE="/home/guest/snap/chromium/common/publicom-login"
 function prompt_for_login_web() {
   local url loop
   url=$(cat "$LOGIN_URL_FILE")
-  # Kioskläget ber fönsterhanteraren om helskärm, men före inloggningen körs ingen (som med Electron).
-  # Ange därför skärmens storlek direkt (efter eventuell rotation).
+  # --app ger ett fönster utan flikar och adressfält. --kiosk fungerar inte här, eftersom ingen
+  # fönsterhanterare körs ännu (den startas först efter inloggningen); utan den ritar --kiosk ett
+  # vanligt fönster med verktygsfält. --app är ramlöst även utan fönsterhanterare, precis som
+  # Electron ritade sitt eget fönster. Skärmens storlek anges direkt (efter eventuell rotation).
   local size
   size=$(xdpyinfo | awk '/dimensions:/{print $2}' | tr x ,)
   log_message "Web login started"
   (
     while [ ! -f "$LOGIN_SESSION_FILE" ]; do
       rm -rf "$LOGIN_PROFILE"
-      chromium-browser $CHROMIUM_FLAGS --kiosk --window-position=0,0 ${size:+--window-size=$size} --user-data-dir="$LOGIN_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI "$url"
+      chromium-browser $CHROMIUM_FLAGS --app="$url" --window-position=0,0 ${size:+--window-size=$size} --user-data-dir="$LOGIN_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI
       sleep 1
     done
   ) &

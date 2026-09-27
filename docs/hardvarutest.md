@@ -45,7 +45,6 @@ Resten av installationen kan göras över SSH, på plats eller på distans:
   sudo cp /tmp/publicom/.config_test-hw /usr/local/bin/config/.config
   sudo PUBLICOM_SRC=/tmp/publicom /tmp/publicom/install.sh
   ```
-- [ ] `.config_test-hw` har `DESKTOP_DEPS=minimal` (testar den uttryckliga paketlistan i stället för ubuntu-desktop). Blir fonter eller PDF fel: sätt `DESKTOP_DEPS=ubuntu-desktop`, kör om install.sh, och rapportera vad som saknades.
 - [ ] Efter omstarten:
   - `systemctl --failed`: inga kraschade tjänster
   - `lpstat -p -d`: KTH-Print finns och är standard
@@ -68,7 +67,7 @@ Anteckningar:
 - [ ] Testkontot ger en session: användarnamn och tid kvar syns i panelen
 - [ ] Bokningen syns i bokningssystemet på ref (`https://apps-ref.lib.kth.se/guestcomputers`)
 
-**Grafik och fonter** (denna dator installeras med `DESKTOP_DEPS=minimal`, alltså utan ubuntu-desktop-tricket – kontrollera därför fonter och PDF extra noga)
+**Grafik och fonter** (kontrollera fonter och PDF, det var skälet till ubuntu-desktop-tricket)
 - [ ] Kartan över biblioteket (Wagnerguide) öppnas och går snabbt att använda
 - [ ] Webbsidor visas med rätt typsnitt, inga rutor eller saknade tecken (t ex å ä ö, och sidor med andra skriftspråk)
 - [ ] En PDF *visas* rätt i Chromium (öppna en PDF i webbläsaren): text syns med rätt typsnitt, inte rutor

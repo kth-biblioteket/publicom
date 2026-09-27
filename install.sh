@@ -145,29 +145,22 @@ n stable
 npm install -g npm@latest
 hash -r
 
-# Fonter och komponenter som Chromium behöver för rätt grafik och PDF-rendering.
-# DESKTOP_DEPS styr hur de installeras (config):
-#   ubuntu-desktop (standard) = installera hela skrivbordet och ta bort det igen. Känt fungerande,
-#                               men långsamt och drar in program (t ex gnome-terminal) som sedan tas bort.
-#   minimal                   = en uttrycklig paketlista, snabbare och färre program från början.
-#                               Byt hit när hårdvarutestet bekräftat att fonter och PDF ser rätt ut
-#                               (se docs/hardvarutest.md).
-if [ "$DESKTOP_DEPS" = "minimal" ]; then
-    # Liberation = metrik-kompatibla ersättare för Arial/Times/Courier (viktigt för PDF),
-    # DejaVu och Noto täcker resten inklusive andra skriftspråk och emoji.
-    apt install -y --no-install-recommends \
-        fonts-liberation fonts-dejavu-core fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji
-else
-    apt install -y ubuntu-desktop
-    apt remove --purge -y ubuntu-desktop
-    apt autoremove --purge -y
-    systemctl stop gdm3
-    systemctl disable gdm3
-    # ubuntu-desktop drar med sig program som skulle kunna ge en gäst ett skal eller
-    # ändra systeminställningar om de gick att starta. xterm behålls (terminalgenvägen kthb).
-    apt remove --purge -y gnome-terminal gnome-control-center gnome-system-monitor 2>/dev/null
-    apt autoremove --purge -y
-fi
+# Installera och avinstallera ubuntu-desktop för att få in fonter och de systembibliotek som
+# Chromium och Electron-inloggningen behöver (GTK, NSS, ALSA, GBM m fl) samt rätt PDF-rendering.
+# Fult och långsamt, men robust: en uttrycklig paketlista testades (bara fonter) och räckte inte
+# på en ren 24.04 - Electron startade inte utan biblioteken. En korrekt bibliotekslista skiljer sig
+# dessutom mellan 20.04 och 24.04 (t64-namnbytet), så det blir svårt att underhålla.
+# Att göra: eventuellt ersätta med fonter + en versionsanpassad bibliotekslista, verifierat på hårdvara.
+apt install -y ubuntu-desktop
+apt remove --purge -y ubuntu-desktop
+apt autoremove --purge -y
+systemctl stop gdm3
+systemctl disable gdm3
+
+# ubuntu-desktop drar med sig program som skulle kunna ge en gäst ett skal eller
+# ändra systeminställningar om de gick att starta. xterm behålls (terminalgenvägen kthb).
+apt remove --purge -y gnome-terminal gnome-control-center gnome-system-monitor 2>/dev/null
+apt autoremove --purge -y
 
 # Stäng av tjänster som inte behövs på en publik dator
 systemctl disable --now avahi-daemon bluetooth 2>/dev/null

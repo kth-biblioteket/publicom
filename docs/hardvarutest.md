@@ -67,7 +67,7 @@ Anteckningar:
 - [ ] Testkontot ger en session: användarnamn och tid kvar syns i panelen
 - [ ] Bokningen syns i bokningssystemet på ref (`https://apps-ref.lib.kth.se/guestcomputers`)
 
-**Grafik och fonter** (kontrollera fonter och PDF, det var skälet till ubuntu-desktop-tricket)
+**Grafik och fonter** (kontrollera fonter och PDF, det var skälet till att fonter installeras uttryckligen)
 - [ ] Kartan över biblioteket (Wagnerguide) öppnas och går snabbt att använda
 - [ ] Webbsidor visas med rätt typsnitt, inga rutor eller saknade tecken (t ex å ä ö, och sidor med andra skriftspråk)
 - [ ] En PDF *visas* rätt i Chromium (öppna en PDF i webbläsaren): text syns med rätt typsnitt, inte rutor

@@ -248,7 +248,7 @@ Genomgång av vad en angripare kan göra och vad som skyddar mot det.
 - Chromium-policyn (`allowlist_from_ezproxy.sh`): blockerar `file://` utom Chromiums egen katalog, blockerar `localhost`/`127.0.0.1`/`[::1]` (datorns CUPS 631 och VNC 5900), stänger av helskärm (F11), tillägg och utvecklarverktyg. Öppna gäst- och sökdatorer har dessutom en allowlist.
 - CUPS: webbgränssnittet av, ingen jobbhistorik eller sparade filer (annars kan en gäst se tidigare gästers utskrifter, alla gäster är användaren `guest`).
 - Gästens hem rensas vid varje session (`clean-up.sh`), Chromium kör inkognito med ny profil.
-- Terminalprogram och inställningspaneler (rester från `ubuntu-desktop`) borttagna. Avahi och Bluetooth av. cron/at bara för root och kthb.
+- Inga terminalprogram eller inställningspaneler installeras (fonter installeras uttryckligen i stället för hela `ubuntu-desktop`, som annars drog in dem). Avahi och Bluetooth av. cron/at bara för root och kthb.
 - Brandvägg: bara SSH från `SSH_ALLOW_FROM`. VNC bara via SSH-tunnel. USB-lagring blockerad.
 - Automatiska säkerhetsuppdateringar (24.04).
 

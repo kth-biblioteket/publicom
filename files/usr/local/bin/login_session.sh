@@ -119,15 +119,16 @@ function prelogin() {
         return 0
     fi
 
-    # Inloggningspolicyn: gästpolicyn, men bara inloggningssidan är tillåten, utan bokmärkesrad (Downloads)
-    # och utan autofyll. Inkognito behålls: då öppnar Ctrl+N inget nytt fönster med adressfält. En ny flik
+    # Inloggningspolicyn: gästpolicyn, men bara inloggningssidan är tillåten, utan bokmärkesrad (Downloads),
+    # autofyll, nedladdningar och dialogrutor för filer (Ctrl+S/Ctrl+O öppnar annars en filhanterare). Inkognito behålls: då öppnar Ctrl+N inget nytt fönster med adressfält. En ny flik
     # (Ctrl+T) visar Chromiums tomma inkognitoflik, där inget kan öppnas; Ctrl+W går tillbaka.
     local login_policy
     login_policy=$(mktemp)
     cp "$POLICY" "$GUEST_POLICY"
     if ! jq --argjson allow "$(login_allowlist)" \
         '. + {URLBlocklist: ["*"], URLAllowlist: $allow, BookmarkBarEnabled: false,
-            AutofillAddressEnabled: false, AutofillCreditCardEnabled: false} | del(.ManagedBookmarks)' \
+            AutofillAddressEnabled: false, AutofillCreditCardEnabled: false,
+            AllowFileSelectionDialogs: false, DownloadRestrictions: 3} | del(.ManagedBookmarks)' \
         "$GUEST_POLICY" > "$login_policy"; then
         rm -f "$login_policy"
         log "Kunde inte skapa inloggningspolicyn, Electron används"

@@ -72,6 +72,14 @@ if [ "$PRINTER" == "true" ]; then
   update_policy '.PrintingEnabled = true'
 fi
 
+# Dialogrutor för filer (spara som, välja fil att ladda upp, t ex bifoga i mejl).
+# FILE_DIALOGS=false stänger av dem helt; nedladdningar sparas då direkt i Downloads.
+if [ "$FILE_DIALOGS" == "false" ]; then
+  update_policy '.AllowFileSelectionDialogs = false'
+else
+  update_policy 'del(.AllowFileSelectionDialogs)'
+fi
+
 IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
 
 if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then

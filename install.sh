@@ -146,9 +146,10 @@ apt remove --purge -y ubuntu-desktop
 apt autoremove --purge -y
 systemctl stop gdm3
 systemctl disable gdm3
-# På 24.04 följer cups med som snap. Den krockar med cups från apt (som används för KTH-Print)
-# och kraschar vid varje uppstart.
-snap list cups > /dev/null 2>&1 && snap remove --purge cups
+# Chromium (snap) skriver bara ut via cups-snappen, som vidarebefordrar till cups från apt
+# (KTH-Print). Utan den visar Chromium bara "Spara som PDF". Installera och koppla den.
+snap install cups
+snap connect chromium:cups cups:cups
 
 ## Avinstallera cloud-init
 apt purge cloud-init -y

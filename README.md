@@ -218,6 +218,12 @@ Varje dator skickar sin status till [publicomtools](https://github.com/kth-bibli
 - Datorn identifieras med `PUBLICOM_HOST` (namnet på host-filen, t ex `gc1`), som `tools/build-configs.sh` skriver in i `.config_<dator>`.
 - Kontrollera på datorn: `journalctl -u heartbeat.service -n 5`. Kör direkt: `sudo systemctl start heartbeat.service`.
 
+### Gästens filer
+Inget som en gäst har sparat får finnas kvar till nästa användare. Chromiums dialogruta för att spara filer når hela `/home/guest`, inte bara Downloads.
+- `clean-up.sh` (vid sessionsstart och utloggning) tar bort allt i `/home/guest` utom det som `files.manifest` installerar och det som sessionen behöver (`KEEP_HOME`, `KEEP_CONFIG` i skriptet). Chromiums hemkatalog i snap töms på allt utom de tomma mapparna Downloads, Documents osv.
+- `session_cleanup.sh` (root, efter sessionen) tömmer Chromiums privata `/tmp` (`/tmp/snap-private-tmp/snap.chromium/tmp`).
+- Ska en ny fil installeras i `/home/guest` måste den läggas till i `KEEP_HOME`/`KEEP_CONFIG`, annars tas den bort vid varje session. `tools/check.sh` kontrollerar det.
+
 ### Kontroller (CI)
 `tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:
 ```bash

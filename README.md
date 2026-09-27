@@ -103,6 +103,8 @@ CHROMIUM_FLAGS=
 ELECTRON_DEV_TOOLS=false
 ALMA_LOGIN=false
 PRINTER=false
+# Dialogrutor för filer (spara som, bifoga/ladda upp). false = inga, nedladdningar fungerar ändå
+FILE_DIALOGS=true
 COMPUTER_TYPE=searchcomputer
 COMPUTER_NAME="KTH Library Search computer"
 SESSION_IDLE=5
@@ -230,6 +232,12 @@ På gästdatorer med inloggning (`ALMA_LOGIN=true`) kan inloggningsskärmen visa
 Kräver `PUBLICOMTOOLS_URL` i config och `PUBLICOM_DEVICE_TOKEN` i `.secrets`. **Svarar publicomtools inte används Electron som reserv**: direkt om biljetten inte går att hämta, annars efter 30 s. Därför ska `BOOKING_API_KEY` finnas kvar i `.secrets` så länge Electron finns som reserv.
 
 Kontrollera på datorn: `journalctl -t publicom-login -n 10` och `journalctl -u publicom-login-agent`.
+
+### Gästens filer
+Inget som en gäst har sparat får finnas kvar till nästa användare. Chromiums dialogruta för att spara filer når hela `/home/guest`, inte bara Downloads.
+- `clean-up.sh` (vid sessionsstart och utloggning) tar bort allt i `/home/guest` utom det som `files.manifest` installerar och det som sessionen behöver (`KEEP_HOME`, `KEEP_CONFIG` i skriptet). Chromiums hemkatalog i snap töms på allt utom de tomma mapparna Downloads, Documents osv.
+- `session_cleanup.sh` (root, efter sessionen) tömmer Chromiums privata `/tmp` (`/tmp/snap-private-tmp/snap.chromium/tmp`).
+- Ska en ny fil installeras i `/home/guest` måste den läggas till i `KEEP_HOME`/`KEEP_CONFIG`, annars tas den bort vid varje session. `tools/check.sh` kontrollerar det.
 
 ### Kontroller (CI)
 `tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:

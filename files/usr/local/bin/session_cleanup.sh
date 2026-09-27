@@ -27,6 +27,13 @@ else
     echo "Hittade $SECRET_FILE"
 fi
 
+# Chromiums privata /tmp (snap) finns kvar mellan sessionerna och kan bara nås av root.
+# Filer som gästen har sparat där ska inte finnas kvar till nästa användare.
+CHROMIUM_TMP="/tmp/snap-private-tmp/snap.chromium/tmp"
+if [ -d "$CHROMIUM_TMP" ]; then
+    find "$CHROMIUM_TMP" -mindepth 1 -maxdepth 1 -user guest -exec rm -rf -- {} +
+fi
+
 # Inloggning i Chromium (LOGIN_UI=web): publicomtools avslutar bokningen, så att API-nyckeln
 # bara behöver finnas på servern. Var sessionen en Electron-inloggning (reserv) känner
 # publicomtools inte till bokningen, och då används det direkta anropet nedan.

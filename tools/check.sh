@@ -47,6 +47,21 @@ while read -r f; do
 done < <(find files -type f ! -name ".DS_Store")
 [ $FAIL -eq 0 ] && ok "alla filer i manifestet finns och alla filer är med"
 
+echo "== clean-up.sh behåller det som installeras i /home/guest"
+keep_home=" $(grep -m1 '^KEEP_HOME=' files/usr/local/bin/clean-up.sh | sed 's/^KEEP_HOME=(\(.*\))$/\1/') "
+keep_config=" $(grep -m1 '^KEEP_CONFIG=' files/usr/local/bin/clean-up.sh | sed 's/^KEEP_CONFIG=(\(.*\))$/\1/') "
+CLEAN_FAIL=$FAIL
+while read -r _ _ dest _; do
+    rel=${dest#/home/guest/}
+    top=${rel%%/*}
+    [[ "$keep_home" == *" $top "* ]] || fail "$dest: $top saknas i KEEP_HOME i clean-up.sh (tas bort vid varje session)"
+    if [[ "$top" == ".config" ]]; then
+        sub=${rel#.config/}; sub=${sub%%/*}
+        [[ "$keep_config" == *" $sub "* ]] || fail "$dest: $sub saknas i KEEP_CONFIG i clean-up.sh"
+    fi
+done < <(grep -E '^[0-7]{4}[[:space:]]+[^[:space:]]+[[:space:]]+/home/guest/' files.manifest)
+[ $FAIL -eq "$CLEAN_FAIL" ] && ok "alla filer i /home/guest behålls"
+
 echo "== Filer som datorerna hämtar direkt från GitHub"
 for f in $(grep -ho '^POLICY_FILE="[^"]*"' .config_* | cut -d'"' -f2 | sort -u); do
     [ -f "$f" ] && ok "$f" || fail "$f (POLICY_FILE) saknas"

@@ -72,15 +72,30 @@ if [ "$PRINTER" == "true" ]; then
   update_policy '.PrintingEnabled = true'
 fi
 
+# Dialogrutor för filer (spara som, välja fil att ladda upp, t ex bifoga i mejl).
+# FILE_DIALOGS=false stänger av dem helt; nedladdningar sparas då direkt i Downloads.
+if [ "$FILE_DIALOGS" == "false" ]; then
+  update_policy '.AllowFileSelectionDialogs = false'
+else
+  update_policy 'del(.AllowFileSelectionDialogs)'
+fi
+
 IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
 
 if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
   ###########
   # Gästdator
   ###########
-  # Om ALMA_LOGIN är true så ska ska inget blockeras
+  # Om ALMA_LOGIN är true så blockeras inga webbplatser. Filer (file://) går bara att öppna i
+  # Chromiums egna kataloger (Downloads), inte i resten av gästens hem, och nedladdningar sparas
+  # direkt i Downloads utan att Chromium öppnar en dialogruta där man kan bläddra i filsystemet.
+  # Chromium visar nedladdade filer med versionskatalogen (t ex .../chromium/3533/Downloads),
+  # som byts vid uppdatering, därför tillåts hela katalogen.
   if [ "$ALMA_LOGIN" == "true" ]; then
-    update_policy '.URLBlocklist = []'
+    update_policy '.URLBlocklist = ["file://*"]
+                   | .URLAllowlist = ["file:///home/guest/snap/chromium/"]
+                   | .PromptForDownloadLocation = false
+                   | .DownloadDirectory = "/home/guest/snap/chromium/current/Downloads"'
   else
     # Om gästdatorn är öppen(utan login)
     # Hämta stanzafil(ezproxy) med tillåtna domäner. Senaste lyckade nedladdning sparas

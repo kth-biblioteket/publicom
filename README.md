@@ -240,6 +240,32 @@ Inget som en gäst har sparat får finnas kvar till nästa användare. Chromiums
 - `session_cleanup.sh` (root, efter sessionen) tömmer Chromiums privata `/tmp` (`/tmp/snap-private-tmp/snap.chromium/tmp`).
 - Ska en ny fil installeras i `/home/guest` måste den läggas till i `KEEP_HOME`/`KEEP_CONFIG`, annars tas den bort vid varje session. `tools/check.sh` kontrollerar det.
 
+### Säkerhet
+Genomgång av vad en angripare kan göra och vad som skyddar mot det.
+
+**Görs automatiskt av install.sh / deploy.sh:**
+- Chromium-policyn (`allowlist_from_ezproxy.sh`): blockerar `file://` utom Chromiums egen katalog, blockerar `localhost`/`127.0.0.1`/`[::1]` (datorns CUPS 631 och VNC 5900), stänger av helskärm (F11), tillägg och utvecklarverktyg. Öppna gäst- och sökdatorer har dessutom en allowlist.
+- CUPS: webbgränssnittet av, ingen jobbhistorik eller sparade filer (annars kan en gäst se tidigare gästers utskrifter, alla gäster är användaren `guest`).
+- Gästens hem rensas vid varje session (`clean-up.sh`), Chromium kör inkognito med ny profil.
+- Terminalprogram och inställningspaneler (rester från `ubuntu-desktop`) borttagna. Avahi och Bluetooth av. cron/at bara för root och kthb.
+- Brandvägg: bara SSH från `SSH_ALLOW_FROM`. VNC bara via SSH-tunnel. USB-lagring blockerad.
+- Automatiska säkerhetsuppdateringar (24.04).
+
+**Måste göras för hand (skydd som koden inte kan sätta):**
+- **Ubuntu 24.04** på alla datorer. 20.04 får inga säkerhetsuppdateringar utan Ubuntu Pro.
+- **BIOS-lösenord, avstängd USB/nätverksstart, GRUB-lösenord** ([checklista](#biosuefi-checklista)). Utan det kan man starta från USB och läsa `.secrets` och disken. Överväg diskkryptering, och chassilås mot stöld av disk och mot USB-keyloggers.
+- **GitHub:** datorerna kör kod från `stable` som root vid varje uppstart. Skydda `main`/`stable` (kräv granskning), kräv 2FA, ge skrivrätt till få personer.
+- **SSH:** begränsa `SSH_ALLOW_FROM` till admin-nätet, använd nycklar (lösenord kvar som reserv). `kthb` spärras aldrig (medvetet), så gärna fail2ban som spärrar IP-adresser.
+- **Bokningsnyckeln:** `BOOKING_API_KEY` (bookingsystem-api `API_KEY_WRITE`) ger i dag skrivrätt i alla bokningssystem och ligger på datorn. Använd en egen begränsad nyckel för gästdatorerna, eller `LOGIN_UI=web` så att nyckeln bara finns på servern.
+- **Nät:** lägg publika datorer i ett eget nät (VLAN), så att interna tjänster inte nås bara för att trafiken kommer från KTH-nätet.
+
+**Efterkontroll på datorn:**
+```bash
+sudo stat -c '%a %U' /usr/local/bin/secrets/.secrets   # 600 root
+sudo grep -r NOPASSWD /etc/sudoers.d/                   # inget för guest
+sudo grep -i '^WebInterface' /etc/cups/cupsd.conf       # No
+```
+
 ### Kontroller (CI)
 `tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:
 ```bash

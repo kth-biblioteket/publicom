@@ -107,6 +107,12 @@ lpadmin -d KTH-Print
 # Skrivarinställningar
 lpadmin -p KTH-Print -o PageSize=A4
 
+# CUPS-härdning: stäng av webbgränssnittet (nås annars via localhost:631 i Chromium)
+# och spara inte jobbhistorik eller utskrivna filer, så att en gäst inte kan se eller
+# skriva ut tidigare gästers dokument (alla gäster delar användaren guest).
+cupsctl WebInterface=No PreserveJobHistory=No PreserveJobFiles=No
+systemctl try-restart cups 2>/dev/null
+
 # Installera GUI/Fönsterhanterare/chromium etc.
 apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xprintidle xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra unclutter
 
@@ -146,6 +152,20 @@ apt remove --purge -y ubuntu-desktop
 apt autoremove --purge -y
 systemctl stop gdm3
 systemctl disable gdm3
+
+# ubuntu-desktop drar med sig program som skulle kunna ge en gäst ett skal eller
+# ändra systeminställningar om de gick att starta. xterm behålls (terminalgenvägen kthb).
+apt remove --purge -y gnome-terminal gnome-control-center gnome-system-monitor 2>/dev/null
+apt autoremove --purge -y
+
+# Stäng av tjänster som inte behövs på en publik dator
+systemctl disable --now avahi-daemon bluetooth 2>/dev/null
+
+# Låt bara root och kthb använda cron/at, så att en gäst inte kan lägga in jobb
+# som överlever sessionen
+printf 'root\nkthb\n' > /etc/cron.allow
+chmod 600 /etc/cron.allow
+command -v at > /dev/null && { printf 'root\nkthb\n' > /etc/at.allow; chmod 600 /etc/at.allow; }
 # Chromium (snap) skriver bara ut via cups-snappen, som vidarebefordrar till cups från apt
 # (KTH-Print). Utan den visar Chromium bara "Spara som PDF". Installera och koppla den.
 snap install cups

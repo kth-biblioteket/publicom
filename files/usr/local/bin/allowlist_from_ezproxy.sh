@@ -137,3 +137,12 @@ else
   ###########
   apply_restrictions "${ALLOWED_DOMAINS[@]}"
 fi
+
+# Härdning som gäller alla datortyper, oavsett listorna ovan:
+# - blockera datorns egna tjänster (CUPS 631, VNC 5900) som annars nås via localhost
+#   trots URL-listorna (gästdatorer med inloggning blockerar bara file://)
+# - ingen helskärm (F11), så att en falsk inloggningssida inte kan täcka hela skärmen
+# - inga tillägg
+update_policy '.URLBlocklist = ((.URLBlocklist // []) + ["localhost", "127.0.0.1", "[::1]"] | unique)
+               | .FullscreenAllowed = false
+               | .ExtensionInstallBlocklist = ["*"]'

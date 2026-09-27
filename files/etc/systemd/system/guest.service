@@ -19,10 +19,13 @@ ExecStartPre=/bin/sh -c 'for i in $(seq 1 20); do pgrep -x Xorg > /dev/null || e
 # Töm textkonsolen och dölj markören, så att uppstartsloggen inte syns i pausen mellan
 # två sessioner (när X avslutas visas konsolen på tty1). "+" = körs som root.
 ExecStartPre=+/bin/sh -c 'setterm --term linux --clear all --cursor off > /dev/tty1 < /dev/tty1 2>/dev/null; exit 0'
+# Inloggning i Chromium (LOGIN_UI=web): inloggningsbiljett och låst policy före sessionen
+ExecStartPre=+/usr/local/bin/login_session.sh prelogin
 ExecStart=/usr/bin/startx -- :0
 # Körs efter varje avslutad session (utloggning, timeout, inaktivitet).
 # "+" = körs som root så att hemlighetsfilen kan läsas.
 ExecStopPost=+/usr/local/bin/session_cleanup.sh
+ExecStopPost=+/usr/local/bin/login_session.sh cleanup
 Environment=DISPLAY=:0
 
 [Install]

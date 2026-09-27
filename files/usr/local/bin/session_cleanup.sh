@@ -27,6 +27,29 @@ else
     echo "Hittade $SECRET_FILE"
 fi
 
+# Inloggning i Chromium (LOGIN_UI=web): publicomtools avslutar bokningen, så att API-nyckeln
+# bara behöver finnas på servern. Var sessionen en Electron-inloggning (reserv) känner
+# publicomtools inte till bokningen, och då används det direkta anropet nedan.
+DEVICE_TOKEN="${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
+if [ "$BOOKING_TYPE" == "dropin" ] && [ "$LOGIN_UI" == "web" ] && [ -n "$PUBLICOMTOOLS_URL" ] && [ -n "$DEVICE_TOKEN" ]; then
+    BOOKING_ID=$(cat /tmp/current_booking_id.txt 2>/dev/null)
+    if [ -n "$BOOKING_ID" ]; then
+        HEADER_FILE=$(mktemp)
+        echo "Authorization: Bearer $DEVICE_TOKEN" > "$HEADER_FILE"
+        HTTP_CODE=$(jq -cn --arg host "${PUBLICOM_HOST:-$(hostname)}" --arg bookingId "$BOOKING_ID" \
+            '{host: $host, bookingId: $bookingId}' |
+            curl -s --max-time 10 -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" \
+                -H @"$HEADER_FILE" --data-binary @- "$PUBLICOMTOOLS_URL/api/device/session/end")
+        rm -f "$HEADER_FILE"
+        if [ "$HTTP_CODE" == "200" ]; then
+            rm -f /tmp/current_booking_id.txt
+            echo "Booking $BOOKING_ID ended via publicomtools" >> /var/log/guest_cleanup.log
+            exit 0
+        fi
+        echo "publicomtools could not end booking $BOOKING_ID (HTTP $HTTP_CODE)" >> /var/log/guest_cleanup.log
+    fi
+fi
+
 if [ "$BOOKING_TYPE" == "dropin" ]; then
     if [ -z "$BOOKING_API_KEY" ]; then
         echo "Error: API key (BOOKING_API_KEY) not found in $SECRET_FILE" >> /var/log/guest_cleanup.log

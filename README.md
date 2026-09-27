@@ -24,9 +24,9 @@ GITHUB_TOKEN=xxxxxxx
 VNC_PASSWORD=xxxxxxx
 BOOKING_API_KEY=xxxxxxx
 GRUB_PASSWORD_HASH=grub.pbkdf2.sha512.10000.xxxxxxx
-HEARTBEAT_TOKEN=xxxxxxx
+PUBLICOM_DEVICE_TOKEN=xxxxxxx
 ```
-`HEARTBEAT_TOKEN` är valfri, se [Statussida](#statussida-heartbeat).
+`PUBLICOM_DEVICE_TOKEN` är valfri. Den behövs för [statussidan](#statussida-heartbeat) och för [inloggning i Chromium](#inloggning-i-chromium-login_uiweb) (samma token, som i publicomtools). `BOOKING_API_KEY` behövs inte på datorer med `LOGIN_UI=web`. Det äldre namnet `HEARTBEAT_TOKEN` fungerar också.
 `GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout, så t ex `-`, `å`, `ä`, `ö` och andra specialtecken hamnar på andra tangenter än på ett svenskt tangentbord. Användarnamnet i GRUB är `kthb`. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
 
@@ -214,9 +214,22 @@ För att testa en branch på en enskild dator, sätt `PUBLICOM_BRANCH=<branch>` 
 ### Statussida (heartbeat)
 Varje dator skickar sin status till [publicomtools](https://github.com/kth-biblioteket/publicomtools) (`https://apps.lib.kth.se/publicomtools`) var 5:e minut: senaste deploy, uptime, om gästsessionen körs, kraschade tjänster, ledigt diskutrymme och om en omstart väntar. Statussidan kräver KTH-inloggning.
 - Skickas av `heartbeat.sh` via `heartbeat.timer` (installeras och aktiveras av `deploy.sh`).
-- Adressen är `HEARTBEAT_URL` i config (`config/base.env`). Token är `HEARTBEAT_TOKEN` i `.secrets`, samma värde som `HEARTBEAT_TOKEN` i publicomtools. **Utan token skickas ingenting**, så funktionen slås på dator för dator.
+- Adressen är `HEARTBEAT_URL` i config (`config/base.env`). Token är `PUBLICOM_DEVICE_TOKEN` i `.secrets`, samma värde som `PUBLICOM_DEVICE_TOKEN` i publicomtools. **Utan token skickas ingenting**, så funktionen slås på dator för dator.
 - Datorn identifieras med `PUBLICOM_HOST` (namnet på host-filen, t ex `gc1`), som `tools/build-configs.sh` skriver in i `.config_<dator>`.
 - Kontrollera på datorn: `journalctl -u heartbeat.service -n 5`. Kör direkt: `sudo systemctl start heartbeat.service`.
+
+### Inloggning i Chromium (LOGIN_UI=web)
+På gästdatorer med inloggning (`ALMA_LOGIN=true`) kan inloggningsskärmen visas som en webbsida i [publicomtools](https://github.com/kth-biblioteket/publicomtools) i stället för i Electron-appen. Datorn kör då bara Chromium. Väljs med `LOGIN_UI` i config: `electron` (standard) eller `web`.
+
+1. När sessionen startar hämtar `login_session.sh` (root, `guest.service` ExecStartPre) en engångsbiljett från publicomtools och installerar en **inloggningspolicy**: Chromium-policyn där allt är blockerat utom publicomtools och formuläret för att registrera konto (`REGISTER_ACCOUNT_URL`).
+2. `.xinitrc` visar inloggningssidan i Chromium i kioskläge. Stängs fönstret startar sidan om.
+3. Inloggningen (Alma) och bokningen görs av publicomtools, som den tidigare gjordes av Electron-appen. `login_agent.sh` (root) frågar publicomtools varannan sekund. När någon har loggat in installerar den gästpolicyn igen och skriver bokningen till `/run/publicom/session.json`.
+4. `.xinitrc` stänger inloggningssidan och startar sessionen som vanligt, i en ny Chromium med ny profil (policyn läses när Chromium startar, en ändring i en körande Chromium tar 10–15 s).
+5. Vid utloggning ber `session_cleanup.sh` publicomtools avsluta bokningen. API-nyckeln till bokningssystemet finns bara på servern.
+
+Kräver `PUBLICOMTOOLS_URL` i config och `PUBLICOM_DEVICE_TOKEN` i `.secrets`. **Svarar publicomtools inte används Electron som reserv**: direkt om biljetten inte går att hämta, annars efter 30 s. Därför ska `BOOKING_API_KEY` finnas kvar i `.secrets` så länge Electron finns som reserv.
+
+Kontrollera på datorn: `journalctl -t publicom-login -n 10` och `journalctl -u publicom-login-agent`.
 
 ### Kontroller (CI)
 `tools/check.sh` kontrollerar skriptens syntax (och `shellcheck` om det finns), JSON, Electron-koden, att `.config_*` är aktuella och att `files.manifest` stämmer med `files/`. Kör den innan commit:

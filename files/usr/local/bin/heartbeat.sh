@@ -6,7 +6,7 @@
 ################################################
 # Skickar datorns status till statussidan (publicomtools) var 5:e minut.
 # Körs av heartbeat.timer. Gör ingenting om HEARTBEAT_URL (config) eller
-# HEARTBEAT_TOKEN (.secrets) saknas.
+# PUBLICOM_DEVICE_TOKEN (.secrets) saknas.
 
 ENV_FILE="/usr/local/bin/config/.config"
 SECRET_FILE="/usr/local/bin/secrets/.secrets"
@@ -16,6 +16,8 @@ CLIENT_VERSION=1
 [ -f "$ENV_FILE" ] && source "$ENV_FILE"
 [ -f "$SECRET_FILE" ] && source "$SECRET_FILE"
 
+# PUBLICOM_DEVICE_TOKEN används för alla anrop till publicomtools (HEARTBEAT_TOKEN är det äldre namnet)
+HEARTBEAT_TOKEN="${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
 if [ -z "$HEARTBEAT_URL" ] || [ -z "$HEARTBEAT_TOKEN" ]; then
     exit 0
 fi

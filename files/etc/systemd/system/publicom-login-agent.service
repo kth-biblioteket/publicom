@@ -1,0 +1,8 @@
+[Unit]
+Description=Vänta på inloggning i Chromium (LOGIN_UI=web)
+# Startas av login_session.sh prelogin och stoppas tillsammans med gästsessionen
+PartOf=guest.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/login_agent.sh

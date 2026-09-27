@@ -17,6 +17,8 @@
 0755 root:root   /usr/local/bin/update_tint_computer_name.sh
 0755 root:root   /usr/local/bin/open_terminal.sh
 0755 root:root   /usr/local/bin/heartbeat.sh
+0755 root:root   /usr/local/bin/login_session.sh
+0755 root:root   /usr/local/bin/login_agent.sh
 
 # Electron-inloggning (npm ci körs när package.json/package-lock.json ändras)
 0644 root:root   /usr/local/bin/electron-login/main.js
@@ -53,6 +55,7 @@
 0644 root:root   /etc/systemd/system/x11vnc.service
 0644 root:root   /etc/systemd/system/heartbeat.service
 0644 root:root   /etc/systemd/system/heartbeat.timer
+0644 root:root   /etc/systemd/system/publicom-login-agent.service
 0644 root:root   /etc/systemd/logind.conf.d/50-disable-sleep.conf
 0644 root:root   /etc/systemd/logind.conf.d/60-publicom-guest.conf
 

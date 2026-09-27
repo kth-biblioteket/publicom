@@ -24,6 +24,51 @@ function prompt_for_code() {
   return $electron_status
 }
 
+## Inloggning som webbsida i Chromium (LOGIN_UI=web). login_session.sh (root) har hämtat en
+## inloggningsbiljett och installerat en policy där bara inloggningssidan är tillåten. Chromium visar
+## sidan i kioskläge tills login_agent.sh (root) har skrivit bokningen till LOGIN_SESSION_FILE,
+## i samma format som Electron-appen skriver ut.
+LOGIN_URL_FILE="/run/publicom/login-url"
+LOGIN_SESSION_FILE="/run/publicom/session.json"
+LOGIN_RESTART_FILE="/run/publicom/restart"
+LOGIN_PROFILE="/home/guest/snap/chromium/common/publicom-login"
+
+function prompt_for_login_web() {
+  local url loop
+  url=$(cat "$LOGIN_URL_FILE")
+  # Kioskläget ber fönsterhanteraren om helskärm, men före inloggningen körs ingen (som med Electron).
+  # Ange därför skärmens storlek direkt (efter eventuell rotation).
+  local size
+  size=$(xdpyinfo | awk '/dimensions:/{print $2}' | tr x ,)
+  log_message "Web login started"
+  (
+    while [ ! -f "$LOGIN_SESSION_FILE" ]; do
+      rm -rf "$LOGIN_PROFILE"
+      chromium-browser $CHROMIUM_FLAGS --kiosk --window-position=0,0 ${size:+--window-size=$size} --user-data-dir="$LOGIN_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI "$url"
+      sleep 1
+    done
+  ) &
+  loop=$!
+  while [ ! -f "$LOGIN_SESSION_FILE" ]; do
+    # login_agent.sh ber om en ny session (biljetten gäller inte längre eller publicomtools svarar inte)
+    if [ -f "$LOGIN_RESTART_FILE" ]; then
+      log_message "Web login restart requested"
+      kill "$loop" 2>/dev/null
+      pkill -u guest -f -- "--user-data-dir=$LOGIN_PROFILE"
+      exit 1
+    fi
+    sleep 0.5
+  done
+  # Inloggad: stäng inloggningssidan. Sessionen startar i en ny Chromium med ny profil och gästpolicyn.
+  kill "$loop" 2>/dev/null
+  pkill -u guest -f -- "--user-data-dir=$LOGIN_PROFILE"
+  for _ in $(seq 1 20); do pgrep -u guest -f -- "--user-data-dir=$LOGIN_PROFILE" > /dev/null || break; sleep 0.25; done
+  rm -rf "$LOGIN_PROFILE"
+  form_input=$(cat "$LOGIN_SESSION_FILE")
+  log_message "Web login done"
+  return 0
+}
+
 # Chromium-profil som raderas före varje start så att inget följer med till nästa användare.
 # Ligger under snap-katalogen eftersom Chromium (snap) har en egen privat /tmp.
 CHROMIUM_PROFILE="/home/guest/snap/chromium/common/publicom-profile"
@@ -183,7 +228,11 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
         xset -dpms
         xset s noblank
       fi
-      prompt_for_code
+      if [ "$LOGIN_UI" == "web" ] && [ -s "$LOGIN_URL_FILE" ]; then
+        prompt_for_login_web
+      else
+        prompt_for_code
+      fi
       status=$?
 
       if [[ $status -eq 0 ]]; then

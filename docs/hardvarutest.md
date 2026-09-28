@@ -12,7 +12,9 @@ Kryssa i och skriv anteckningar under varje avsnitt.
 ## 1. Före besöket
 
 - [ ] Testdator av samma modell som i drift. Modell: ______ Processor: ______ Grafik: ______
-- [ ] USB-minne med Ubuntu Server 24.04.x (från ubuntu.com)
+- [ ] USB-minne med Ubuntu Server **24.04.x amd64** (från ubuntu.com). Välj uttryckligen **24.04**,
+      inte "senaste LTS" (26.04 räknas nu som senaste och är otestad — bl a CUPS 3.x som tagit bort
+      drivrutinsbaserad utskrift). **Server**, inte Desktop. **amd64** (Intel/AMD), inte arm64.
 - [ ] Externt testkonto i Alma på ref (användarnamn och lösenord)
 - [ ] `BOOKING_API_KEY` för ref (bookingsystem-api), VNC-lösenord
 - [ ] GRUB-lösenord med **bara a–z och siffror**, och hashen från `grub-mkpasswd-pbkdf2`

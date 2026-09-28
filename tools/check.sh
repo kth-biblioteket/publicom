@@ -20,6 +20,14 @@ else
     echo "  (shellcheck saknas, hoppar över)"
 fi
 
+echo "== load_config inbäddad i install.sh == config_lib.sh"
+extract_load_config() { awk '/^load_config\(\) \{/{p=1} p{print} /^}/{if(p)exit}' "$1"; }
+if diff <(extract_load_config install.sh) <(extract_load_config files/usr/local/bin/config_lib.sh) > /dev/null; then
+    ok "load_config i synk"
+else
+    fail "load_config i install.sh skiljer sig från config_lib.sh (håll dem lika)"
+fi
+
 echo "== JSON"
 for f in policies_*.json files/usr/local/bin/electron-login/package*.json; do
     jq empty "$f" 2>/dev/null && ok "$f" || fail "$f: ogiltig JSON"

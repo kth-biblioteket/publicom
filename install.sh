@@ -14,6 +14,31 @@ if [ "$(id -u)" -ne "0" ]; then
     exit 1
 fi
 
+# Säker inläsning av config/secrets. Spegel av files/usr/local/bin/config_lib.sh: install.sh
+# körs som bootstrap (i produktion laddas den ensam via curl) och kan inte source:a config_lib.sh
+# innan filträdet hämtats, därför bäddas funktionen in här. Håll de två kopiorna i synk
+# (tools/check.sh kontrollerar det). Till skillnad från "source" KÖRS ingenting i filen.
+load_config() {
+    local file="$1" line key val
+    [ -f "$file" ] || return 1
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"                       # ta bort ev. CR (Windows-radslut)
+        case "$line" in ''|\#*) continue ;; esac   # tomma rader och kommentarer
+        case "$line" in *=*) ;; *) continue ;; esac # måste innehålla =
+        key="${line%%=*}"
+        val="${line#*=}"
+        # Bara giltiga variabelnamn (a-z, A-Z, 0-9, _, inte inledande siffra). Det stoppar
+        # även rader som "export FOO", "a b=c" och liknande.
+        case "$key" in ''|[0-9]*|*[!A-Za-z0-9_]*) continue ;; esac
+        # Ta bort ett lager matchande citattecken runt värdet
+        case "$val" in
+            \"*\") val="${val#\"}"; val="${val%\"}" ;;
+            \'*\') val="${val#\'}"; val="${val%\'}" ;;
+        esac
+        printf -v "$key" '%s' "$val"
+    done < "$file"
+}
+
 # Läs in miljövariabler
 ENV_FILE="/usr/local/bin/config/.config"
 if [ ! -f "$ENV_FILE" ]; then
@@ -22,7 +47,7 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # Gör miljövariabler tillgängliga i script
-source "$ENV_FILE"
+load_config "$ENV_FILE"
 
 # Läs in hemligheter
 SECRET_FILE="/usr/local/bin/secrets/.secrets"
@@ -32,7 +57,7 @@ if [ ! -f "$SECRET_FILE" ]; then
     exit 1
 else
     # Gör variabler tillgängliga i script
-    source "$SECRET_FILE"
+    load_config "$SECRET_FILE"
     echo "Hittade $SECRET_FILE"
 fi
 
@@ -221,7 +246,7 @@ mkdir -p /usr/local/bin/screensaver
 # Vid installation från lokal kopia kan filerna saknas på GitHub (t ex en branch som inte är pushad).
 # Ta dem då från den lokala kopian.
 if [ -n "$PUBLICOM_SRC" ]; then
-    source "$ENV_FILE"
+    load_config "$ENV_FILE"
     POLICY_PATH="/var/snap/chromium/current/policies/managed/policies.json"
     mkdir -p "$(dirname "$POLICY_PATH")"
     install -o root -g root -m 0644 "$SRC/$POLICY_FILE" "$POLICY_PATH"

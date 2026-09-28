@@ -111,6 +111,9 @@ lpadmin -p KTH-Print -E -v lpd://testkthb@kth-print3.ug.kth.se -m drv:///sample.
 lpadmin -d KTH-Print
 # Skrivarinställningar
 lpadmin -p KTH-Print -o PageSize=A4
+# Försättsblad (job-sheets). Standard none,none = inga blad före/efter jobbet.
+# Styrs av PRINT_JOB_SHEETS i config; sätt t ex "standard," för ett blad före varje jobb.
+lpadmin -p KTH-Print -o job-sheets-default="${PRINT_JOB_SHEETS:-none,none}"
 
 # CUPS-härdning: stäng av webbgränssnittet (nås annars via localhost:631 i Chromium)
 # och spara inte jobbhistorik eller utskrivna filer, så att en gäst inte kan se eller

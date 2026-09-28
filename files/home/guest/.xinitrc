@@ -126,10 +126,10 @@ echo -e "/usr/local/bin/icons/icons8-green-circle-32.png\n " > /tmp/tint2_inacti
 # så att xscreensaver (som läser om ~/.xscreensaver när den ändras) inte påverkas mitt i en session.
 sed "s/^timeout:.*$/timeout: ${SCREENSAVER_IDLE:-00:30:00}/" /usr/local/share/publicom/xscreensaver > /home/guest/.xscreensaver
 
-# Funktion för att dölja muspekaren om SIGNAGE är true
+# Funktion för att dölja muspekaren på signagedatorer
 function hide_mouse_cursor() {
-    if [ "$SIGNAGE" == "true" ]; then
-        log_message "SIGNAGE is true - hiding mouse cursor with unclutter"
+    if [ "$COMPUTER_TYPE" = "signage" ]; then
+        log_message "signage - hiding mouse cursor with unclutter"
         # Kontrollera om unclutter är installerat
         if command -v unclutter &> /dev/null; then
             # Dölj muspekaren efter 1 sekunds inaktivitet
@@ -146,7 +146,7 @@ function hide_mouse_cursor() {
             fi
         fi
     else
-        log_message "SIGNAGE is not true - mouse cursor will be visible"
+        log_message "inte signage - muspekaren visas"
     fi
 }
 
@@ -377,7 +377,7 @@ else
   fi
   # Bakgrund
   set_background
-  # Dölj muspekaren om SIGNAGE är true
+  # Dölj muspekaren på signagedatorer
   hide_mouse_cursor
   # Starta openbox windows manager
   openbox &

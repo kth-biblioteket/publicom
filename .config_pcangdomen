@@ -36,6 +36,5 @@ HEARTBEAT_URL=https://apps.lib.kth.se/publicomtools/api/heartbeat
 COMPUTER_NAME="KTH Library - Ångdomen"
 SCREEN_ROTATION=left
 SCREENSAVER_FILES=""
-SIGNAGE=true
 WHITE_LIST="apps.lib.kth.se,s3.lib.kth.se"
 WEBSITES="https://apps.lib.kth.se/smartsigntools/api/v1/angdomen/smartsignpage"

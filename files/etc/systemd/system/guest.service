@@ -5,6 +5,9 @@ Description=Guest Mode
 After=init.service allowlist_from_ezproxy.service systemd-user-sessions.service
 # Ge aldrig upp omstarterna, en kioskdator ska alltid komma tillbaka till startskärmen
 StartLimitIntervalSec=0
+# Starta inte gästkiosken i underhållsläge (GRUB-posten "PubLiCom underhåll"), då ges i stället
+# en vanlig inloggningsprompt av publicom-maintenance-login.service.
+ConditionKernelCommandLine=!publicom.maintenance
 
 [Service]
 User=guest

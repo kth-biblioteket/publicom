@@ -161,6 +161,16 @@ Kontrollera efteråt:
 sudo grep -E "^set superusers|^menuentry" /boot/grub/grub.cfg
 ```
 
+#### Underhållsläge: vanlig inloggningsprompt på plats
+Normalt finns ingen textinloggning (getty avstängt), så att en gäst inte kan gissa lösenord. Behöver du som administratör en vanlig inloggningsprompt vid datorn, t ex om gästsessionen eller X är trasig:
+
+1. Håll **Esc** (eller Shift) vid uppstart för att visa GRUB-menyn.
+2. Tryck **`e`** på den vanliga menyposten. Ange GRUB-lösenordet (användare `kthb`) när det efterfrågas.
+3. Lägg till ` publicom.maintenance` sist på raden som börjar med `linux`.
+4. Tryck **Ctrl-X** för att starta.
+
+Datorn startar då **utan** gästkiosken (`guest.service` hoppas över) och `publicom-maintenance-login.service` ger en textinloggning på tty1, där du loggar in som `kthb`. Nästa vanliga omstart är oförändrad. Fungerar oavsett kärnversion, eftersom du redigerar Ubuntus egen menypost.
+
 #### Datorer som använder det gamla upplägget
 Tidigare beskrevs egna poster i `40_custom` med hårdkodad kärnversion och `chmod -x /etc/grub.d/10_linux`. Det slutar fungera när den kärnan tas bort vid en uppdatering. För att byta:
 ```bash

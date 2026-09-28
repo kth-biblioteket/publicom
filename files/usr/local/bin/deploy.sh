@@ -127,11 +127,11 @@ function changed() {
 # Åtgärder beroende på vad som ändrats
 if changed "/etc/systemd/system/*"; then
     systemctl daemon-reload
-    systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service
+    systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service publicom-maintenance-login.service
 fi
 # Nya tjänster aktiveras utifrån läget, inte bara när filerna ändras. Första gången en ny fil
 # installeras görs det av den äldre deploy.sh som redan finns på datorn, och den känner inte till tjänsten.
-for unit in heartbeat.timer; do
+for unit in heartbeat.timer publicom-maintenance-login.service; do
     if [ -f "/etc/systemd/system/$unit" ] && ! systemctl is-enabled -q "$unit"; then
         systemctl daemon-reload
         systemctl enable --now "$unit"

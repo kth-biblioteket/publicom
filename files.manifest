@@ -54,6 +54,7 @@
 0644 root:root   /etc/systemd/system/allowlist_from_ezproxy.service
 0644 root:root   /etc/systemd/system/guest.service
 0644 root:root   /etc/systemd/system/x11vnc.service
+0644 root:root   /etc/systemd/system/publicom-maintenance-login.service
 0644 root:root   /etc/systemd/system/heartbeat.service
 0644 root:root   /etc/systemd/system/heartbeat.timer
 0644 root:root   /etc/systemd/system/publicom-login-agent.service

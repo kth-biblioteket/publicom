@@ -1,0 +1,21 @@
+[Unit]
+Description=PubLiCom underhållsinloggning (textprompt)
+# Körs bara i underhållsläge, dvs när kärnan startats med parametern publicom.maintenance
+# (GRUB-posten "PubLiCom underhåll"). Då startar inte gästkiosken (guest.service), och den här
+# tjänsten ger en vanlig inloggningsprompt på tty1 för administratören.
+ConditionKernelCommandLine=publicom.maintenance
+After=systemd-user-sessions.service plymouth-quit-wait.service
+Conflicts=getty@tty1.service
+
+[Service]
+ExecStart=-/sbin/agetty --noclear tty1 linux
+Type=idle
+Restart=always
+RestartSec=1
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

@@ -74,6 +74,11 @@ EOF
 else
     echo "Varning: GRUB_PASSWORD_HASH saknas i $SECRET_FILE, GRUB-menyn lösenordsskyddas inte"
 fi
+# Underhållsläge (fysisk inloggningsprompt) utlöses genom att lägga till kärnparametern
+# publicom.maintenance vid start: håll Esc vid uppstart, tryck e på menyposten (kräver
+# GRUB-lösenordet), lägg till " publicom.maintenance" sist på linux-raden och tryck Ctrl-X.
+# Då hoppas gästkiosken över (guest.service) och publicom-maintenance-login.service ger en
+# textinloggning på tty1. Se README. (Ingen egen menypost, så det följer kärnuppdateringar.)
 update-grub
 
 # Sätt datum/tid
@@ -239,7 +244,7 @@ cp /home/guest/.Xauthority /home/kthb/.Xauthority 2>/dev/null
 chown kthb:kthb /home/kthb/.Xauthority 2>/dev/null
 
 systemctl daemon-reload
-systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service heartbeat.timer
+systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service publicom-maintenance-login.service heartbeat.timer
 systemctl start x11vnc
 
 ## Brandvägg: allt inkommande nekas utom SSH från SSH_ALLOW_FROM (kommaseparerat, från config).

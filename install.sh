@@ -159,6 +159,13 @@ apt install -y --no-install-recommends xterm
 # eftersom kthb då kan låsas ute helt. Påverkar inte SSH.
 grep -q "pam_faildelay" /etc/pam.d/su || sed -i '0,/^auth/s//auth       optional   pam_faildelay.so delay=4000000\nauth/' /etc/pam.d/su
 
+# pam_lastlog.so togs bort i Ubuntu 24.04, men /etc/pam.d/login refererar den fortfarande.
+# guest.service (PAMName=login) och underhållsinloggningen ger då "cannot open shared object
+# file: pam_lastlog.so" vid varje session. Kommentera bort raden (funktionen är oviktig här).
+if grep -qE '^[[:space:]]*session[[:space:]].*pam_lastlog\.so' /etc/pam.d/login; then
+    sed -i -E 's/^([[:space:]]*session[[:space:]].*pam_lastlog\.so.*)$/# \1  # publicom: modulen finns inte i Ubuntu 24.04+/' /etc/pam.d/login
+fi
+
 # Automatiska säkerhetsuppdateringar (konfigureras av deploy.sh: 10periodic, 52publicom-unattended-upgrades)
 apt install -y unattended-upgrades
 # Snap-paket (Chromium) uppdateras bara nattetid

@@ -18,8 +18,9 @@ Kryssa i och skriv anteckningar under varje avsnitt.
 - [ ] GRUB-lösenord med **bara a–z och siffror**, och hashen från `grub-mkpasswd-pbkdf2`
 - [ ] Kopia av koden (från repot på din dator):
   ```bash
-  git archive --format=tar.gz --prefix=publicom/ sakerhet-1 > publicom-sakerhet-1.tar.gz
+  git archive --format=tar.gz --prefix=publicom/ sakerhet-1 > ~/publicom-sakerhet-1.tar.gz
   ```
+  (`~/` lägger filen i din hemkatalog, inte i repot)
 - [ ] En PDF att skriva ut
 - [ ] Ett andra USB-minne med en fil på, för att testa att USB är blockerat
 
@@ -35,7 +36,7 @@ Resten av installationen kan göras över SSH, på plats eller på distans:
 
 - [ ] Kopiera och packa upp koden:
   ```bash
-  scp publicom-sakerhet-1.tar.gz kthb@<ip>:/tmp/
+  scp ~/publicom-sakerhet-1.tar.gz kthb@<ip>:/tmp/
   ssh kthb@<ip> "tar -xzf /tmp/publicom-sakerhet-1.tar.gz -C /tmp"
   ```
 - [ ] Skapa `/usr/local/bin/secrets/.secrets` enligt README (`VNC_PASSWORD`, `BOOKING_API_KEY`, `GRUB_PASSWORD_HASH`), med ägare root och rättigheter 600

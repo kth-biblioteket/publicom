@@ -26,9 +26,13 @@ fi
 # Vid fel (t ex 404 eller nätverksfel) behålls den befintliga filen.
 # $3 = valideringstyp: env, json eller any
 function safe_download() {
-    local url="$1" dest="$2" type="$3" tmp
+    local url="$1" dest="$2" type="$3" token="$4" tmp
     tmp=$(mktemp "${dest}.XXXXXX") || return 1
-    if ! curl -fsSL --max-time 30 -o "$tmp" "$url"; then
+    local auth=()
+    # Device-token för config från publicomtools (endpointen kräver det). Git-råfiler
+    # ignorerar headern, så det är ofarligt för datorer som fortfarande hämtar från GitHub.
+    [ -n "$token" ] && auth=(-H "Authorization: Bearer $token")
+    if ! curl -fsSL --max-time 30 "${auth[@]}" -o "$tmp" "$url"; then
         echo "Error downloading $url, keeping existing $dest"
         rm -f "$tmp"
         return 1
@@ -48,8 +52,9 @@ function safe_download() {
     echo "Successfully downloaded $url"
 }
 
-# Hämta configfil från GitHub och spara till den lokala datorn
-safe_download "$REMOTE_CONFIG_URL" /usr/local/bin/config/.config env
+# Hämta configfil (GitHub-råfil eller publicomtools device-endpoint) och spara lokalt.
+# Skicka device-token om den finns — krävs av publicomtools, ignoreras av GitHub.
+safe_download "$REMOTE_CONFIG_URL" /usr/local/bin/config/.config env "${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
 # Nollställ så att värdet från den gamla filen inte ligger kvar om den nya saknar det.
 # load_config (inte source) så att den nyss hämtade filen inte kan köra kod som root.
 unset PUBLICOM_BRANCH

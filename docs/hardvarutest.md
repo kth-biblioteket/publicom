@@ -1,6 +1,6 @@
 # Test på riktig dator
 
-Checklista för att testa en ny version (t ex branchen `kandidat-1`) på en riktig dator innan den rullas ut.
+Checklista för att testa en ny version (t ex branchen `sakerhet-1`) på en riktig dator innan den rullas ut.
 Det som går att testa i en VM är redan gjort där. Här testas det som kräver riktig hårdvara: grafik, utskrift,
 USB, BIOS/GRUB, ström, nattliga uppdateringar och inloggning mot ref.
 
@@ -18,7 +18,7 @@ Kryssa i och skriv anteckningar under varje avsnitt.
 - [ ] GRUB-lösenord med **bara a–z och siffror**, och hashen från `grub-mkpasswd-pbkdf2`
 - [ ] Kopia av koden (från repot på din dator):
   ```bash
-  git archive --format=tar.gz --prefix=publicom/ kandidat-1 > publicom-kandidat-1.tar.gz
+  git archive --format=tar.gz --prefix=publicom/ sakerhet-1 > publicom-sakerhet-1.tar.gz
   ```
 - [ ] En PDF att skriva ut
 - [ ] Ett andra USB-minne med en fil på, för att testa att USB är blockerat
@@ -35,8 +35,8 @@ Resten av installationen kan göras över SSH, på plats eller på distans:
 
 - [ ] Kopiera och packa upp koden:
   ```bash
-  scp publicom-kandidat-1.tar.gz kthb@<ip>:/tmp/
-  ssh kthb@<ip> "tar -xzf /tmp/publicom-kandidat-1.tar.gz -C /tmp"
+  scp publicom-sakerhet-1.tar.gz kthb@<ip>:/tmp/
+  ssh kthb@<ip> "tar -xzf /tmp/publicom-sakerhet-1.tar.gz -C /tmp"
   ```
 - [ ] Skapa `/usr/local/bin/secrets/.secrets` enligt README (`VNC_PASSWORD`, `BOOKING_API_KEY`, `GRUB_PASSWORD_HASH`), med ägare root och rättigheter 600
 - [ ] Config och installation (datorn startar om när den är klar, det tar en stund):
@@ -62,12 +62,17 @@ Anteckningar:
 - [ ] BIOS/UEFI kräver lösenord
 - [ ] Datorn går inte att starta från installations-USB:n
 
+**Underhållsläge** (vanlig inloggningsprompt vid datorn, se README)
+- [ ] Esc → `e`, lägg till `publicom.maintenance` sist på `linux`-raden, Ctrl-X: datorn startar till en textinloggning på tty1 i stället för kiosken (`guest.service` startar inte)
+- [ ] Logga in som `kthb`, kontrollera att gästsessionen är avstängd: `systemctl is-active guest.service` ger `inactive`
+- [ ] Vanlig omstart (utan parametern) startar kiosken som vanligt igen
+
 **Inloggning (ref)**
 - [ ] Fel lösenord ger meddelandet om fel användarnamn/lösenord
 - [ ] Testkontot ger en session: användarnamn och tid kvar syns i panelen
 - [ ] Bokningen syns i bokningssystemet på ref (`https://apps-ref.lib.kth.se/guestcomputers`)
 
-**Grafik och fonter** (kontrollera fonter och PDF, det var skälet till att fonter installeras uttryckligen)
+**Grafik och fonter** (den minimala fontlistan i `install.sh` är standard och verifierad i VM, se att den räcker även på riktig hårdvara)
 - [ ] Kartan över biblioteket (Wagnerguide) öppnas och går snabbt att använda
 - [ ] Webbsidor visas med rätt typsnitt, inga rutor eller saknade tecken (t ex å ä ö, och sidor med andra skriftspråk)
 - [ ] En PDF *visas* rätt i Chromium (öppna en PDF i webbläsaren): text syns med rätt typsnitt, inte rutor

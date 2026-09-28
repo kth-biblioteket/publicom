@@ -41,6 +41,7 @@
 0755 guest:guest /home/guest/.xinitrc
 0644 root:root   /usr/local/share/publicom/xscreensaver
 0644 guest:guest /home/guest/.config/openbox/rc.xml
+0644 guest:guest /home/guest/.config/openbox/rc-signage.xml
 0644 guest:guest /home/guest/.config/tint2/tint2rc
 0644 guest:guest /home/guest/.config/tint2/tint2rc-alma
 0644 guest:guest /home/guest/.config/tint2/tint2rc-search

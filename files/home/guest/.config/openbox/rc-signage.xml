@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <desktops>
+    <number>1</number>
+    <firstdesk>1</firstdesk>
+  </desktops>
+  <applications>
+    <!-- Signage: det chromelosa appfonstret satts i akta fullscreen, sa innerytan blir exakt
+         monitorstorleken. Utan detta blir viewporten nagon pixel mindre an skarmen (fonstrets
+         ramkant) och en pixelexakt sida far scrollbars at bada hall. Galler varje mappat fonster,
+         aven om Chromium startas om. Signage kor bara detta fonster. -->
+    <application type="normal">
+      <decor>no</decor>
+      <focus>yes</focus>
+      <fullscreen>yes</fullscreen>
+    </application>
+  </applications>
+</openbox_config>

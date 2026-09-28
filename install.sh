@@ -147,7 +147,7 @@ cupsctl WebInterface=No PreserveJobHistory=No PreserveJobFiles=No
 systemctl try-restart cups 2>/dev/null
 
 # Installera GUI/Fönsterhanterare/chromium etc.
-apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xprintidle xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra unclutter
+apt install -y --no-install-recommends xorg matchbox-window-manager chromium-browser xserver-xorg-legacy xinit tint2 xprintidle xbindkeys openbox zenity xscreensaver xscreensaver-gl-extra unclutter x11-utils
 
 # xautolock för att kunna starta om sessioner efter inaktivitet, feh för bakgrund,
 # jq för json (bokningsdata och policyfil), x11vnc för fjärråtkomst

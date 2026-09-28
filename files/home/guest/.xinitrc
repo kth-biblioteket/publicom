@@ -79,7 +79,21 @@ CHROMIUM_PROFILE="/home/guest/snap/chromium/common/publicom-profile"
 ## CHROMIUM_FLAGS i .config ger extra flaggor, t ex --enable-unsafe-swiftshader i test-VM utan GPU.
 function launch_chromium() {
   rm -rf "$CHROMIUM_PROFILE"
-  chromium-browser "$@" $CHROMIUM_FLAGS --start-maximized --user-data-dir="$CHROMIUM_PROFILE" --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI $WEBSITES
+  local common="$CHROMIUM_FLAGS --user-data-dir=$CHROMIUM_PROFILE --incognito --no-first-run --disable-session-crashed-bubble --disable-features=TranslateUI"
+  if [ "$1" = "--kiosk" ]; then
+    # Anropas av signage-grenen. snap-Chromium på Ubuntu 24.04 döljer inte adressfältet med --kiosk,
+    # och --start-fullscreen tar inte helskärm. Använd chromelöst --app och sätt fönstret till
+    # skärmens storlek explicit (samma metod som inloggningsskärmen), efter ev. rotation.
+    # --app tar en URL, vilket räcker för signage (en enda sida). --window-size ger rätt storlek
+    # redan innan openbox hinner sätta fullscreen, och som reserv om WM:en inte gör det.
+    local size
+    size=$(xdpyinfo | awk '/dimensions:/{print $2}' | tr x ,)
+    # shellcheck disable=SC2086
+    chromium-browser --app="${WEBSITES%% *}" --window-position=0,0 ${size:+--window-size=$size} $common
+  else
+    # shellcheck disable=SC2086
+    chromium-browser "$@" $common --start-maximized $WEBSITES
+  fi
 }
 
 ENV_FILE="/usr/local/bin/config/.config"
@@ -176,7 +190,7 @@ function check_background_images() {
 # Kolla bakgrundsbilder vid start
 check_background_images
 
-if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
+if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]; then
   # Öppen gästdator(utan login)
   if [ "$ALMA_LOGIN" != "true" ]; then
       log_message "Öppen gästdator"
@@ -314,8 +328,35 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
       launch_chromium
     fi
   fi
+elif [ "$COMPUTER_TYPE" = "signage" ]; then
+  # Digital skyltning: kiosk med en enda URL, ingen panel, ingen inloggning.
+  log_message "Starting session for signage screen."
+  # Ladda om sidan efter X minuters "inaktivitet" (signage har ingen input, blir en periodisk omladdning)
+  if [ "${SESSION_IDLE:-0}" -gt 0 ]; then
+    xautolock -time $SESSION_IDLE -locker /home/guest/restart_x.sh &
+  fi
+  # Ta bort högerklick (om någon kopplar in en mus)
+  xmodmap /home/guest/.Xmodmap &
+  # Ingen skärmsläckare på skyltning
+  if [ "$SCREENSAVER" == "true" ]; then
+    xscreensaver -no-splash &
+  else
+    xset s off
+    xset -dpms
+    xset s noblank
+  fi
+  set_background
+  hide_mouse_cursor
+  # Fönsterhanterare med signage-config: sätter --app-fönstret i äkta fullscreen (viewport = exakt
+  # skärmen) så en pixelexakt sida inte får scrollbars av fönstrets ramkant. INGEN tint2-panel.
+  openbox --config-file /home/guest/.config/openbox/rc-signage.xml &
+  # Chromium chromelöst (--app, se launch_chromium), openbox gör det fullscreen. Startas om vid krasch.
+  while true; do
+      launch_chromium --kiosk
+      sleep 1
+  done
 else
-  # Sökdator / Kiosk
+  # Sökdator
   log_message "Starting session for search computer."
   # Starta om session after X minuters inaktivitet
   if [ "${SESSION_IDLE:-0}" -gt 0 ]; then
@@ -342,9 +383,9 @@ else
   openbox &
   # Starta tint2 Dock
   tint2 -c /home/guest/.config/tint2/tint2rc-search &
-  # Starta Chromium i fullskärm, och se till att den startar om ifall den avslutas helt av någon anledning
+  # Starta Chromium, och se till att den startar om ifall den avslutas helt av någon anledning
   while true; do
-      launch_chromium $KIOSK
+      launch_chromium
       sleep 1
   done
 fi

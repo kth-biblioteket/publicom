@@ -28,6 +28,15 @@ else
     fail "load_config i install.sh skiljer sig från config_lib.sh (håll dem lika)"
 fi
 
+echo "== XML (openbox m.m.)"
+if command -v xmllint > /dev/null; then
+    while read -r f; do
+        xmllint --noout "$f" 2>/dev/null && ok "$f" || fail "$f: ogiltig XML"
+    done < <(find files -type f -name "*.xml")
+else
+    echo "  (xmllint saknas, hoppar över)"
+fi
+
 echo "== JSON"
 for f in policies_*.json files/usr/local/bin/electron-login/package*.json; do
     jq empty "$f" 2>/dev/null && ok "$f" || fail "$f: ogiltig JSON"

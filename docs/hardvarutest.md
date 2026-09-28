@@ -44,8 +44,11 @@ Resten av installationen kan göras över SSH, på plats eller på distans:
   ```bash
   sudo mkdir -p /usr/local/bin/config
   sudo cp /tmp/publicom/.config_test-hw /usr/local/bin/config/.config
-  sudo PUBLICOM_SRC=/tmp/publicom /tmp/publicom/install.sh
+  sudo PUBLICOM_SRC=/tmp/publicom bash /tmp/publicom/install.sh 2>&1 | tee ~/install.log
   ```
+  (`tee ~/install.log` sparar hela utskriften — den scrollar snabbt förbi. Läs efteråt med
+  `less ~/install.log` eller `grep -iE "error|warn|deprecat|fail" ~/install.log`. Kör lokalt vid
+  datorn eller i `tmux` över SSH, så överlever installationen ett tappat nätverk.)
 - [ ] Efter omstarten:
   - `systemctl --failed`: inga kraschade tjänster
   - `lpstat -p -d`: KTH-Print finns och är standard

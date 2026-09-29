@@ -37,6 +37,11 @@
 0644 root:root   /usr/local/bin/icons/icons8-green-circle-32.png      icons/icons8-green-circle-32.png
 0644 root:root   /usr/local/bin/icons/icons8-red-circle-32.png        icons/icons8-red-circle-32.png
 
+# Chromium-grundpolicyer. init.sh kopierar den som POLICY_FILE anger, så att policyn alltid
+# följer koden på datorn i stället för att hämtas från GitHub vid varje start.
+0644 root:root   /usr/local/share/publicom/policies/policies_search.json  policies_search.json
+0644 root:root   /usr/local/share/publicom/policies/policies_guest.json   policies_guest.json
+
 # Gästsessionen
 0755 guest:guest /home/guest/.xinitrc
 0644 root:root   /usr/local/share/publicom/xscreensaver

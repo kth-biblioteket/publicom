@@ -91,9 +91,21 @@ else
 fi
 rm -rf "$SCREENSAVER_TMP"
 
-# Chrome policy
-echo "Downloading policy $POLICY_FILE"
-mkdir -p /var/snap/chromium/current/policies/managed
-safe_download "$RAW_BASE/$POLICY_FILE" /var/snap/chromium/current/policies/managed/policies.json json
-chown root:root /var/snap/chromium/current/policies/managed/policies.json
-chmod 644 /var/snap/chromium/current/policies/managed/policies.json
+# Chrome policy: grundpolicyn följer med koden (files.manifest) och kopieras vid varje start,
+# så att inställningarna gäller även om GitHub-grenen inte går att nå. allowlist_from_ezproxy.sh
+# lägger sedan på det som inställningarna styr (utskrift, nedladdningar, webbplatser …).
+# Äldre installationer utan de lokala filerna hämtar som förut från GitHub.
+POLICY_DEST=/var/snap/chromium/current/policies/managed/policies.json
+POLICY_LOCAL_DIR=/usr/local/share/publicom/policies
+mkdir -p "$(dirname "$POLICY_DEST")"
+if [[ ! "$POLICY_FILE" =~ ^policies_[a-z0-9_-]+\.json$ ]]; then
+    echo "Error: ogiltigt POLICY_FILE '$POLICY_FILE', befintlig policy behålls"
+elif [ -f "$POLICY_LOCAL_DIR/$POLICY_FILE" ] && jq empty "$POLICY_LOCAL_DIR/$POLICY_FILE"; then
+    echo "Installing policy $POLICY_FILE"
+    install -o root -g root -m 0644 "$POLICY_LOCAL_DIR/$POLICY_FILE" "$POLICY_DEST"
+else
+    echo "Downloading policy $POLICY_FILE"
+    safe_download "$RAW_BASE/$POLICY_FILE" "$POLICY_DEST" json
+fi
+chown root:root "$POLICY_DEST"
+chmod 644 "$POLICY_DEST"

@@ -77,6 +77,14 @@ else
   update_policy '.PrintingEnabled = false'
 fi
 
+# Nedladdningar. Inte satt = grundpolicyn avgör (sökdator och skylt blockerar, gästdator tillåter).
+# DOWNLOADS=false blockerar alla, DOWNLOADS=true tillåter.
+if [ "$DOWNLOADS" == "false" ]; then
+  update_policy '.DownloadRestrictions = 3'
+elif [ "$DOWNLOADS" == "true" ]; then
+  update_policy 'del(.DownloadRestrictions)'
+fi
+
 # Dialogrutor för filer (spara som, välja fil att ladda upp, t ex bifoga i mejl).
 # FILE_DIALOGS=false stänger av dem helt; nedladdningar sparas då direkt i Downloads.
 if [ "$FILE_DIALOGS" == "false" ]; then

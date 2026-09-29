@@ -81,7 +81,7 @@
         { "value": "policies_search.json", "label": "Sökdator" },
         { "value": "policies_guest.json", "label": "Gästdator" }
       ],
-      "help": "Chromium-policyfilen som installeras på datorn." },
+      "help": "Grundreglerna för webbläsaren. Följer med koden på datorn och installeras vid varje start." },
     { "key": "CHROMIUM_FLAGS", "label": "Extra flaggor till Chromium", "group": "webb", "type": "string", "advanced": true,
       "help": "Läggs till när webbläsaren startar. Används för testdatorer." },
 
@@ -111,6 +111,8 @@
 
     { "key": "PRINTER", "label": "Utskrift", "group": "utskrift", "type": "bool", "default": "false",
       "help": "Tillåter utskrift från webbläsaren." },
+    { "key": "DOWNLOADS", "label": "Tillåt nedladdningar", "group": "utskrift", "type": "bool",
+      "help": "Av blockerar alla nedladdningar. Inte satt betyder att webbläsarpolicyn avgör: sökdatorer och skyltar blockerar, gästdatorer tillåter." },
     { "key": "FILE_DIALOGS", "label": "Spara och välja filer", "group": "utskrift", "type": "bool", "default": "true",
       "help": "Dialogrutor för att spara som och välja filer att ladda upp. Nedladdningar fungerar ändå." },
     { "key": "PRINT_JOB_SHEETS", "label": "Försättsblad", "group": "utskrift", "type": "string", "default": "none,none", "advanced": true,

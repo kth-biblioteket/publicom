@@ -12,7 +12,7 @@
   ],
   "keys": [
     { "key": "COMPUTER_NAME", "label": "Visningsnamn", "group": "dator", "type": "string",
-      "help": "Namnet som visas i panelen på datorn och i statuslistan." },
+      "help": "Namnet som visas i panelen på datorn. I admin kan datorn ha ett eget namn i listan." },
     { "key": "COMPUTER_TYPE", "label": "Datortyp", "group": "dator", "type": "enum",
       "options": [
         { "value": "searchcomputer", "label": "Sökdator" },

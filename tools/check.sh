@@ -42,6 +42,24 @@ for f in policies_*.json files/usr/local/bin/electron-login/package*.json; do
     jq empty "$f" 2>/dev/null && ok "$f" || fail "$f: ogiltig JSON"
 done
 
+echo "== Inställningskatalog (config/catalog.json)"
+# Katalogen talar om för publicomtools vilka inställningar datorerna förstår. Lägg till
+# en post i samma commit som koden som läser en ny nyckel.
+if jq -e '.version == 1 and (.keys | length > 0)' config/catalog.json > /dev/null 2>&1; then
+    CAT_FAIL=$FAIL
+    catalog_keys=" $(jq -r '.keys[].key' config/catalog.json | tr '\n' ' ') "
+    for key in $(grep -hoE '^[A-Z_][A-Z0-9_]*=' config/base.env config/profiles/*.env config/hosts/*.env | tr -d '=' | sort -u); do
+        [ "$key" = PROFILE ] && continue
+        [[ "$catalog_keys" == *" $key "* ]] || fail "$key används i config/ men saknas i config/catalog.json"
+    done
+    for key in $catalog_keys; do
+        grep -rqw "$key" files install.sh || fail "$key finns i catalog.json men läses inte av någon kod"
+    done
+    [ $FAIL -eq "$CAT_FAIL" ] && ok "alla nycklar i config/ finns i katalogen och läses av koden"
+else
+    fail "config/catalog.json: ogiltig JSON eller fel format"
+fi
+
 echo "== JavaScript (Electron)"
 for f in files/usr/local/bin/electron-login/*.js; do
     node --check "$f" 2>/dev/null && ok "$f" || fail "$f: syntaxfel"

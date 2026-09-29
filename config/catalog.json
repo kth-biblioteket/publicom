@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "groups": [
+    { "id": "dator", "label": "Dator och plats" },
+    { "id": "skarm", "label": "Skärm" },
+    { "id": "skarmslackare", "label": "Skärmsläckare" },
+    { "id": "session", "label": "Inloggning och session" },
+    { "id": "webb", "label": "Webbplatser och filter" },
+    { "id": "bokning", "label": "Bokning" },
+    { "id": "utskrift", "label": "Utskrift och filer" },
+    { "id": "teknik", "label": "Teknik" }
+  ],
+  "keys": [
+    { "key": "COMPUTER_NAME", "label": "Visningsnamn", "group": "dator", "type": "string",
+      "help": "Namnet som visas i panelen på datorn och i statuslistan." },
+    { "key": "COMPUTER_TYPE", "label": "Datortyp", "group": "dator", "type": "enum",
+      "options": [
+        { "value": "searchcomputer", "label": "Sökdator" },
+        { "value": "guestcomputer", "label": "Gästdator" },
+        { "value": "signage", "label": "Skylt" }
+      ],
+      "help": "Styr vad datorn startar. Grupprumsdatorer är sökdatorer med bokningssidor som startsidor." },
+    { "key": "RESOURCE_ID", "label": "Resurs i bokningssystemet", "group": "dator", "type": "string",
+      "help": "Datorns id i bokningssystemet. Behövs för gästdatorer med drop in-bokning." },
+
+    { "key": "SCREEN_ROTATION", "label": "Skärmens riktning", "group": "skarm", "type": "enum",
+      "options": [
+        { "value": "normal", "label": "Liggande" },
+        { "value": "left", "label": "Stående (vänster)" },
+        { "value": "right", "label": "Stående (höger)" },
+        { "value": "inverted", "label": "Upp och ner" }
+      ],
+      "help": "Välj stående om skärmen sitter på högkant." },
+    { "key": "BG_LANDSCAPE", "label": "Bakgrundsbild, liggande", "group": "skarm", "type": "string",
+      "default": "/usr/local/bin/screen_bg_kth_logo_navy.png", "advanced": true,
+      "help": "Sökväg på datorn till bakgrundsbilden för liggande skärm." },
+    { "key": "BG_PORTRAIT", "label": "Bakgrundsbild, stående", "group": "skarm", "type": "string",
+      "default": "/usr/local/bin/screen_bg_kth_logo_navy.png", "advanced": true,
+      "help": "Sökväg på datorn till bakgrundsbilden för stående skärm." },
+
+    { "key": "SCREENSAVER", "label": "Skärmsläckare", "group": "skarmslackare", "type": "bool", "default": "false",
+      "help": "Visar bilder när ingen använder datorn." },
+    { "key": "SCREENSAVER_IDLE", "label": "Starta skärmsläckaren efter", "group": "skarmslackare", "type": "string",
+      "default": "00:30:00", "example": "00:30:00",
+      "help": "Tid utan aktivitet, skrivs timmar:minuter:sekunder." },
+    { "key": "SCREENSAVER_FILES", "label": "Bilder i skärmsläckaren", "group": "skarmslackare", "type": "csv",
+      "help": "Filnamn på bilderna, i den ordning de visas." },
+
+    { "key": "LOGINTYPE", "label": "Inloggning med", "group": "session", "type": "enum", "default": "password",
+      "options": [
+        { "value": "password", "label": "Lösenord" },
+        { "value": "pin", "label": "PIN-kod" }
+      ],
+      "help": "Hur besökaren loggar in på gästdatorn." },
+    { "key": "ALMA_LOGIN", "label": "Kräv inloggning med bibliotekskonto", "group": "session", "type": "bool", "default": "false",
+      "help": "Besökaren loggar in med sitt bibliotekskonto. Då gäller inte listorna över tillåtna och spärrade webbplatser." },
+    { "key": "SESSION_IDLE", "label": "Starta om efter inaktivitet", "group": "session", "type": "int", "unit": "minuter", "default": "0",
+      "help": "Sessionen avslutas och datorn rensas. På skyltar laddas sidan om. 0 betyder aldrig." },
+    { "key": "CLEAR_FIELDS_TIMEOUT", "label": "Töm inloggningsfälten efter", "group": "session", "type": "int", "unit": "millisekunder",
+      "example": "30000",
+      "help": "Om någon börjat skriva men gått därifrån. 30000 = 30 sekunder. Måste vara satt." },
+    { "key": "LOGIN_UI", "label": "Inloggningsskärm", "group": "session", "type": "enum", "default": "electron", "advanced": true,
+      "options": [
+        { "value": "electron", "label": "Programversion (lokal app)" },
+        { "value": "web", "label": "Webbversion (från publicomtools)" }
+      ],
+      "help": "Webbversionen kräver PUBLICOM_DEVICE_TOKEN på datorn." },
+    { "key": "REGISTER_ACCOUNT_URL", "label": "Länk för att skapa bibliotekskonto", "group": "session", "type": "url", "advanced": true,
+      "help": "Visas som ”Registrera konto” på inloggningsskärmen." },
+
+    { "key": "WEBSITES", "label": "Startsidor", "group": "webb", "type": "csv", "separator": " ",
+      "help": "Sidorna som öppnas när en session startar. Skyltar visar bara den första." },
+    { "key": "WHITE_LIST", "label": "Tillåtna webbplatser", "group": "webb", "type": "csv",
+      "help": "Domäner eller adresser som går att besöka. Gäller inte när inloggning med bibliotekskonto krävs." },
+    { "key": "BLACK_LIST", "label": "Spärrade webbplatser", "group": "webb", "type": "csv",
+      "help": "Går inte att öppna. * spärrar allt som inte är tillåtet. Gäller inte när inloggning med bibliotekskonto krävs." },
+    { "key": "EXTERNAL_ALLOWED_HOSTS", "label": "Extra webbplatser i bokningsfönstret", "group": "webb", "type": "csv", "advanced": true,
+      "help": "Värdnamn som boknings- och registreringsfönstret får öppna utöver sina egna." },
+    { "key": "POLICY_FILE", "label": "Webbläsarpolicy", "group": "webb", "type": "enum", "advanced": true,
+      "options": [
+        { "value": "policies_search.json", "label": "Sökdator" },
+        { "value": "policies_guest.json", "label": "Gästdator" }
+      ],
+      "help": "Chromium-policyfilen som installeras på datorn." },
+    { "key": "CHROMIUM_FLAGS", "label": "Extra flaggor till Chromium", "group": "webb", "type": "string", "advanced": true,
+      "help": "Läggs till när webbläsaren startar. Används för testdatorer." },
+
+    { "key": "BOOKING_TYPE", "label": "Bokningstyp", "group": "bokning", "type": "enum",
+      "options": [
+        { "value": "dropin", "label": "Drop in (boka på plats)" },
+        { "value": "bookable", "label": "Förbokning" }
+      ],
+      "help": "Drop in betyder att besökaren tar datorn direkt och bokningen skapas vid inloggning." },
+    { "key": "DEFAULT_BOOKING_TIME", "label": "Längd på drop in-bokning", "group": "bokning", "type": "int", "unit": "timmar", "default": "2",
+      "help": "Hur länge en bokning som görs vid datorn varar." },
+    { "key": "EXTERNAL_URL_TIMEOUT", "label": "Stäng bokningsfönstret efter", "group": "bokning", "type": "int", "unit": "millisekunder",
+      "example": "30000",
+      "help": "Tid utan aktivitet innan boknings- eller registreringsfönstret stängs. 30000 = 30 sekunder. Måste vara satt." },
+    { "key": "BOOKING_SYSTEM_URL", "label": "Länk till bokningssystemet", "group": "bokning", "type": "url", "advanced": true,
+      "help": "Öppnas från ”Boka dator”." },
+    { "key": "API_URL", "label": "Inloggning mot Alma", "group": "bokning", "type": "url", "advanced": true,
+      "help": "Adressen som kontrollerar bibliotekskonton." },
+    { "key": "RESERVATION_API_URL", "label": "Bokning: kontrollera", "group": "bokning", "type": "url", "advanced": true,
+      "help": "Kontrollerar besökarens bokning." },
+    { "key": "RESERVATION_API_CURRENT_RES_URL", "label": "Bokning: pågående", "group": "bokning", "type": "url", "advanced": true,
+      "help": "Visar om datorn är bokad just nu." },
+    { "key": "RESERVATION_API_CREATE_URL", "label": "Bokning: skapa", "group": "bokning", "type": "url", "advanced": true,
+      "help": "Skapar drop in-bokningen." },
+    { "key": "RESERVATION_API_UPDATE_URL", "label": "Bokning: avsluta", "group": "bokning", "type": "url", "advanced": true,
+      "help": "Avslutar bokningen när besökaren loggar ut." },
+
+    { "key": "PRINTER", "label": "Utskrift", "group": "utskrift", "type": "bool", "default": "false",
+      "help": "Tillåter utskrift från webbläsaren." },
+    { "key": "FILE_DIALOGS", "label": "Spara och välja filer", "group": "utskrift", "type": "bool", "default": "true",
+      "help": "Dialogrutor för att spara som och välja filer att ladda upp. Nedladdningar fungerar ändå." },
+    { "key": "PRINT_JOB_SHEETS", "label": "Försättsblad", "group": "utskrift", "type": "string", "default": "none,none", "advanced": true,
+      "example": "standard,",
+      "help": "Blad före och efter varje utskrift, skrivs ”före,efter”. none,none = inga blad. Sätts bara vid installation." },
+
+    { "key": "PUBLICOM_BRANCH", "label": "Programversion (git-gren)", "group": "teknik", "type": "string", "default": "stable", "advanced": true,
+      "help": "Grenen datorn hämtar skript och policy från." },
+    { "key": "PUBLICOMTOOLS_URL", "label": "Adress till publicomtools", "group": "teknik", "type": "url", "advanced": true,
+      "help": "Används av webbinloggningen och sessionshanteringen." },
+    { "key": "HEARTBEAT_URL", "label": "Adress för statusrapporter", "group": "teknik", "type": "url", "advanced": true,
+      "help": "Datorn skickar status hit var 5:e minut. Tomt betyder att ingen status skickas." },
+    { "key": "SSH_ALLOW_FROM", "label": "SSH tillåts från", "group": "teknik", "type": "csv", "default": "130.237.0.0/16", "advanced": true,
+      "help": "Nät (CIDR) som får ansluta med SSH. Sätts i brandväggen vid installation." },
+    { "key": "ELECTRON_DEV_TOOLS", "label": "Utvecklarverktyg", "group": "teknik", "type": "bool", "default": "false", "advanced": true,
+      "help": "Utvecklarverktyg i inloggningsappen. Bara för testdatorer." }
+  ]
+}

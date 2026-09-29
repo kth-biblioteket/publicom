@@ -68,9 +68,13 @@ function apply_restrictions() {
     --argjson allowed "$(jq -n '$ARGS.positional' --args "${allowed[@]}")"
 }
 
-# Aktivera printer för chrome
+# Utskrift i Chromium. Sätts åt båda hållen: grundpolicyn har PrintingEnabled=false, men om
+# den inte kunde laddas ner (safe_download behåller den gamla filen) skulle ett tidigare
+# PRINTER=true annars ligga kvar och Ctrl+P fortsätta fungera.
 if [ "$PRINTER" == "true" ]; then
   update_policy '.PrintingEnabled = true'
+else
+  update_policy '.PrintingEnabled = false'
 fi
 
 # Dialogrutor för filer (spara som, välja fil att ladda upp, t ex bifoga i mejl).

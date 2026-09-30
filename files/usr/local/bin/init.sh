@@ -70,16 +70,27 @@ if [ -x /usr/local/bin/deploy.sh ] && [ -n "$PUBLICOM_BRANCH" ]; then
 fi
 
 # Skärmsläckarfiler
-# Ladda ner till separat katalog och byt ut först om alla filer kom ner
+# Bilderna följer med koden (files.manifest) och kopieras därifrån; en bild som inte finns lokalt
+# (äldre installation, eller en ny bild som inte rullats ut) hämtas från GitHub som förut.
+# Allt samlas i en separat katalog och byts ut först om alla filer kom fram.
+SCREENSAVER_LOCAL_DIR=/usr/local/share/publicom/screensaver
 SCREENSAVER_TMP=$(mktemp -d)
 SCREENSAVER_OK=true
 IFS=',' read -ra FILE_ARRAY <<< "$SCREENSAVER_FILES"
 for file in "${FILE_ARRAY[@]}"; do
+    file="${file// /}"
     [ -z "$file" ] && continue
-    echo "Downloading $file..."
-    if ! curl -fsSL --max-time 30 -o "$SCREENSAVER_TMP/$file" "$RAW_BASE/screensaver/$file"; then
-        echo "Error downloading $file"
+    if [[ ! "$file" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        echo "Error: ogiltigt filnamn i SCREENSAVER_FILES: $file"
         SCREENSAVER_OK=false
+    elif [ -f "$SCREENSAVER_LOCAL_DIR/$file" ]; then
+        cp "$SCREENSAVER_LOCAL_DIR/$file" "$SCREENSAVER_TMP/$file"
+    else
+        echo "Downloading $file..."
+        if ! curl -fsSL --max-time 30 -o "$SCREENSAVER_TMP/$file" "$RAW_BASE/screensaver/$file"; then
+            echo "Error downloading $file"
+            SCREENSAVER_OK=false
+        fi
     fi
 done
 if [ "$SCREENSAVER_OK" == "true" ]; then

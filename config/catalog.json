@@ -44,7 +44,7 @@
       "default": "00:30:00", "example": "00:30:00",
       "help": "Tid utan aktivitet, skrivs timmar:minuter:sekunder." },
     { "key": "SCREENSAVER_FILES", "label": "Bilder i skärmsläckaren", "group": "skarmslackare", "type": "csv",
-      "help": "Filnamn på bilderna, i den ordning de visas." },
+      "help": "Filnamn på bilderna i publicoms mapp screensaver/, i den ordning de visas. Bilderna följer med koden på datorn. Tom lista ger skärmsläckarens inbyggda testbild." },
 
     { "key": "LOGINTYPE", "label": "Inloggning med", "group": "session", "type": "enum", "default": "password",
       "options": [

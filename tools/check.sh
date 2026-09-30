@@ -82,6 +82,14 @@ while read -r f; do
 done < <(find files -type f ! -name ".DS_Store")
 [ $FAIL -eq 0 ] && ok "alla filer i manifestet finns och alla filer är med"
 
+echo "== Skärmsläckarbilder följer med koden"
+SS_FAIL=$FAIL
+for f in screensaver/*; do
+    [ -f "$f" ] || continue
+    grep -qE "[[:space:]]$f$" files.manifest || fail "$f saknas i files.manifest (installeras inte på datorerna)"
+done
+[ $FAIL -eq "$SS_FAIL" ] && ok "alla bilder i screensaver/ finns i manifestet"
+
 echo "== clean-up.sh behåller det som installeras i /home/guest"
 keep_home=" $(grep -m1 '^KEEP_HOME=' files/usr/local/bin/clean-up.sh | sed 's/^KEEP_HOME=(\(.*\))$/\1/') "
 keep_config=" $(grep -m1 '^KEEP_CONFIG=' files/usr/local/bin/clean-up.sh | sed 's/^KEEP_CONFIG=(\(.*\))$/\1/') "

@@ -42,6 +42,14 @@
 0644 root:root   /usr/local/share/publicom/policies/policies_search.json  policies_search.json
 0644 root:root   /usr/local/share/publicom/policies/policies_guest.json   policies_guest.json
 
+# Skärmsläckarbilder. init.sh kopierar de som SCREENSAVER_FILES anger till
+# /usr/local/bin/screensaver, så att bilderna följer koden i stället för GitHub.
+0644 root:root   /usr/local/share/publicom/screensaver/screen_bg_kth_logo_heaven_guest.png  screensaver/screen_bg_kth_logo_heaven_guest.png
+0644 root:root   /usr/local/share/publicom/screensaver/screen_bg_kth_logo_navy_grupprum.png  screensaver/screen_bg_kth_logo_navy_grupprum.png
+0644 root:root   /usr/local/share/publicom/screensaver/screen_bg_kth_logo_navy_guest.png  screensaver/screen_bg_kth_logo_navy_guest.png
+0644 root:root   /usr/local/share/publicom/screensaver/screen_bg_kth_logo_navy_search.png  screensaver/screen_bg_kth_logo_navy_search.png
+0644 root:root   /usr/local/share/publicom/screensaver/screen_bg_kth_logo_navy_search_2.png  screensaver/screen_bg_kth_logo_navy_search_2.png
+
 # Gästsessionen
 0755 guest:guest /home/guest/.xinitrc
 0644 root:root   /usr/local/share/publicom/xscreensaver

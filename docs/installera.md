@@ -17,15 +17,9 @@ Datorn måste finnas i admin innan den installeras, annars får den inga instäl
   *Datorer → datorn → Inställningar* innan du installerar. Kontrollera särskilt profilen,
   *Resurs i bokningssystemet* (gästdatorer) och *Inloggningsskärm*. Granskningen varnar för
   vissa felaktiga kombinationer.
-- **En helt ny dator** (nytt värdnamn) skapas i admin första gången den hör av sig. Tills
-  admin kan lägga till datorer i förväg, registrera den med en statusrapport från valfri dator,
-  med datorns värdnamn och den profil den ska ha (värdnamnet: små bokstäver, siffror och `-`):
-  ```bash
-  curl -fsS -H "Authorization: Bearer <PUBLICOM_DEVICE_TOKEN>" -H "Content-Type: application/json" \
-    -d '{"clientVersion":1,"host":"<värdnamn>","hostname":"<värdnamn>","profile":"<profil>","uptimeSeconds":0,"guestService":"inactive"}' \
-    https://apps.lib.kth.se/publicomtools/api/heartbeat
-  ```
-  Datorn syns då i admin, där du ställer in den.
+- **En helt ny dator** (nytt värdnamn): *Datorer → Lägg till dator*. Ange värdnamnet (samma som i Ubuntu:
+  små bokstäver, siffror och `-`), profilen och gärna ett namn för listan. Ställ sedan in det som skiljer datorn
+  från profilen. Den visas som *Väntar på installation* tills den har hämtat sina inställningar.
 
 **Att ha med sig**
 

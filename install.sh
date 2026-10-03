@@ -103,7 +103,7 @@ fi
 # publicom.maintenance vid start: håll Esc vid uppstart, tryck e på menyposten (kräver
 # GRUB-lösenordet), lägg till " publicom.maintenance" sist på linux-raden och tryck Ctrl-X.
 # Då hoppas gästkiosken över (guest.service) och publicom-maintenance-login.service ger en
-# textinloggning på tty1. Se README. (Ingen egen menypost, så det följer kärnuppdateringar.)
+# textinloggning på tty1. Se docs/drift.md. (Ingen egen menypost, så det följer kärnuppdateringar.)
 update-grub
 
 # Sätt datum/tid

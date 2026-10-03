@@ -1,0 +1,9 @@
+[Unit]
+Description=Hämta nya inställningar utan omstart (begärt från publicomtools)
+After=network-online.target init.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/reload_config.sh
+# Får vänta länge på att datorn blir ledig
+TimeoutStartSec=9h

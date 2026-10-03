@@ -89,9 +89,16 @@ echo "Authorization: Bearer $HEARTBEAT_TOKEN" > "$HEADER_FILE"
 
 # Avslutar med 0 även vid fel, så att tillfälliga nätverksfel inte
 # markerar tjänsten som kraschad
-if ! echo "$payload" | curl -fsS --max-time 20 -X POST \
+if ! response=$(echo "$payload" | curl -fsS --max-time 20 -X POST \
     -H "Content-Type: application/json" -H @"$HEADER_FILE" \
-    --data-binary @- "$HEARTBEAT_URL" > /dev/null; then
+    --data-binary @- "$HEARTBEAT_URL"); then
     echo "Error: heartbeat till $HEARTBEAT_URL misslyckades" 1>&2
+    exit 0
+fi
+
+# "Hämta nya inställningar nu" i publicomtools. --no-block: väntar inte på att datorn blir
+# ledig. Körs tjänsten redan (väntar) gör start ingenting.
+if [ "$(echo "$response" | jq -r '.reload // false' 2>/dev/null)" == "true" ]; then
+    systemctl start --no-block publicom-reload.service
 fi
 exit 0

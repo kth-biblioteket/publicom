@@ -17,7 +17,13 @@ Sedan bygger `allowlist_from_ezproxy.service` den slutliga policyn utifrån inst
 `guest.service` (gästsessionen). **Ändrade inställningar gäller alltså från nästa omstart.** I admin visas
 *Väntar på omstart* tills datorn har hämtat dem.
 
-Utan omstart går det att köra om stegen (avslutar en pågående gästsession):
+**Utan omstart, från admin:** på en dator som *väntar på omstart* finns knappen **Hämta nya inställningar nu**.
+Datorn får beskedet med nästa statusrapport (inom 5 minuter). `heartbeat.sh` startar då `publicom-reload.service`
+(`reload_config.sh`), som väntar tills ingen använder datorn (ingen inloggad och ingen aktivitet på 2 minuter, högst
+8 timmar) och sedan kör stegen ovan och startar en ny gästsession. Högst en gång per kvart. Följ det med
+`journalctl -t publicom-reload`.
+
+Utan omstart, för hand via SSH (avslutar en pågående gästsession):
 ```bash
 sudo systemctl restart init.service allowlist_from_ezproxy.service && sudo systemctl restart guest.service
 ```

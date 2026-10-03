@@ -95,7 +95,37 @@ fi
 
 IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
 
-if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
+# Hämta stanzafilen (EZproxy-domäner) till STANZA_CACHE. Den kommer från publicomtools med
+# datorns device-token; servern har den enda GitHub-token som behövs (ezproxy-repot är privat).
+# GITHUB_TOKEN i .secrets används bara som reserv under övergången. Misslyckas allt behålls
+# den senaste lyckade kopian.
+function fetch_stanzas() {
+  local token="${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
+  mkdir -p "$(dirname "$STANZA_CACHE")"
+  if [ -n "$PUBLICOMTOOLS_URL" ] && [ -n "$token" ] \
+     && curl -fsSL --max-time 30 -H "Authorization: Bearer $token" -o "${STANZA_CACHE}.new" "$PUBLICOMTOOLS_URL/api/device/ezproxy-stanzas" \
+     && grep -qE '^(URL|HJ|DJ)[[:space:]]' "${STANZA_CACHE}.new"; then
+    mv -f "${STANZA_CACHE}.new" "$STANZA_CACHE"
+    return
+  fi
+  rm -f "${STANZA_CACHE}.new"
+  if [ -n "$GITHUB_TOKEN" ]; then
+    echo "Warning: stanzafilen kunde inte hämtas från publicomtools, försöker GitHub (GITHUB_TOKEN)"
+    if curl -fsSL --max-time 30 -H "Authorization: token $GITHUB_TOKEN" -o "${STANZA_CACHE}.new" \
+        "https://raw.githubusercontent.com/kth-biblioteket/ezproxy/main/db_stanzas.txt" \
+       && grep -qE '^(URL|HJ|DJ)[[:space:]]' "${STANZA_CACHE}.new"; then
+      mv -f "${STANZA_CACHE}.new" "$STANZA_CACHE"
+      return
+    fi
+    rm -f "${STANZA_CACHE}.new"
+  fi
+  echo "Error: kunde inte hämta stanzafilen, använder sparad kopia om den finns"
+}
+
+# Bara gästdatorer använder gästreglerna. Sökdatorer, grupprum och skyltar (och okända typer)
+# får bara sin egen lista (WHITE_LIST). Tidigare gällde gästreglerna allt som inte var
+# sökdator, så skyltar tillät hela EZproxy-listan.
+if [ "$COMPUTER_TYPE" == "guestcomputer" ]; then
   ###########
   # Gästdator
   ###########
@@ -110,21 +140,8 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
                    | .PromptForDownloadLocation = false
                    | .DownloadDirectory = "/home/guest/snap/chromium/current/Downloads"'
   else
-    # Om gästdatorn är öppen(utan login)
-    # Hämta stanzafil(ezproxy) med tillåtna domäner. Senaste lyckade nedladdning sparas
-    # så att den kan användas om hämtningen misslyckas (t ex utgången token).
-    mkdir -p "$(dirname "$STANZA_CACHE")"
-    if [ -z "$GITHUB_TOKEN" ]; then
-      echo "Error: GITHUB_TOKEN is not set in $SECRET_FILE"
-    else
-      URL="https://raw.githubusercontent.com/kth-biblioteket/ezproxy/main/db_stanzas.txt"
-      if curl -fsSL --max-time 30 -H "Authorization: token $GITHUB_TOKEN" -o "${STANZA_CACHE}.new" "$URL"; then
-        mv -f "${STANZA_CACHE}.new" "$STANZA_CACHE"
-      else
-        echo "Error: could not download stanza file (expired GITHUB_TOKEN?), using cached copy if available"
-        rm -f "${STANZA_CACHE}.new"
-      fi
-    fi
+    # Öppen gästdator (utan inloggning): WHITE_LIST + bibliotekets databaser från EZproxy.
+    fetch_stanzas
 
     # Lägg till domäner från stanzafil(ezproxy)
     if [ -f "$STANZA_CACHE" ]; then
@@ -145,9 +162,9 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ]; then
     apply_restrictions "${ALLOWED_DOMAINS[@]}"
   fi
 else
-  ###########
-  # Sökdator
-  ###########
+  ##################################
+  # Sökdator, grupprum och skylt
+  ##################################
   apply_restrictions "${ALLOWED_DOMAINS[@]}"
 fi
 

@@ -21,7 +21,6 @@ sudo mkdir /usr/local/bin/secrets
 sudo nano /usr/local/bin/secrets/.secrets
 ```
 ```
-GITHUB_TOKEN=xxxxxxx
 VNC_PASSWORD=xxxxxxx
 BOOKING_API_KEY=xxxxxxx
 GRUB_PASSWORD_HASH=grub.pbkdf2.sha512.10000.xxxxxxx
@@ -29,10 +28,7 @@ PUBLICOM_DEVICE_TOKEN=xxxxxxx
 ```
 `PUBLICOM_DEVICE_TOKEN` är valfri. Den behövs för [statussidan](#statussida-heartbeat) och för [inloggning i Chromium](#inloggning-i-chromium-login_uiweb) (samma token, som i publicomtools). `BOOKING_API_KEY` behövs inte på datorer med `LOGIN_UI=web`. Det äldre namnet `HEARTBEAT_TOKEN` fungerar också.
 `GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout, så t ex `-`, `å`, `ä`, `ö` och andra specialtecken hamnar på andra tangenter än på ett svenskt tangentbord. Användarnamnet i GRUB är `kthb`. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
-Github token user "kthbiblioteket" https://github.com/settings/personal-access-tokens
-
-Token: `publiccomputers` (fine-grained). **Går ut 23 november 2026**, förnya den i god tid och byt på datorerna som använder den. Behövs bara för öppna gästdatorer (`ALMA_LOGIN=false`); i dag har ingen config det.
-Tokenen används bara för att läsa `kth-biblioteket/ezproxy/db_stanzas.txt`. Skapa den med minsta möjliga behörighet (fine-grained, endast *Contents: Read* på det repot).
+`GITHUB_TOKEN` behövs inte längre på datorerna. Öppna gästdatorer (`COMPUTER_TYPE=guestcomputer`, `ALMA_LOGIN=false`) hämtar EZproxy-listan (`kth-biblioteket/ezproxy/db_stanzas.txt`, privat repo) från publicomtools (`/api/device/ezproxy-stanzas`) med `PUBLICOM_DEVICE_TOKEN`. Tokenen till ezproxy-repot finns bara på servern, som `EZPROXY_GITHUB_TOKEN` i publicomtools.env: fine-grained, endast *Contents: Read* på `kth-biblioteket/ezproxy`. Den nuvarande (`publiccomputers`, användaren "kthbiblioteket", https://github.com/settings/personal-access-tokens) **går ut 23 november 2026**. Står `GITHUB_TOKEN` kvar i en dators `.secrets` används den bara som reserv om publicomtools inte svarar, och kan tas bort.
 Om hämtningen misslyckas används senast hämtade kopia i `/var/cache/publicom/db_stanzas.txt`, och ett fel syns i `journalctl -u allowlist_from_ezproxy`.
 
 ```bash

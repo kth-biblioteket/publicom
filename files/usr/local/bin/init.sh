@@ -93,6 +93,11 @@ for file in "${FILE_ARRAY[@]}"; do
         fi
     fi
 done
+# Tom lista: visa KTH-bakgrunden i stället för skärmsläckarens inbyggda testbild
+if [ "$SCREENSAVER_OK" == "true" ] && [ -z "$(ls -A "$SCREENSAVER_TMP")" ]; then
+    echo "SCREENSAVER_FILES är tom, använder KTH-bakgrunden"
+    cp /usr/local/bin/screen_bg_kth_logo_navy.png "$SCREENSAVER_TMP/" 2>/dev/null || SCREENSAVER_OK=false
+fi
 if [ "$SCREENSAVER_OK" == "true" ]; then
     rm -rf /usr/local/bin/screensaver/*
     cp "$SCREENSAVER_TMP"/* /usr/local/bin/screensaver/ 2>/dev/null

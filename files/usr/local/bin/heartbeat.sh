@@ -4,7 +4,8 @@
 ####    Heartbeat till publicomtools        ####
 ####                                        ####
 ################################################
-# Skickar datorns status till statussidan (publicomtools) var 5:e minut.
+# Skickar datorns status till statussidan (publicomtools) var 5:e minut, eller med
+# intervallet i HEARTBEAT_INTERVAL (heartbeat.timer, satt av init.sh).
 # Körs av heartbeat.timer. Gör ingenting om HEARTBEAT_URL (config) eller
 # PUBLICOM_DEVICE_TOKEN (.secrets) saknas.
 
@@ -59,6 +60,7 @@ payload=$(jq -n \
     --argjson rebootRequired "$([ -f /var/run/reboot-required ] && echo true || echo false)" \
     --arg diskUsed "$disk_used" \
     --arg configVersion "$config_version" \
+    --argjson intervalMinutes "$(heartbeat_interval)" \
     '{
         clientVersion: $clientVersion,
         host: $host,
@@ -78,7 +80,8 @@ payload=$(jq -n \
         failedUnits: ($failedUnits | split("\n") | map(select(length > 0))),
         rebootRequired: $rebootRequired,
         diskFreePercent: (if $diskUsed == "" then null else 100 - ($diskUsed | tonumber) end),
-        configVersion: $configVersion
+        configVersion: $configVersion,
+        intervalMinutes: $intervalMinutes
     } | with_entries(select(.value != null and .value != ""))')
 
 if [ -z "$payload" ]; then

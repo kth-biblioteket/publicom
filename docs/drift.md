@@ -21,7 +21,7 @@ den i `/var/lib/publicom/config-version` och skickar en statusrapport direkt. I 
 tills datorns session kör samma version som admin visar (under *Teknik*: *Inställningsversion*).
 
 **Utan omstart, från admin:** på en dator som *väntar på omstart* finns knappen **Hämta nya inställningar nu**.
-Datorn får beskedet med nästa statusrapport (inom 5 minuter). `heartbeat.sh` startar då `publicom-reload.service`
+Datorn får beskedet med nästa statusrapport (inom 5 minuter, eller intervallet i *Statusrapport var*). `heartbeat.sh` startar då `publicom-reload.service`
 (`reload_config.sh`), som väntar tills ingen använder datorn (ingen inloggad och ingen aktivitet på 2 minuter, högst
 8 timmar) och sedan kör stegen ovan och startar en ny gästsession. Högst var 5:e minut. Följ det med
 `journalctl -t publicom-reload`.
@@ -103,12 +103,15 @@ Inget som en gäst har sparat får finnas kvar till nästa användare.
 
 ## Statussidan (heartbeat)
 
-Varje dator skickar status till publicomtools var 5:e minut (`heartbeat.sh` via `heartbeat.timer`): senaste deploy,
+Varje dator skickar status till publicomtools var 5:e minut (`heartbeat.sh` via `heartbeat.timer`), eller med intervallet
+i *Statusrapport var* (`HEARTBEAT_INTERVAL`, 1–60 minuter): senaste deploy,
 uptime, om gästsessionen körs, kraschade tjänster, ledigt diskutrymme och om en omstart väntar. Admin visar det i
 klartext under *Att göra*.
 
 - Adressen är *Adress för statusrapporter* (`HEARTBEAT_URL`), token är `PUBLICOM_DEVICE_TOKEN`. Utan token skickas ingenting.
 - Datorn identifieras med `PUBLICOM_HOST` (värdnamnet i admin), som publicomtools skickar med i inställningarna.
+- Intervallet skrivs av `init.sh` till `/etc/systemd/system/heartbeat.timer.d/interval.conf` när datorn hämtar
+  inställningarna, så det räcker med *Hämta nya inställningar nu*. Admin visar *Ingen kontakt* efter tre missade rapporter.
 - Kontrollera: `journalctl -u heartbeat.service -n 5`. Skicka direkt: `sudo systemctl start heartbeat.service`.
 
 ## Automatiska uppdateringar

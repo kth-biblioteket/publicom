@@ -57,7 +57,7 @@ function safe_download() {
 safe_download "$REMOTE_CONFIG_URL" /usr/local/bin/config/.config env "${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
 # Nollställ så att värdet från den gamla filen inte ligger kvar om den nya saknar det.
 # load_config (inte source) så att den nyss hämtade filen inte kan köra kod som root.
-unset PUBLICOM_BRANCH
+unset PUBLICOM_BRANCH HEARTBEAT_INTERVAL
 load_config "$ENV_FILE"
 
 # Branch som filerna hämtas från (äldre configfiler saknar PUBLICOM_BRANCH)
@@ -67,6 +67,20 @@ RAW_BASE="https://raw.githubusercontent.com/kth-biblioteket/publicom/${PUBLICOM_
 # Ändringar gäller från och med den här uppstarten eftersom guest.service startar efter init.service.
 if [ -x /usr/local/bin/deploy.sh ] && [ -n "$PUBLICOM_BRANCH" ]; then
     /usr/local/bin/deploy.sh || echo "Error: deploy misslyckades"
+fi
+
+# Intervall för statusrapporterna (HEARTBEAT_INTERVAL, minuter) som en override till heartbeat.timer.
+# config_lib.sh läses in igen eftersom deploy kan ha installerat en nyare version.
+# systemd laddas bara om när intervallet ändrats.
+source /usr/local/bin/config_lib.sh
+HEARTBEAT_DROPIN=/etc/systemd/system/heartbeat.timer.d/interval.conf
+heartbeat_conf=$(printf '[Timer]\nOnUnitActiveSec=\nOnUnitActiveSec=%smin' "$(heartbeat_interval)")
+if [ "$(cat "$HEARTBEAT_DROPIN" 2>/dev/null)" != "$heartbeat_conf" ]; then
+    mkdir -p "$(dirname "$HEARTBEAT_DROPIN")"
+    printf '%s\n' "$heartbeat_conf" > "$HEARTBEAT_DROPIN"
+    systemctl daemon-reload
+    systemctl restart heartbeat.timer
+    echo "Statusrapport var $(heartbeat_interval):e minut"
 fi
 
 # Skärmsläckarfiler

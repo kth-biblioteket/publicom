@@ -1,5 +1,5 @@
 [Unit]
-Description=Skicka status till publicomtools var 5:e minut
+Description=Skicka status till publicomtools var 5:e minut (HEARTBEAT_INTERVAL ändrar, se init.sh)
 
 [Timer]
 OnBootSec=1min

@@ -32,3 +32,14 @@ load_config() {
         printf -v "$key" '%s' "$val"
     done < "$file"
 }
+
+# Minuter mellan statusrapporterna till publicomtools (HEARTBEAT_INTERVAL), 1–60.
+# Saknas värdet eller är det ogiltigt gäller 5. Används av init.sh (heartbeat.timer) och heartbeat.sh.
+heartbeat_interval() {
+    local m="$HEARTBEAT_INTERVAL"
+    if [[ "$m" =~ ^[0-9]{1,2}$ ]] && [ "$((10#$m))" -ge 1 ] && [ "$((10#$m))" -le 60 ]; then
+        echo "$((10#$m))"
+    else
+        echo 5
+    fi
+}

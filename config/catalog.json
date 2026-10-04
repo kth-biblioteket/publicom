@@ -12,6 +12,7 @@
   ],
   "keys": [
     { "key": "COMPUTER_NAME", "label": "Visningsnamn", "group": "dator", "type": "string",
+      "perComputer": true,
       "help": "Namnet som visas i panelen på datorn. I admin kan datorn ha ett eget namn i listan." },
     { "key": "COMPUTER_TYPE", "label": "Datortyp", "group": "dator", "type": "enum",
       "options": [
@@ -21,6 +22,7 @@
       ],
       "help": "Styr vad datorn startar. Grupprumsdatorer är sökdatorer med bokningssidor som startsidor." },
     { "key": "RESOURCE_ID", "label": "Resurs i bokningssystemet", "group": "dator", "type": "string",
+      "perComputer": true,
       "help": "Datorns id i bokningssystemet. Behövs för gästdatorer med drop in-bokning." },
 
     { "key": "SCREEN_ROTATION", "label": "Skärmens riktning", "group": "skarm", "type": "enum",
@@ -30,6 +32,7 @@
         { "value": "right", "label": "Stående (höger)" },
         { "value": "inverted", "label": "Upp och ner" }
       ],
+      "perComputer": true,
       "help": "Välj stående om skärmen sitter på högkant." },
     { "key": "BG_LANDSCAPE", "label": "Bakgrundsbild, liggande", "group": "skarm", "type": "string",
       "default": "/usr/local/bin/screen_bg_kth_logo_navy.png", "advanced": true,
@@ -120,16 +123,20 @@
       "help": "Blad före och efter varje utskrift, skrivs ”före,efter”. none,none = inga blad. Sätts bara vid installation." },
 
     { "key": "PUBLICOM_BRANCH", "label": "Programversion (git-gren)", "group": "teknik", "type": "string", "default": "stable", "advanced": true,
+      "perComputer": true,
       "help": "Grenen datorn hämtar skript och policy från." },
     { "key": "PUBLICOMTOOLS_URL", "label": "Adress till publicomtools", "group": "teknik", "type": "url", "advanced": true,
+      "perComputer": true,
       "help": "Används av webbinloggningen och sessionshanteringen." },
     { "key": "HEARTBEAT_URL", "label": "Adress för statusrapporter", "group": "teknik", "type": "url", "advanced": true,
+      "perComputer": true,
       "help": "Datorn skickar sin status hit. Tomt betyder att ingen status skickas." },
     { "key": "HEARTBEAT_INTERVAL", "label": "Statusrapport var", "group": "teknik", "type": "int", "unit": "minuter", "default": "5", "advanced": true,
       "help": "Hur ofta datorn rapporterar till publicomtools, 1–60 minuter. Kortare intervall gör att Hämta nya inställningar nu och Starta om datorn når datorn snabbare. Gäller när datorn hämtat inställningarna." },
     { "key": "SSH_ALLOW_FROM", "label": "SSH tillåts från", "group": "teknik", "type": "csv", "default": "130.237.0.0/16", "advanced": true,
       "help": "Nät (CIDR) som får ansluta med SSH. Sätts i brandväggen vid installation." },
     { "key": "ELECTRON_DEV_TOOLS", "label": "Utvecklarverktyg", "group": "teknik", "type": "bool", "default": "false", "advanced": true,
+      "perComputer": true,
       "help": "Utvecklarverktyg i inloggningsappen. Bara för testdatorer." }
   ]
 }

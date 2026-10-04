@@ -44,7 +44,8 @@ En inställning skapas i koden här, och admin får veta om den via katalogen.
 1. Skriv koden som läser nyckeln (läs den alltid via `load_config`, aldrig `source`). Bestäm vad som gäller när den inte är satt.
 2. Lägg till nyckeln i `config/catalog.json` **i samma commit**: `key`, svenskt `label`, `group`, `type`
    (`bool`, `int`, `string`, `csv`, `url`, `enum`), och vid behov `options`, `unit`, `separator`, `default`,
-   `help`, `example`, `advanced` (tekniska inställningar som döljs som standard).
+   `help`, `example`, `advanced` (tekniska inställningar som döljs som standard), `perComputer` (hör till den enskilda
+   datorn, t ex namn och resurs-id, och står kvar när datorn byter profil; andra egna värden tas bort vid bytet).
 3. `tools/check.sh` kontrollerar att varje nyckel i katalogen läses av koden.
 4. I publicomtools: *Inställningskatalog* → **Hämta från stable** efter releasen (eller **Läs in från fil…** med
    `config/catalog.json` innan dess). Granska de nya, ändrade och borttagna nycklarna och uppdatera.

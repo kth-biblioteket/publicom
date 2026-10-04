@@ -9,6 +9,7 @@ Vid varje start kör `init.service` skriptet `init.sh`:
 2. **Koden** hämtas av `deploy.sh` från GitHub-grenen i `PUBLICOM_BRANCH` (`stable`, eller `pilot` på gc3). Allt
    valideras (syntax, JSON) innan något installeras, och bara ändrade filer enligt `files.manifest` skrivs. Om
    grenen inte går att hämta eller något är fel ändras **ingenting**. Med `PUBLICOM_BRANCH` tom uppdateras koden inte alls.
+   Har `init.sh` själv ändrats startar den om sig själv med den nya versionen, så att allt nytt gäller direkt.
 3. **Skärmsläckarbilderna** i `SCREENSAVER_FILES` kopieras från `/usr/local/share/publicom/screensaver/` (de följer
    med koden). En tom lista ger KTH-bakgrunden. Saknas en bild lokalt hämtas den från GitHub; misslyckas det ändras ingenting.
 4. **Chromiums grundpolicy** (`POLICY_FILE`) kopieras från `/usr/local/share/publicom/policies/` (följer med koden).

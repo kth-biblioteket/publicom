@@ -65,8 +65,16 @@ RAW_BASE="https://raw.githubusercontent.com/kth-biblioteket/publicom/${PUBLICOM_
 
 # Uppdatera skript och konfigurationsfiler enligt files.manifest.
 # Ändringar gäller från och med den här uppstarten eftersom guest.service startar efter init.service.
-if [ -x /usr/local/bin/deploy.sh ] && [ -n "$PUBLICOM_BRANCH" ]; then
+# Byter deploy ut init.sh själv startas den nya versionen direkt (utan ny deploy), så att resten av
+# det här skriptet också följer den nya koden. Annars skulle den gälla först vid nästa hämtning.
+if [ -x /usr/local/bin/deploy.sh ] && [ -n "$PUBLICOM_BRANCH" ] && [ -z "$PUBLICOM_INIT_RESTARTED" ]; then
+    init_before=$(sha256sum /usr/local/bin/init.sh 2>/dev/null)
     /usr/local/bin/deploy.sh || echo "Error: deploy misslyckades"
+    if [ "$(sha256sum /usr/local/bin/init.sh 2>/dev/null)" != "$init_before" ] && bash -n /usr/local/bin/init.sh; then
+        echo "init.sh uppdaterades, startar den nya versionen"
+        export PUBLICOM_INIT_RESTARTED=1
+        exec /usr/local/bin/init.sh
+    fi
 fi
 
 # Intervall för statusrapporterna (HEARTBEAT_INTERVAL, minuter) som en override till heartbeat.timer.

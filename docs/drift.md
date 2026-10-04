@@ -23,7 +23,7 @@ tills datorns session kör samma version som admin visar (under *Teknik*: *Inst�
 **Utan omstart, från admin:** på en dator som *väntar på omstart* finns knappen **Hämta nya inställningar nu**.
 Datorn får beskedet med nästa statusrapport (inom 5 minuter). `heartbeat.sh` startar då `publicom-reload.service`
 (`reload_config.sh`), som väntar tills ingen använder datorn (ingen inloggad och ingen aktivitet på 2 minuter, högst
-8 timmar) och sedan kör stegen ovan och startar en ny gästsession. Högst en gång per kvart. Följ det med
+8 timmar) och sedan kör stegen ovan och startar en ny gästsession. Högst var 5:e minut. Följ det med
 `journalctl -t publicom-reload`.
 
 **Starta om från admin:** knappen **Starta om datorn…** på datorsidan. Samma väg: beskedet når datorn med nästa

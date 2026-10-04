@@ -18,7 +18,7 @@ STAMP="$STATE_DIR/last-$MODE"
 IDLE_MS=120000          # ingen aktivitet på 2 minuter räknas som ledig
 CHECK_EVERY=30          # sekunder mellan kontrollerna
 GIVE_UP_AFTER=$((8 * 3600))
-MIN_INTERVAL=$((15 * 60))
+MIN_INTERVAL=$((5 * 60))
 [ "$MODE" == "reboot" ] && MIN_INTERVAL=$((30 * 60))
 
 log() { echo "$*"; logger -t publicom-reload "$*"; }
@@ -26,7 +26,7 @@ log() { echo "$*"; logger -t publicom-reload "$*"; }
 mkdir -p "$STATE_DIR"
 
 # Skydd mot upprepning: lyckas det inte fortsätter publicomtools att be om det vid varje
-# heartbeat. Gör det då högst en gång per kvart (omstart: en gång per halvtimme).
+# heartbeat. Gör det då högst var 5:e minut (omstart: en gång per halvtimme).
 if [ -f "$STAMP" ] && [ $(( $(date +%s) - $(stat -c %Y "$STAMP") )) -lt "$MIN_INTERVAL" ]; then
     log "Gjorde $MODE för mindre än $((MIN_INTERVAL / 60)) min sedan, väntar"
     exit 0

@@ -58,7 +58,7 @@ Chromium-policyn byggs i två steg vid varje start:
 2. **`allowlist_from_ezproxy.sh`** lägger på det som inställningarna styr, åt båda hållen:
    - *Utskrift* (`PRINTER`), *Tillåt nedladdningar* (`DOWNLOADS`), *Spara och välja filer* (`FILE_DIALOGS`)
    - **Gästdatorer med inloggning** (`ALMA_LOGIN=true`): inga webbplatser spärras, bara `file://` utom Chromiums egen katalog.
-   - **Öppna gästdatorer** (`COMPUTER_TYPE=guestcomputer`, `ALMA_LOGIN=false`): *Tillåtna webbplatser* plus bibliotekets
+   - **Öppna gästdatorer** (allt som inte är sökdator eller skylt, med `ALMA_LOGIN=false`): *Tillåtna webbplatser* plus bibliotekets
      databaser från EZproxy-listan (`kth-biblioteket/ezproxy/db_stanzas.txt`, privat repo). Listan hämtas från publicomtools
      (`/api/device/ezproxy-stanzas`) med `PUBLICOM_DEVICE_TOKEN`; tokenen till ezproxy-repot finns bara på servern. Misslyckas
      hämtningen används senaste kopian i `/var/cache/publicom/db_stanzas.txt`.

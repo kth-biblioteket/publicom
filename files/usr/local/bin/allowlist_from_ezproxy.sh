@@ -122,10 +122,10 @@ function fetch_stanzas() {
   echo "Error: kunde inte hämta stanzafilen, använder sparad kopia om den finns"
 }
 
-# Bara gästdatorer använder gästreglerna. Sökdatorer, grupprum och skyltar (och okända typer)
-# får bara sin egen lista (WHITE_LIST). Tidigare gällde gästreglerna allt som inte var
-# sökdator, så skyltar tillät hela EZproxy-listan.
-if [ "$COMPUTER_TYPE" == "guestcomputer" ]; then
+# Gästreglerna gäller gästdatorer, med samma regel som .xinitrc (allt som inte är sökdator
+# eller skylt). Sökdatorer, grupprum och skyltar får bara sin egen lista (WHITE_LIST).
+# Tidigare gällde gästreglerna även skyltar, som då tillät hela EZproxy-listan.
+if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]; then
   ###########
   # Gästdator
   ###########

@@ -87,6 +87,12 @@ function prelogin() {
     if [ "$LOGIN_UI" != "web" ] || [ "$ALMA_LOGIN" != "true" ]; then
         return 0
     fi
+    # Sökdatorer och skyltar visar ingen inloggningsskärm (.xinitrc). Inloggningspolicyn skulle då
+    # ligga kvar och spärra allt, eftersom ingen någonsin loggar in.
+    if [ "$COMPUTER_TYPE" == "searchcomputer" ] || [ "$COMPUTER_TYPE" == "signage" ]; then
+        log "ALMA_LOGIN=true men COMPUTER_TYPE=$COMPUTER_TYPE, ingen inloggning"
+        return 0
+    fi
     local token="${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
     if [ -z "$PUBLICOMTOOLS_URL" ] || [ -z "$token" ]; then
         log "LOGIN_UI=web men PUBLICOMTOOLS_URL eller PUBLICOM_DEVICE_TOKEN saknas, Electron används"

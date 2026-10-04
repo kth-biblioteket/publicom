@@ -36,6 +36,8 @@ session_started=$(systemctl show guest.service -p ActiveEnterTimestamp --value)
 failed_units=$(systemctl list-units --state=failed --plain --no-legend 2>/dev/null | awk '{print $1}')
 disk_used=$(df --output=pcent / | tail -n1 | tr -dc '0-9')
 os_name=$(. /etc/os-release && echo "$PRETTY_NAME")
+# Versionen av inställningarna som gästsessionen startade med (sparas av login_session.sh prelogin)
+config_version=$(head -c 64 /var/lib/publicom/config-version 2>/dev/null | tr -dc 'a-zA-Z0-9')
 
 payload=$(jq -n \
     --argjson clientVersion "$CLIENT_VERSION" \
@@ -56,6 +58,7 @@ payload=$(jq -n \
     --arg failedUnits "$failed_units" \
     --argjson rebootRequired "$([ -f /var/run/reboot-required ] && echo true || echo false)" \
     --arg diskUsed "$disk_used" \
+    --arg configVersion "$config_version" \
     '{
         clientVersion: $clientVersion,
         host: $host,
@@ -74,7 +77,8 @@ payload=$(jq -n \
         guestRestarts: ($guestRestarts | tonumber? // null),
         failedUnits: ($failedUnits | split("\n") | map(select(length > 0))),
         rebootRequired: $rebootRequired,
-        diskFreePercent: (if $diskUsed == "" then null else 100 - ($diskUsed | tonumber) end)
+        diskFreePercent: (if $diskUsed == "" then null else 100 - ($diskUsed | tonumber) end),
+        configVersion: $configVersion
     } | with_entries(select(.value != null and .value != ""))')
 
 if [ -z "$payload" ]; then

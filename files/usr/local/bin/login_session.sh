@@ -84,6 +84,12 @@ function prelogin() {
     # Om föregående session avbröts med inloggningspolicyn kvar
     restore_guest_policy
 
+    # Versionen av inställningarna som den här sessionen kör (PUBLICOM_CONFIG_VERSION från
+    # publicomtools). heartbeat.sh skickar den, så admin ser om datorn kör det admin visar.
+    # Skicka en statusrapport direkt, så att admin uppdateras utan att vänta upp till 5 minuter.
+    printf '%s\n' "$PUBLICOM_CONFIG_VERSION" > "$STATE_DIR/config-version"
+    systemctl start --no-block heartbeat.service 2>/dev/null
+
     if [ "$LOGIN_UI" != "web" ] || [ "$ALMA_LOGIN" != "true" ]; then
         return 0
     fi

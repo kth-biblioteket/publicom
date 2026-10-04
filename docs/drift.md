@@ -14,8 +14,11 @@ Vid varje start kör `init.service` skriptet `init.sh`:
 4. **Chromiums grundpolicy** (`POLICY_FILE`) kopieras från `/usr/local/share/publicom/policies/` (följer med koden).
 
 Sedan bygger `allowlist_from_ezproxy.service` den slutliga policyn utifrån inställningarna, och sist startar
-`guest.service` (gästsessionen). **Ändrade inställningar gäller alltså från nästa omstart.** I admin visas
-*Väntar på omstart* tills datorn har hämtat dem.
+`guest.service` (gästsessionen). **Ändrade inställningar gäller alltså från nästa omstart.**
+
+Inställningarna har en version (`PUBLICOM_CONFIG_VERSION`). När en gästsession startar sparar `login_session.sh`
+den i `/var/lib/publicom/config-version` och skickar en statusrapport direkt. I admin visas *Väntar på omstart*
+tills datorns session kör samma version som admin visar (under *Teknik*: *Inställningsversion*).
 
 **Utan omstart, från admin:** på en dator som *väntar på omstart* finns knappen **Hämta nya inställningar nu**.
 Datorn får beskedet med nästa statusrapport (inom 5 minuter). `heartbeat.sh` startar då `publicom-reload.service`

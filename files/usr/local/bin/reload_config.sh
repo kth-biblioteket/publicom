@@ -1,30 +1,34 @@
 #!/bin/bash
 ################################################
 ####                                        ####
-####    Hämta nya inställningar nu          ####
+####    Hämta nya inställningar / starta om ####
 ####                                        ####
 ################################################
-# Startas av heartbeat.sh (via publicom-reload.service) när någon i publicomtools har
-# klickat "Hämta nya inställningar nu". Väntar tills ingen använder datorn och gör sedan
-# samma sak som en omstart, utan att starta om datorn: hämtar inställningar och kod
-# (init.service), bygger om webbläsarens regler (allowlist_from_ezproxy.service) och
-# startar en ny gästsession (guest.service).
+# Startas av heartbeat.sh när någon i publicomtools har klickat på en knapp:
+#   reload_config.sh          "Hämta nya inställningar nu" (publicom-reload.service): gör samma
+#                             sak som en omstart, utan att starta om datorn: hämtar inställningar
+#                             och kod (init.service), bygger om webbläsarens regler
+#                             (allowlist_from_ezproxy.service) och startar en ny gästsession.
+#   reload_config.sh reboot   "Starta om datorn" (publicom-reboot.service).
+# Väntar i båda fallen tills ingen använder datorn.
 
+MODE="${1:-reload}"
 STATE_DIR="/var/lib/publicom"
-STAMP="$STATE_DIR/last-reload"
+STAMP="$STATE_DIR/last-$MODE"
 IDLE_MS=120000          # ingen aktivitet på 2 minuter räknas som ledig
 CHECK_EVERY=30          # sekunder mellan kontrollerna
 GIVE_UP_AFTER=$((8 * 3600))
 MIN_INTERVAL=$((15 * 60))
+[ "$MODE" == "reboot" ] && MIN_INTERVAL=$((30 * 60))
 
 log() { echo "$*"; logger -t publicom-reload "$*"; }
 
 mkdir -p "$STATE_DIR"
 
-# Skydd mot upprepning: kan datorn inte hämta sina inställningar fortsätter publicomtools att
-# be om det vid varje heartbeat. Gör det då högst en gång per kvart.
+# Skydd mot upprepning: lyckas det inte fortsätter publicomtools att be om det vid varje
+# heartbeat. Gör det då högst en gång per kvart (omstart: en gång per halvtimme).
 if [ -f "$STAMP" ] && [ $(( $(date +%s) - $(stat -c %Y "$STAMP") )) -lt "$MIN_INTERVAL" ]; then
-    log "Hämtade inställningar för mindre än 15 min sedan, väntar"
+    log "Gjorde $MODE för mindre än $((MIN_INTERVAL / 60)) min sedan, väntar"
     exit 0
 fi
 
@@ -49,7 +53,7 @@ function in_use() {
 waited=0
 while in_use; do
     if [ "$waited" -ge "$GIVE_UP_AFTER" ]; then
-        log "Datorn har använts i 8 timmar, hämtar inställningarna ändå"
+        log "Datorn har använts i 8 timmar, gör $MODE ändå"
         break
     fi
     [ "$waited" -eq 0 ] && log "Datorn används, väntar tills den är ledig"
@@ -58,6 +62,11 @@ while in_use; do
 done
 
 touch "$STAMP"
+if [ "$MODE" == "reboot" ]; then
+    log "Startar om datorn (begärt från publicomtools)"
+    systemctl reboot
+    exit 0
+fi
 log "Hämtar nya inställningar"
 systemctl restart init.service || log "Error: init.service misslyckades"
 systemctl restart allowlist_from_ezproxy.service || log "Error: allowlist_from_ezproxy.service misslyckades"

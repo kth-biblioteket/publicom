@@ -1,0 +1,9 @@
+[Unit]
+Description=Starta om datorn när ingen använder den (begärt från publicomtools)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/reload_config.sh reboot
+# Får vänta länge på att datorn blir ledig
+TimeoutStartSec=9h

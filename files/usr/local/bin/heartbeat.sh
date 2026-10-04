@@ -96,9 +96,11 @@ if ! response=$(echo "$payload" | curl -fsS --max-time 20 -X POST \
     exit 0
 fi
 
-# "Hämta nya inställningar nu" i publicomtools. --no-block: väntar inte på att datorn blir
-# ledig. Körs tjänsten redan (väntar) gör start ingenting.
-if [ "$(echo "$response" | jq -r '.reload // false' 2>/dev/null)" == "true" ]; then
+# Knappar i publicomtools: "Starta om datorn" (reboot) och "Hämta nya inställningar nu" (reload).
+# --no-block: väntar inte på att datorn blir ledig. Körs tjänsten redan (väntar) gör start ingenting.
+if [ "$(echo "$response" | jq -r '.reboot // false' 2>/dev/null)" == "true" ]; then
+    systemctl start --no-block publicom-reboot.service
+elif [ "$(echo "$response" | jq -r '.reload // false' 2>/dev/null)" == "true" ]; then
     systemctl start --no-block publicom-reload.service
 fi
 exit 0

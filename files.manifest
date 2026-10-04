@@ -73,6 +73,7 @@
 0644 root:root   /etc/systemd/system/heartbeat.service
 0644 root:root   /etc/systemd/system/heartbeat.timer
 0644 root:root   /etc/systemd/system/publicom-reload.service
+0644 root:root   /etc/systemd/system/publicom-reboot.service
 0644 root:root   /etc/systemd/system/publicom-login-agent.service
 0644 root:root   /etc/systemd/logind.conf.d/50-disable-sleep.conf
 0644 root:root   /etc/systemd/logind.conf.d/60-publicom-guest.conf

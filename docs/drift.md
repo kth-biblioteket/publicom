@@ -23,6 +23,10 @@ Datorn får beskedet med nästa statusrapport (inom 5 minuter). `heartbeat.sh` s
 8 timmar) och sedan kör stegen ovan och startar en ny gästsession. Högst en gång per kvart. Följ det med
 `journalctl -t publicom-reload`.
 
+**Starta om från admin:** knappen **Starta om datorn…** på datorsidan. Samma väg: beskedet når datorn med nästa
+statusrapport, `publicom-reboot.service` (`reload_config.sh reboot`) väntar tills ingen använder datorn och startar
+sedan om den. Högst en gång per halvtimme. Begäran räknas som utförd när datorn har startat om efter den.
+
 Utan omstart, för hand via SSH (avslutar en pågående gästsession):
 ```bash
 sudo systemctl restart init.service allowlist_from_ezproxy.service && sudo systemctl restart guest.service

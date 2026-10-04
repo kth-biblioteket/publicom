@@ -39,6 +39,9 @@ disk_used=$(df --output=pcent / | tail -n1 | tr -dc '0-9')
 os_name=$(. /etc/os-release && echo "$PRETTY_NAME")
 # Versionen av inställningarna som gästsessionen startade med (sparas av login_session.sh prelogin)
 config_version=$(head -c 64 /var/lib/publicom/config-version 2>/dev/null | tr -dc 'a-zA-Z0-9')
+# Intervallet som heartbeat.timer faktiskt har (init.sh skriver det när datorn hämtat inställningarna),
+# inte bara det som står i config. Utan override gäller 5 minuter från heartbeat.timer.
+interval=$(grep -oE '^OnUnitActiveSec=[0-9]+min' /etc/systemd/system/heartbeat.timer.d/interval.conf 2>/dev/null | tail -n1 | tr -dc '0-9')
 
 payload=$(jq -n \
     --argjson clientVersion "$CLIENT_VERSION" \
@@ -60,7 +63,7 @@ payload=$(jq -n \
     --argjson rebootRequired "$([ -f /var/run/reboot-required ] && echo true || echo false)" \
     --arg diskUsed "$disk_used" \
     --arg configVersion "$config_version" \
-    --argjson intervalMinutes "$(heartbeat_interval)" \
+    --argjson intervalMinutes "${interval:-5}" \
     '{
         clientVersion: $clientVersion,
         host: $host,

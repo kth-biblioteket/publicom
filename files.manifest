@@ -19,6 +19,7 @@
 0755 root:root   /usr/local/bin/open_terminal.sh
 0755 root:root   /usr/local/bin/heartbeat.sh
 0755 root:root   /usr/local/bin/reload_config.sh
+0755 root:root   /usr/local/bin/visit_tracker.sh
 0755 root:root   /usr/local/bin/login_session.sh
 0755 root:root   /usr/local/bin/login_agent.sh
 
@@ -72,6 +73,7 @@
 0644 root:root   /etc/systemd/system/publicom-maintenance-login.service
 0644 root:root   /etc/systemd/system/heartbeat.service
 0644 root:root   /etc/systemd/system/heartbeat.timer
+0644 root:root   /etc/systemd/system/visit-tracker.service
 0644 root:root   /etc/systemd/system/publicom-reload.service
 0644 root:root   /etc/systemd/system/publicom-reboot.service
 0644 root:root   /etc/systemd/system/publicom-login-agent.service

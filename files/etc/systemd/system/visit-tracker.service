@@ -1,0 +1,13 @@
+[Unit]
+Description=Besök för användningsstatistiken (publicomtools)
+After=guest.service
+ConditionKernelCommandLine=!publicom.maintenance
+
+[Service]
+ExecStart=/usr/local/bin/visit_tracker.sh
+Restart=always
+RestartSec=10
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

@@ -279,7 +279,7 @@ cp /home/guest/.Xauthority /home/kthb/.Xauthority 2>/dev/null
 chown kthb:kthb /home/kthb/.Xauthority 2>/dev/null
 
 systemctl daemon-reload
-systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service publicom-maintenance-login.service heartbeat.timer
+systemctl enable init.service allowlist_from_ezproxy.service guest.service x11vnc.service publicom-maintenance-login.service heartbeat.timer visit-tracker.service
 systemctl start x11vnc
 
 ## Brandvägg: allt inkommande nekas utom SSH från SSH_ALLOW_FROM (kommaseparerat, från config).

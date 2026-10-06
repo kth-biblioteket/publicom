@@ -39,6 +39,8 @@ while true; do
         # rm -f "$TIME_FILE"
         # Avsluta X-sessionen för användaren(guest.service startar då om hela sessionen för användaren så att electron-appen för login startar igen)
         /usr/local/bin/clean-up.sh
+        # Orsaken till att besöket tog slut, för statistiken (visit_tracker.sh)
+        echo timeout > /tmp/publicom-end-reason
         pkill X
         exit
     else

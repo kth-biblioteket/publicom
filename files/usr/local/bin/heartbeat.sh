@@ -12,6 +12,8 @@
 ENV_FILE="/usr/local/bin/config/.config"
 SECRET_FILE="/usr/local/bin/secrets/.secrets"
 DEPLOYED_FILE="/var/lib/publicom/deployed"
+# Avslutade besök från visit_tracker.sh, en JSON-rad per besök
+VISITS_FILE="/var/lib/publicom/visits.jsonl"
 CLIENT_VERSION=1
 
 source /usr/local/bin/config_lib.sh
@@ -42,6 +44,14 @@ config_version=$(head -c 64 /var/lib/publicom/config-version 2>/dev/null | tr -d
 # Intervallet som heartbeat.timer faktiskt har (init.sh skriver det när datorn hämtat inställningarna),
 # inte bara det som står i config. Utan override gäller 5 minuter från heartbeat.timer.
 interval=$(grep -oE '^OnUnitActiveSec=[0-9]+min' /etc/systemd/system/heartbeat.timer.d/interval.conf 2>/dev/null | tail -n1 | tr -dc '0-9')
+# Besöken som väntar. Bara de som finns nu skickas och tas bort efter svaret; besök som avslutas
+# under tiden ligger kvar till nästa rapport.
+visits_sent=0
+visits="null"
+if [ -s "$VISITS_FILE" ]; then
+    visits_sent=$(wc -l < "$VISITS_FILE")
+    visits=$(head -n "$visits_sent" "$VISITS_FILE" | jq -sc '[.[] | select(type == "object")]' 2>/dev/null) || visits="null"
+fi
 
 payload=$(jq -n \
     --argjson clientVersion "$CLIENT_VERSION" \
@@ -64,6 +74,7 @@ payload=$(jq -n \
     --arg diskUsed "$disk_used" \
     --arg configVersion "$config_version" \
     --argjson intervalMinutes "${interval:-5}" \
+    --argjson visits "${visits:-null}" \
     '{
         clientVersion: $clientVersion,
         host: $host,
@@ -84,7 +95,8 @@ payload=$(jq -n \
         rebootRequired: $rebootRequired,
         diskFreePercent: (if $diskUsed == "" then null else 100 - ($diskUsed | tonumber) end),
         configVersion: $configVersion,
-        intervalMinutes: $intervalMinutes
+        intervalMinutes: $intervalMinutes,
+        visits: $visits
     } | with_entries(select(.value != null and .value != ""))')
 
 if [ -z "$payload" ]; then
@@ -104,6 +116,14 @@ if ! response=$(echo "$payload" | curl -fsS --max-time 20 -X POST \
     --data-binary @- "$HEARTBEAT_URL"); then
     echo "Error: heartbeat till $HEARTBEAT_URL misslyckades" 1>&2
     exit 0
+fi
+
+# publicomtools har sparat besöken: ta bort de som skickades (visit_tracker.sh kan ha lagt till fler)
+if [ "$visits_sent" -gt 0 ] && [ "$(echo "$response" | jq -r '.visitsAck // false' 2>/dev/null)" == "true" ]; then
+    (
+        flock 9
+        sed -i "1,${visits_sent}d" "$VISITS_FILE"
+    ) 9> "$VISITS_FILE.lock"
 fi
 
 # Knappar i publicomtools: "Starta om datorn" (reboot) och "Hämta nya inställningar nu" (reload).

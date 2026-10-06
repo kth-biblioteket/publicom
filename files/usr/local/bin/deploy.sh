@@ -131,7 +131,7 @@ if changed "/etc/systemd/system/*"; then
 fi
 # Nya tjänster aktiveras utifrån läget, inte bara när filerna ändras. Första gången en ny fil
 # installeras görs det av den äldre deploy.sh som redan finns på datorn, och den känner inte till tjänsten.
-for unit in heartbeat.timer publicom-maintenance-login.service; do
+for unit in heartbeat.timer publicom-maintenance-login.service visit-tracker.service; do
     if [ -f "/etc/systemd/system/$unit" ] && ! systemctl is-enabled -q "$unit"; then
         systemctl daemon-reload
         systemctl enable --now "$unit"

@@ -10,7 +10,9 @@
 #
 # Läser xprintidle i gästsessionen var 5:e sekund. Aktivitet = räknaren är lägre än förra läsningen
 # plus tiden som gått, alltså har den nollställts (en ny X-session räknas inte, där börjar räknaren
-# från noll utan att någon rört datorn).
+# från noll utan att någon rört datorn). Ett besök kräver aktivitet i minst två läsningar: en ensam
+# nollställning kan komma utan att någon rört datorn (skärmsläckaren startar, Chromium startas om
+# efter inaktivitet, en skärm kopplas in) och räknas inte.
 # Avslutade besök läggs i VISITS_FILE och skickas med nästa statusrapport (heartbeat.sh), som
 # tar bort dem när publicomtools har tagit emot dem. Inga användare eller adresser, bara tider.
 #
@@ -44,12 +46,20 @@ function idle_seconds() {
 
 started=""
 last_activity=""
+# Läsningar med aktivitet under besöket
+active_polls=0
 previous=""
 previous_at=""
 
 function end_visit() {
     local reason="$1"
     [ -z "$started" ] && return
+    if [ "$active_polls" -lt 2 ]; then
+        echo "Ignorerade en ensam aktivitet $(date -d "@$started" '+%H:%M:%S') (inget besök)"
+        started=""
+        active_polls=0
+        return
+    fi
     if [ -s "$REASON_FILE" ]; then
         reason=$(head -c 20 "$REASON_FILE" | tr -dc 'a-z')
     fi
@@ -63,6 +73,7 @@ function end_visit() {
         fi
     ) 9> "$VISITS_FILE.lock"
     started=""
+    active_polls=0
 }
 
 while true; do
@@ -78,6 +89,7 @@ while true; do
     if [ -n "$previous" ] && [ $((idle + 1)) -lt $((previous + now - previous_at)) ]; then
         last_activity=$((now - idle))
         [ -z "$started" ] && started=$last_activity
+        active_polls=$((active_polls + 1))
     fi
     previous=$idle
     previous_at=$now

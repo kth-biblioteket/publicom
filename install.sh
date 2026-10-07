@@ -151,7 +151,7 @@ apt install -y --no-install-recommends xorg matchbox-window-manager chromium-bro
 
 # xautolock för att kunna starta om sessioner efter inaktivitet, feh för bakgrund,
 # jq för json (bokningsdata och policyfil), x11vnc för fjärråtkomst
-apt install -y xautolock feh jq x11vnc
+apt install -y xautolock feh jq x11vnc python3
 # xterm för administratörens terminal (Ctrl+Shift+T, /usr/local/bin/open_terminal.sh)
 apt install -y --no-install-recommends xterm
 

@@ -2,9 +2,11 @@
 Description=Besök för användningsstatistiken (publicomtools)
 After=guest.service
 ConditionKernelCommandLine=!publicom.maintenance
+ConditionPathExists=/usr/bin/python3
 
 [Service]
-ExecStart=/usr/local/bin/visit_tracker.sh
+# Läser /dev/input (riktiga tangent-, mus- och pekhändelser), därför root
+ExecStart=/usr/bin/python3 /usr/local/bin/visit_tracker.py
 Restart=always
 RestartSec=10
 Nice=10

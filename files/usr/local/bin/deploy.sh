@@ -137,6 +137,10 @@ for unit in heartbeat.timer publicom-maintenance-login.service visit-tracker.ser
         systemctl enable --now "$unit"
     fi
 done
+# En ny version av besöksräknaren gäller först när tjänsten startas om (gör inget om den inte körs)
+if changed "/usr/local/bin/visit_tracker.*" || changed "/etc/systemd/system/visit-tracker.service"; then
+    systemctl try-restart visit-tracker.service
+fi
 # Tidtagare räknar om nästa körning först när de startas om
 if changed "/etc/systemd/system/heartbeat.*"; then
     systemctl restart heartbeat.timer

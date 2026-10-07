@@ -19,7 +19,7 @@
 0755 root:root   /usr/local/bin/open_terminal.sh
 0755 root:root   /usr/local/bin/heartbeat.sh
 0755 root:root   /usr/local/bin/reload_config.sh
-0755 root:root   /usr/local/bin/visit_tracker.sh
+0755 root:root   /usr/local/bin/visit_tracker.py
 0755 root:root   /usr/local/bin/login_session.sh
 0755 root:root   /usr/local/bin/login_agent.sh
 

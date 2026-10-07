@@ -12,7 +12,7 @@
 ENV_FILE="/usr/local/bin/config/.config"
 SECRET_FILE="/usr/local/bin/secrets/.secrets"
 DEPLOYED_FILE="/var/lib/publicom/deployed"
-# Avslutade besök från visit_tracker.sh, en JSON-rad per besök
+# Avslutade besök från visit_tracker.py, en JSON-rad per besök
 VISITS_FILE="/var/lib/publicom/visits.jsonl"
 CLIENT_VERSION=1
 
@@ -118,7 +118,7 @@ if ! response=$(echo "$payload" | curl -fsS --max-time 20 -X POST \
     exit 0
 fi
 
-# publicomtools har sparat besöken: ta bort de som skickades (visit_tracker.sh kan ha lagt till fler)
+# publicomtools har sparat besöken: ta bort de som skickades (visit_tracker.py kan ha lagt till fler)
 if [ "$visits_sent" -gt 0 ] && [ "$(echo "$response" | jq -r '.visitsAck // false' 2>/dev/null)" == "true" ]; then
     (
         flock 9

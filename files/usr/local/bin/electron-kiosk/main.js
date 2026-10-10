@@ -356,6 +356,8 @@ app.whenReady().then(() => {
 
   // Grafikläget, för felsökning av en långsam skärm: software = ritas av processorn, enabled = grafikkortet
   console.log('[grafik]', JSON.stringify(app.getGPUFeatureStatus()));
+  app.getGPUInfo('basic').then((i) => console.log('[gpuinfo]', JSON.stringify(i).slice(0, 1200))).catch((e) => console.log('[gpuinfo] fel', e && e.message));
+  app.on('child-process-gone', (_e, d) => console.log('[barnprocess]', JSON.stringify(d)));
   win.on('resize', layout);
   goHome();
   setInterval(idleTick, 1000);

@@ -64,13 +64,13 @@ function pick(lang, sv, en, fallback) {
 }
 
 /**
- * Texten på startknappen (navigeringen och felsidan). START_LABEL gäller svenska; tomt ger standardtexten, som beror på
- * läget: "Startsida" / "Home page" med förstasida (HOME_MODE=launcher) och "Hem" / "Home" när första tjänsten är hem (HOME_MODE=app).
+ * Texten på startknappen (navigeringen och felsidan). En egen text i START_LABEL gäller båda språken (det finns inget engelskt fält);
+ * tomt ger standardtexten, som beror på läget: "Startsida" / "Home page" med förstasida (HOME_MODE=launcher) och "Hem" / "Home" när första tjänsten är hem (HOME_MODE=app).
  */
 function startLabelFor(lang, homeMode, custom) {
   const t = lang === 'en' ? EN : SV;
   const standard = homeMode === 'app' ? t.startApp : t.start;
-  return lang === 'en' ? standard : ((custom || '').trim() || standard);
+  return (custom || '').trim() || standard;
 }
 
 module.exports = { stringsFor, pick, startLabelFor };

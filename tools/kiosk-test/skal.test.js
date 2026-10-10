@@ -240,12 +240,12 @@ test('INITIAL_SCALE: procent, 10–500, standard 100', () => {
   assert.equal(buildSettings({ INITIAL_SCALE: '' }, '').initialScale, 100);
 });
 
-test('startknappens text: Startsida med förstasida, Hem när första tjänsten är hem, START_LABEL gäller svenska', () => {
+test('startknappens text: Startsida med förstasida, Hem när första tjänsten är hem, en egen START_LABEL gäller båda språken', () => {
   assert.equal(startLabelFor('sv', 'launcher', ''), 'Startsida');
   assert.equal(startLabelFor('en', 'launcher', ''), 'Home page');
   assert.equal(startLabelFor('sv', 'app', ''), 'Hem');
   assert.equal(startLabelFor('en', 'app', ''), 'Home');
   assert.equal(startLabelFor('sv', 'launcher', 'Till början'), 'Till början');
   assert.equal(startLabelFor('sv', 'app', '  Tillbaka hem '), 'Tillbaka hem');
-  assert.equal(startLabelFor('en', 'launcher', 'Till början'), 'Home page'); // den egna texten gäller svenska
+  assert.equal(startLabelFor('en', 'launcher', 'Boka rum'), 'Boka rum'); // den egna texten gäller även på engelska, som i Android
 });

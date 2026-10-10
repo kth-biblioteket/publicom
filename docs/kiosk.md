@@ -40,6 +40,12 @@ https-adress krävs. Ikonerna är Lucide: `house`, `search`, `map`, `map-pin`, `
 
 Utan `APPS` används `WEBSITES` som tjänster, så att en kiosk utan nya inställningar ändå visar något.
 
+## Skalning
+
+Skalets sidor (förstasidan, navigeringen, tangentbordet och överlägget) är ritade för **1280 px bredd när skärmen ligger** och **800 px när den
+står** (höjden större än bredden) och skalas med skärmens bredd, som i PubLiKiosk. På en 1920 px bred liggande skärm blir navigeringsfältet
+alltså 88 × 1,5 = 132 px högt med 90 px knappar. Zoomen på tjänsternas sidor (`INITIAL_SCALE`) är en egen sak.
+
 ## Förstasidans nederkant
 
 Längst ner kan förstasidan ha ett **informationsfält** (upp till fyra fält) och en **meddelanderad** ovanför. Samma nycklar

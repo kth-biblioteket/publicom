@@ -7,7 +7,9 @@ body { background: #fff; }
 #back { height: 60px; padding: 0 22px 0 14px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #1a1f2b; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
 #back:disabled { opacity: .45; cursor: default; }
 #mid { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: #000061; font-size: 22px; font-weight: 800; }
+#mid .names { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
 #mid .label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#mid .host { font-size: 15px; font-weight: 500; color: #5a6b86; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tab { height: 60px; padding: 0 22px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #000061; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
 .tab.on { background: #def0ff; border-color: #004791; }
 #home { height: 60px; padding: 0 24px 0 18px; border-radius: 14px; border: 0; background: #004791; color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
@@ -37,8 +39,9 @@ function render(s) {
       mid.appendChild(t);
     });
   } else if (s.current) {
-    mid.innerHTML = iconSvg(s.current.icon, 28) + '<span class="label"></span>';
-    mid.lastChild.textContent = s.current.name;
+    mid.innerHTML = iconSvg(s.current.icon, 26) + '<span class="names"><span class="label"></span><span class="host"></span></span>';
+    mid.querySelector('.label').textContent = s.current.name;
+    mid.querySelector('.host').textContent = s.current.host || '';
   }
   const home = document.getElementById('home');
   home.innerHTML = iconSvg(s.startIcon, 26) + '<span></span>';

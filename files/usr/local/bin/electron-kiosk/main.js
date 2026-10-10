@@ -19,7 +19,7 @@ const settings = loadSettings(
 const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
 const info = new InfoFeed(settings, policy);
 
-const DESIGN_W = 1280;                                  // skalets sidor är ritade för 1280 px bredd och skalas med bredden
+const DESIGN_W = { landscape: 1280, portrait: 800 };    // skalets sidor är ritade för 1280 px (liggande) och 800 px (stående) och skalas med bredden, som i PubLiKiosk
 const BAR_H = 88;                                       // navigeringsramen, i designpixlar
 const KB_H = { text: 392, email: 464, number: 392 };    // skärmtangentbordet, i designpixlar
 const PAGE_PARTITION = 'kiosk-page';                    // utan persist: allt ligger i minnet
@@ -41,7 +41,7 @@ const S = {
 
 const ui = (file) => path.join(__dirname, file);
 const uiViews = () => [homeView, barView, overlayView].filter(Boolean);
-const zoom = (w) => Math.min(2.5, Math.max(0.6, w / DESIGN_W));
+const zoom = (w, h) => Math.min(2.5, Math.max(0.6, w / (h > w ? DESIGN_W.portrait : DESIGN_W.landscape)));
 
 // ---------- tillstånd till skalets egna sidor ----------
 
@@ -79,7 +79,7 @@ function pushState() {
 function layout() {
   if (!win) return;
   const [w, h] = win.getContentSize();
-  const z = zoom(w);
+  const z = zoom(w, h);
   const inApp = S.view === 'app';
   const showBar = inApp && settings.navigation && !S.kbOpen;
   const barH = showBar ? Math.round(BAR_H * z) : 0;

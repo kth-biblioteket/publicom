@@ -68,6 +68,13 @@ Korten ovanför behåller sin form: ikonrutan krymper med kortets höjd (minst 4
 140 % har en tjänst ungefär 71 % så många CSS-pixlar att fylla, så responsiva sidor visar sin smalare layout. Zoomen sätts om efter
 varje laddning, och nypzoom är avstängd. Förstasidan, navigeringen, tangentbordet och överlägget påverkas inte.
 
+## Grafik
+
+Kioskskalet ritar tjänsterna med Chromium, och foton, kartor och skuggor blir seg i programvara. `init.sh` lägger därför `guest` i grupperna
+`video` och `render` på kiosker (de äger `/dev/dri`), så att grafikkortet används. Övriga datortyper får inga extra grupper, och en dator som
+byter bort från kiosk tas ur dem igen. Kontrollera: `id guest`, och när skalet startas från en terminal skriver det en rad
+`[grafik]` där `gpu_compositing` och `rasterization` ska stå som `enabled`. `disabled_software` betyder att processorn ritar allt.
+
 ## Tillåtna webbplatser
 
 Chromium-policyerna (`policies_*.json`) gäller inte Electron. Skalet tillåter bara **https** mot värdar från `APPS` och

@@ -99,6 +99,20 @@ if [ "$(cat "$HEARTBEAT_DROPIN" 2>/dev/null)" != "$heartbeat_conf" ]; then
     echo "Statusrapport var $(heartbeat_interval):e minut"
 fi
 
+# Grafikkortet. /dev/dri tillhör grupperna video och render, och utan dem ritar Chromium allt med processorn
+# (software compositing): en kiosk med foton och kartor blir då seg, och navigeringen med den. Bara kiosker får
+# åtkomst; övriga datortyper lämnas som förut (gästen ska inte vara med i några extra grupper). Gruppen gäller
+# från nästa sessionsstart, och guest.service startar efter det här skriptet.
+for grp in video render; do
+    getent group "$grp" > /dev/null || continue
+    if id -nG guest | tr ' ' '\n' | grep -qx "$grp"; then member=yes; else member=no; fi
+    if [ "$COMPUTER_TYPE" = "kiosk" ] && [ "$member" = no ]; then
+        usermod -aG "$grp" guest && echo "guest tillagd i gruppen $grp (grafikkortet)"
+    elif [ "$COMPUTER_TYPE" != "kiosk" ] && [ "$member" = yes ]; then
+        gpasswd -d guest "$grp" > /dev/null && echo "guest borttagen ur gruppen $grp"
+    fi
+done
+
 # Skärmsläckarfiler
 # Bilderna följer med koden (files.manifest) och kopieras därifrån; en bild som inte finns lokalt
 # (äldre installation, eller en ny bild som inte rullats ut) hämtas från GitHub som förut.

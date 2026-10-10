@@ -354,9 +354,13 @@ app.whenReady().then(() => {
   ipcMain.on('field-auto', () => {}); // fokus som sidan satte själv visar inte tangentbordet
   ipcMain.on('kb', (e, m) => { if (e.sender === kbView.webContents && m) sendKey(m); });
 
-  // Grafikläget, för felsökning av en långsam skärm: software = ritas av processorn, enabled = grafikkortet
-  console.log('[grafik]', JSON.stringify(app.getGPUFeatureStatus()));
-  app.getGPUInfo('basic').then((i) => console.log('[gpuinfo]', JSON.stringify(i).slice(0, 1200))).catch((e) => console.log('[gpuinfo] fel', e && e.message));
+  // Grafikläget, för felsökning av en långsam skärm: software = ritas av processorn, enabled = grafikkortet.
+  // Läses av efter en stund: direkt vid start har grafikprocessen inte hunnit starta och raden visar bara standardvärdet.
+  const logGpu = (when) => {
+    console.log('[grafik ' + when + ']', JSON.stringify(app.getGPUFeatureStatus()));
+    app.getGPUInfo('basic').then((i) => console.log('[gpuinfo ' + when + ']', JSON.stringify({ gpu: i.gpuDevice, parts: i.auxAttributes && i.auxAttributes.glImplementationParts, inProcessGpu: i.auxAttributes && i.auxAttributes.inProcessGpu }))).catch(() => {});
+  };
+  setTimeout(() => logGpu('efter 8 s'), 8000);
   app.on('child-process-gone', (_e, d) => console.log('[barnprocess]', JSON.stringify(d)));
   win.on('resize', layout);
   goHome();

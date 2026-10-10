@@ -93,9 +93,9 @@ function prelogin() {
     if [ "$LOGIN_UI" != "web" ] || [ "$ALMA_LOGIN" != "true" ]; then
         return 0
     fi
-    # Sökdatorer och skyltar visar ingen inloggningsskärm (.xinitrc). Inloggningspolicyn skulle då
+    # Sökdatorer, skyltar och kiosker visar ingen inloggningsskärm (.xinitrc). Inloggningspolicyn skulle då
     # ligga kvar och spärra allt, eftersom ingen någonsin loggar in.
-    if [ "$COMPUTER_TYPE" == "searchcomputer" ] || [ "$COMPUTER_TYPE" == "signage" ]; then
+    if [ "$COMPUTER_TYPE" == "searchcomputer" ] || [ "$COMPUTER_TYPE" == "signage" ] || [ "$COMPUTER_TYPE" == "kiosk" ]; then
         log "ALMA_LOGIN=true men COMPUTER_TYPE=$COMPUTER_TYPE, ingen inloggning"
         return 0
     fi

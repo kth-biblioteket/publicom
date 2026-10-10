@@ -128,8 +128,8 @@ sed "s/^timeout:.*$/timeout: ${SCREENSAVER_IDLE:-00:30:00}/" /usr/local/share/pu
 
 # Funktion för att dölja muspekaren på signagedatorer
 function hide_mouse_cursor() {
-    if [ "$COMPUTER_TYPE" = "signage" ]; then
-        log_message "signage - hiding mouse cursor with unclutter"
+    if [ "$COMPUTER_TYPE" = "signage" ] || [ "$COMPUTER_TYPE" = "kiosk" ]; then
+        log_message "$COMPUTER_TYPE - hiding mouse cursor with unclutter"
         # Kontrollera om unclutter är installerat
         if command -v unclutter &> /dev/null; then
             # Dölj muspekaren efter 1 sekunds inaktivitet
@@ -190,7 +190,36 @@ function check_background_images() {
 # Kolla bakgrundsbilder vid start
 check_background_images
 
-if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]; then
+# Kiosk: pekskärm med förstasida. Ett Electron-skal (electron-kiosk) visar förstasidan, tjänsterna, navigeringen
+# och skärmtangentbordet. Skalet sköter inaktiviteten själv (varning, rensad session, tillbaka till förstasidan),
+# så varken xautolock eller restart_x.sh används. Chromium-policyerna gäller inte Electron; tillåtna webbplatser
+# läser skalet själv från APPS, WHITE_LIST och /var/lib/publicom/allowed-hosts.txt (allowlist_from_ezproxy.sh).
+KIOSK_DATA="/tmp/kiosk-data"
+function launch_kiosk() {
+  rm -rf "$KIOSK_DATA"
+  # shellcheck disable=SC2086
+  ELECTRON_DISABLE_SECURITY_WARNINGS=1 /usr/local/bin/electron-login/node_modules/.bin/electron /usr/local/bin/electron-kiosk/main.js --user-data-dir="$KIOSK_DATA" $CHROMIUM_FLAGS
+}
+
+if [ "$COMPUTER_TYPE" = "kiosk" ]; then
+  log_message "Starting session for kiosk."
+  # Ta bort högerklick (om någon kopplar in en mus) och blockera kortkommandon
+  xmodmap /home/guest/.Xmodmap &
+  xbindkeys &
+  # Ingen skärmsläckare: skalet visar förstasidan när ingen har använt kiosken
+  xset s off
+  xset -dpms
+  xset s noblank
+  set_background
+  hide_mouse_cursor
+  # Fönsterhanterare med signage-config: fönstret i äkta fullscreen, utan ram. INGEN tint2-panel.
+  openbox --config-file /home/guest/.config/openbox/rc-signage.xml &
+  # Skalet startas om vid krasch
+  while true; do
+      launch_kiosk
+      sleep 1
+  done
+elif [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]; then
   # Öppen gästdator(utan login)
   if [ "$ALMA_LOGIN" != "true" ]; then
       log_message "Öppen gästdator"

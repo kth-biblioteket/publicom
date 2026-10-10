@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><title>Navigering</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+body { background: #fff; }
+#bar { height: 100%; box-sizing: border-box; background: #fff; border-top: 1px solid #d6dce4; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
+#back { height: 60px; padding: 0 22px 0 14px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #1a1f2b; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+#back:disabled { opacity: .45; cursor: default; }
+#mid { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: #000061; font-size: 22px; font-weight: 800; }
+#mid .label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tab { height: 60px; padding: 0 22px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #000061; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.tab.on { background: #def0ff; border-color: #004791; }
+#home { height: 60px; padding: 0 24px 0 18px; border-radius: 14px; border: 0; background: #004791; color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+</style></head>
+<body><div id="bar">
+  <button id="back" class="press" type="button"></button>
+  <div id="mid"></div>
+  <button id="home" class="press" type="button"></button>
+</div>
+<script src="icons.js"></script>
+<script>
+function render(s) {
+  const back = document.getElementById('back');
+  back.innerHTML = iconSvg('chevron-left', 26) + '<span></span>';
+  back.lastChild.textContent = s.strings.back;
+  back.disabled = !s.canBack;
+  back.onclick = () => kiosk.act('back');
+  const mid = document.getElementById('mid');
+  mid.innerHTML = '';
+  if (s.homeMode === 'app' && s.apps.length > 1) {
+    s.apps.forEach((a, i) => {
+      const t = document.createElement('button');
+      t.type = 'button'; t.className = 'tab press' + (i === s.currentIndex ? ' on' : '');
+      t.innerHTML = iconSvg(a.icon, 26) + '<span></span>';
+      t.lastChild.textContent = a.name;
+      t.onclick = () => kiosk.act('openApp', i);
+      mid.appendChild(t);
+    });
+  } else if (s.current) {
+    mid.innerHTML = iconSvg(s.current.icon, 28) + '<span class="label"></span>';
+    mid.lastChild.textContent = s.current.name;
+  }
+  const home = document.getElementById('home');
+  home.innerHTML = iconSvg(s.startIcon, 26) + '<span></span>';
+  home.lastChild.textContent = s.startLabel;
+  home.onclick = () => kiosk.act('home');
+}
+kiosk.state().then(render);
+kiosk.onState(render);
+</script></body></html>

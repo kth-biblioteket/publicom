@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><title>Tangentbord</title>
+<style>
+@font-face{font-family:Figtree;font-weight:500;src:url(fonts/Figtree-Medium.ttf)}
+@font-face{font-family:Figtree;font-weight:600;src:url(fonts/Figtree-SemiBold.ttf)}
+html,body{margin:0;height:100%;background:#e4ebf5;font-family:Figtree,system-ui,sans-serif;user-select:none;-webkit-user-select:none;overflow:hidden;cursor:default}
+#kb{box-sizing:border-box;width:100%;height:100%;padding:0 24px 16px;display:flex;flex-direction:column;gap:8px;border-top:2px solid #c3d0e3}
+#bar{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between}
+#title{font-size:20px;font-weight:500;color:#5a6b86}
+#hide{height:44px;padding:0 20px;border:0;border-radius:10px;background:#cdd8e7;color:#000061;font:600 20px Figtree,sans-serif;display:flex;align-items:center;gap:10px}
+.row{display:flex;gap:8px;justify-content:center}
+.key{flex:1 1 0;min-width:0;height:72px;padding:0;border:0;border-radius:12px;background:#fff;color:#000061;font:600 30px/1 Figtree,sans-serif;box-shadow:0 2px 0 #9fb0c9;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.key.down{background:#9fc0ea;transform:translateY(2px);box-shadow:none}
+.key.special.down{background:#a9b9d1}
+.key.action.down{background:#00305f}
+.key.on.down{background:#2a2ab0}
+.key.special{background:#cdd8e7;font-size:24px}
+.key.on{background:#000061;color:#fff}
+.key.action{background:#004791;color:#fff;font-size:26px}
+.key.space{font-size:22px;font-weight:500;color:#5a6b86}
+.key .sub{font-size:14px;font-weight:500;opacity:.7;margin-top:3px}
+.spacer{min-width:0}
+.pad{max-width:520px;margin:0 auto;width:100%}
+.pad .key{font-size:34px}
+</style></head>
+<body>
+<div id="kb">
+  <div id="bar"><div id="title"></div>
+    <button id="hide"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000061" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg><span id="hidelabel"></span></button>
+  </div>
+  <div id="rows"></div>
+</div>
+<script>
+const S = { type: 'text', enter: 'enter', layer: 'abc', lang: 'sv' };
+const T = {
+  sv: { title: 'Tangentbord · Svenska', hide: 'Fäll ner', space: 'mellanslag', enter: { enter: 'Retur', search: 'Sök', go: 'Gå', send: 'Skicka', done: 'Klar', next: 'Nästa' } },
+  en: { title: 'Keyboard · English', hide: 'Hide', space: 'space', enter: { enter: 'Enter', search: 'Search', go: 'Go', send: 'Send', done: 'Done', next: 'Next' } },
+};
+const ICON_BACK = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#000061" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5H9l-6 7 6 7h11a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M13 9.5l5 5M18 9.5l-5 5"/></svg>';
+const iconShift = (c) => '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="' + c + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l8 9h-5v7H9v-7H4z"/></svg>';
+
+const send = (m) => window.kb.send(m);
+const enterLabel = () => T[S.lang].enter[S.enter] || T[S.lang].enter.enter;
+let laterT; const later = () => { clearTimeout(laterT); laterT = setTimeout(render, 160); }; // ritar om först när tryckfärgen hunnit synas
+const up = () => S.layer === 'shift';
+const key = (label, cls, flex, fn, o) => Object.assign({ label, cls, flex, fn }, o || {});
+const sp = (flex) => ({ spacer: true, flex });
+const typeChar = (c) => { const u = up(); return key(u ? c.toUpperCase() : c, '', 1, () => { send({ kind: 'text', text: u ? c.toUpperCase() : c }); if (u) { S.layer = 'abc'; later(); } }); };
+const chars = (s) => s.split('').map(typeChar);
+const back = () => key('', 'special', 2, () => send({ kind: 'back' }), { html: ICON_BACK });
+const shift = () => key('', 'special' + (up() ? ' on' : ''), 2, () => { S.layer = up() ? 'abc' : 'shift'; later(); }, { html: iconShift(up() ? '#fff' : '#000061') });
+const enter = (t) => key(t, 'action', 2, () => send({ kind: 'enter' }));
+const space = (t, flex) => key(t, 'space', flex, () => send({ kind: 'text', text: ' ' }));
+
+function build() {
+  const sv = S.lang === 'sv', t = T[S.lang], sym = S.layer === 'sym';
+  if (S.type === 'number') {
+    const n = (c) => key(c, '', 1, () => send({ kind: 'text', text: c }));
+    return { pad: true, rows: [
+      [n('1'), n('2'), n('3')], [n('4'), n('5'), n('6')], [n('7'), n('8'), n('9')],
+      [key('', 'special', 1, () => send({ kind: 'back' }), { html: ICON_BACK }), n('0'), key(enterLabel(), 'action', 1, () => send({ kind: 'enter' }))],
+    ] };
+  }
+  const email = S.type === 'email';
+  const toggle = key(sym ? 'ABC' : '123', 'special', 2, () => { S.layer = sym ? 'abc' : 'sym'; later(); });
+  const lang = key(sv ? 'SV' : 'EN', 'special', 1.5, () => { S.lang = sv ? 'en' : 'sv'; later(); }, { sub: sv ? 'EN' : 'SV' });
+  const rows = [];
+  if (sym) {
+    rows.push([sp(.5)].concat(chars('1234567890'), [sp(.5)]));
+    rows.push([sp(1)].concat(chars('-/:;()&@"'), [sp(1)]));
+    rows.push([sp(2)].concat(chars(".,?!'#%"), [back()]));
+  } else {
+    if (email) rows.push([sp(.5)].concat(chars('1234567890'), [sp(.5)]));
+    rows.push(sv ? chars('qwertyuiopå') : [sp(.5)].concat(chars('qwertyuiop'), [sp(.5)]));
+    rows.push(sv ? chars('asdfghjklöä') : [sp(1)].concat(chars('asdfghjkl'), [sp(1)]));
+    rows.push([shift()].concat(chars('zxcvbnm'), [back()]));
+  }
+  const bottom = [toggle, lang];
+  if (email) bottom.push(key('@', '', 1.5, () => send({ kind: 'text', text: '@' })));
+  bottom.push(space(t.space, email ? 4 : 5), key('.', '', 1, () => send({ kind: 'text', text: '.' })), enter(enterLabel()));
+  rows.push(bottom);
+  return { rows };
+}
+
+function render() {
+  const t = T[S.lang];
+  document.documentElement.lang = S.lang;
+  document.getElementById('title').textContent = t.title;
+  document.getElementById('hidelabel').textContent = t.hide;
+  const model = build();
+  const host = document.getElementById('rows');
+  host.innerHTML = '';
+  host.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+  host.className = model.pad ? 'pad' : '';
+  for (const r of model.rows) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    for (const k of r) {
+      const el = document.createElement(k.spacer ? 'div' : 'button');
+      el.style.flex = k.flex + ' 1 0';
+      if (k.spacer) { el.className = 'spacer'; }
+      else {
+        el.className = 'key ' + k.cls;
+        if (k.html) el.innerHTML = k.html; else el.textContent = k.label;
+        if (k.sub) { const s = document.createElement('span'); s.className = 'sub'; s.textContent = k.sub; el.appendChild(s); }
+        el.addEventListener('pointerdown', (e) => { e.preventDefault(); el.classList.add('down'); setTimeout(() => el.classList.remove('down'), 160); k.fn(); });
+      }
+      row.appendChild(el);
+    }
+    host.appendChild(row);
+  }
+}
+document.getElementById('hide').addEventListener('pointerdown', (e) => { e.preventDefault(); send({ kind: 'hide' }); });
+window.kb.onLayout((m) => { S.type = m.type; S.enter = m.enter || 'enter'; S.layer = 'abc'; later(); });
+render();
+</script></body></html>

@@ -1,0 +1,9 @@
+@font-face { font-family: Figtree; font-weight: 400; src: url(fonts/Figtree-Regular.ttf); }
+@font-face { font-family: Figtree; font-weight: 500; src: url(fonts/Figtree-Medium.ttf); }
+@font-face { font-family: Figtree; font-weight: 600; src: url(fonts/Figtree-SemiBold.ttf); }
+@font-face { font-family: Figtree; font-weight: 700; src: url(fonts/Figtree-Bold.ttf); }
+@font-face { font-family: Figtree; font-weight: 800; src: url(fonts/Figtree-ExtraBold.ttf); }
+html, body { margin: 0; height: 100%; overflow: hidden; font-family: Figtree, system-ui, sans-serif; color: #1a1f2b;
+  user-select: none; -webkit-user-select: none; cursor: default; }
+button { font-family: inherit; cursor: pointer; }
+.press:active { filter: brightness(.9); transform: translateY(1px); }

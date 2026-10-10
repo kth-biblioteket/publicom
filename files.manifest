@@ -30,6 +30,31 @@
 0644 root:root   /usr/local/bin/electron-login/package.json
 0644 root:root   /usr/local/bin/electron-login/package-lock.json
 
+# Kiosk (COMPUTER_TYPE=kiosk): Electron-skal med förstasida, navigering och skärmtangentbord. Körs med
+# Electron från electron-login, så ingen egen npm-installation behövs (qrcode.js ligger med, MIT).
+0644 root:root   /usr/local/bin/electron-kiosk/bar.html
+0644 root:root   /usr/local/bin/electron-kiosk/config.js
+0644 root:root   /usr/local/bin/electron-kiosk/fonts/Figtree-Bold.ttf
+0644 root:root   /usr/local/bin/electron-kiosk/fonts/Figtree-ExtraBold.ttf
+0644 root:root   /usr/local/bin/electron-kiosk/fonts/Figtree-Medium.ttf
+0644 root:root   /usr/local/bin/electron-kiosk/fonts/Figtree-Regular.ttf
+0644 root:root   /usr/local/bin/electron-kiosk/fonts/Figtree-SemiBold.ttf
+0644 root:root   /usr/local/bin/electron-kiosk/fonts/OFL.txt
+0644 root:root   /usr/local/bin/electron-kiosk/icons.js
+0644 root:root   /usr/local/bin/electron-kiosk/idle.js
+0644 root:root   /usr/local/bin/electron-kiosk/img/kth-logo-white.svg
+0644 root:root   /usr/local/bin/electron-kiosk/kb-preload.js
+0644 root:root   /usr/local/bin/electron-kiosk/keyboard.html
+0644 root:root   /usr/local/bin/electron-kiosk/launcher.html
+0644 root:root   /usr/local/bin/electron-kiosk/main.js
+0644 root:root   /usr/local/bin/electron-kiosk/overlay.html
+0644 root:root   /usr/local/bin/electron-kiosk/page-preload.js
+0644 root:root   /usr/local/bin/electron-kiosk/policy.js
+0644 root:root   /usr/local/bin/electron-kiosk/qrcode.js
+0644 root:root   /usr/local/bin/electron-kiosk/strings.js
+0644 root:root   /usr/local/bin/electron-kiosk/ui-preload.js
+0644 root:root   /usr/local/bin/electron-kiosk/ui.css
+
 # Bilder
 0644 root:root   /usr/local/bin/KTH_logo_RGB_vit_small.png            backgrounds/KTH_logo_RGB_vit_small.png
 0644 root:root   /usr/local/bin/screen_bg_gc.png                      backgrounds/screen_bg_gc.png

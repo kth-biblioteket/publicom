@@ -122,6 +122,16 @@ function fetch_stanzas() {
   echo "Error: kunde inte hämta stanzafilen, använder sparad kopia om den finns"
 }
 
+# Kioskskalet (electron-kiosk) läser tillåtna webbplatser från den här filen, en domän per rad. Chromium-
+# policyerna gäller inte Electron. Skrivs atomiskt; misslyckas det behålls den förra.
+HOSTS_FILE="/var/lib/publicom/allowed-hosts.txt"
+function write_host_list() {
+  local tmp
+  mkdir -p "$(dirname "$HOSTS_FILE")" || return 1
+  tmp=$(mktemp "${HOSTS_FILE}.XXXXXX") || return 1
+  printf '%s\n' "$@" | grep -v '^$' | sort -u > "$tmp" && chmod 644 "$tmp" && mv -f "$tmp" "$HOSTS_FILE" || rm -f "$tmp"
+}
+
 # Gästreglerna gäller gästdatorer, med samma regel som .xinitrc (allt som inte är sökdator
 # eller skylt). Sökdatorer, grupprum och skyltar får bara sin egen lista (WHITE_LIST).
 # Tidigare gällde gästreglerna även skyltar, som då tillät hela EZproxy-listan.
@@ -159,12 +169,14 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]
       echo "Warning: no stanza file available, only WHITE_LIST is allowed"
     fi
 
+    write_host_list "${ALLOWED_DOMAINS[@]}"
     apply_restrictions "${ALLOWED_DOMAINS[@]}"
   fi
 else
   ##################################
   # Sökdator, grupprum och skylt
   ##################################
+  write_host_list "${ALLOWED_DOMAINS[@]}"
   apply_restrictions "${ALLOWED_DOMAINS[@]}"
 fi
 

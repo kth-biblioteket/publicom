@@ -61,9 +61,16 @@ else
 fi
 
 echo "== JavaScript (Electron)"
-for f in files/usr/local/bin/electron-login/*.js; do
+for f in files/usr/local/bin/electron-login/*.js files/usr/local/bin/electron-kiosk/*.js; do
     node --check "$f" 2>/dev/null && ok "$f" || fail "$f: syntaxfel"
 done
+
+echo "== Kioskskalets logik (node --test)"
+if node -e "require('node:test')" 2>/dev/null; then
+    out=$(node --test tools/kiosk-test/skal.test.js 2>&1) && ok "tools/kiosk-test/skal.test.js" || { fail "tools/kiosk-test/skal.test.js"; echo "$out" | grep -E "^not ok|expected|actual|Error" | sed 's/^/        /'; }
+else
+    echo "  (node är för gammal för node --test, hoppar över)"
+fi
 
 echo "== Genererade configfiler"
 tools/build-configs.sh --check && ok ".config_* är aktuella" || fail "kör tools/build-configs.sh"

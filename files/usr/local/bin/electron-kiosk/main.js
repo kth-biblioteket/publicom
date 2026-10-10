@@ -354,6 +354,8 @@ app.whenReady().then(() => {
   ipcMain.on('field-auto', () => {}); // fokus som sidan satte själv visar inte tangentbordet
   ipcMain.on('kb', (e, m) => { if (e.sender === kbView.webContents && m) sendKey(m); });
 
+  // Grafikläget, för felsökning av en långsam skärm: software = ritas av processorn, enabled = grafikkortet
+  console.log('[grafik]', JSON.stringify(app.getGPUFeatureStatus()));
   win.on('resize', layout);
   goHome();
   setInterval(idleTick, 1000);

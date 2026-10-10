@@ -7,6 +7,7 @@ const SV = {
   subtitle: 'Tryck på en tjänst för att börja.',
   back: 'Tillbaka',
   start: 'Startsida',
+  startApp: 'Hem',
   idleTitle: 'Är du kvar?',
   idleText: (s) => `Ingen har rört skärmen på en stund. Om ${s} sekunder börjar appen om från början och det du har gjort här rensas.`,
   idleContinue: 'Fortsätt här',
@@ -29,7 +30,8 @@ const EN = {
   title: 'What do you need?',
   subtitle: 'Tap a service to begin.',
   back: 'Back',
-  start: 'Home',
+  start: 'Home page',
+  startApp: 'Home',
   idleTitle: 'Are you still there?',
   idleText: (s) => `Nobody has touched the screen for a while. In ${s} seconds the app starts over and what you did here is cleared.`,
   idleContinue: 'Continue here',
@@ -61,4 +63,14 @@ function pick(lang, sv, en, fallback) {
   return sv || (lang === 'en' ? en : '') || fallback;
 }
 
-module.exports = { stringsFor, pick };
+/**
+ * Texten på startknappen (navigeringen och felsidan). START_LABEL gäller svenska; tomt ger standardtexten, som beror på
+ * läget: "Startsida" / "Home page" med förstasida (HOME_MODE=launcher) och "Hem" / "Home" när första tjänsten är hem (HOME_MODE=app).
+ */
+function startLabelFor(lang, homeMode, custom) {
+  const t = lang === 'en' ? EN : SV;
+  const standard = homeMode === 'app' ? t.startApp : t.start;
+  return lang === 'en' ? standard : ((custom || '').trim() || standard);
+}
+
+module.exports = { stringsFor, pick, startLabelFor };

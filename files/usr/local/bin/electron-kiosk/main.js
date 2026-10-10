@@ -8,7 +8,7 @@ const { loadSettings } = require('./config');
 const { UrlPolicy, hostOf } = require('./policy');
 const { idleState } = require('./idle');
 const { InfoFeed } = require('./info');
-const { stringsFor, pick } = require('./strings');
+const { stringsFor, pick, startLabelFor } = require('./strings');
 
 const argv = process.argv.slice(2);
 const option = (name, def) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -60,7 +60,7 @@ function uiState() {
     subtitle: pick(S.lang, settings.texts.subtitle, settings.texts.subtitleEn, t.subtitle),
     footer: pick(S.lang, settings.texts.footer, settings.texts.footerEn, ''),
     info: info.view(en),
-    startLabel: en ? t.start : (settings.startLabel || t.start),
+    startLabel: startLabelFor(S.lang, settings.homeMode, settings.startLabel),
     startIcon: settings.startIcon,
     canBack: S.canBack,
     currentIndex: S.current,

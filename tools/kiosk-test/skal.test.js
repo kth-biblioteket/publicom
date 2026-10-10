@@ -8,7 +8,7 @@ const { parseEnv, parseApps, buildSettings, Scope, Field, MAX_APPS } = require(p
 const { InfoFeed, clean, STALE_MS } = require(path.join(dir, 'info.js'));
 const { UrlPolicy, normalize } = require(path.join(dir, 'policy.js'));
 const { idleState } = require(path.join(dir, 'idle.js'));
-const { stringsFor, pick } = require(path.join(dir, 'strings.js'));
+const { stringsFor, pick, startLabelFor } = require(path.join(dir, 'strings.js'));
 
 test('parseEnv: som load_config, inget körs och citattecken tas bort', () => {
   const env = parseEnv('A="x y"\nB=\'z\'\n# c\nC=$(rm -rf /)\n1X=no\nexport D=no\nE=ok\r\nF="en|två"\n');
@@ -238,4 +238,14 @@ test('INITIAL_SCALE: procent, 10–500, standard 100', () => {
   assert.equal(buildSettings({ INITIAL_SCALE: '900' }, '').initialScale, 500);
   assert.equal(buildSettings({ INITIAL_SCALE: 'x' }, '').initialScale, 100);
   assert.equal(buildSettings({ INITIAL_SCALE: '' }, '').initialScale, 100);
+});
+
+test('startknappens text: Startsida med förstasida, Hem när första tjänsten är hem, START_LABEL gäller svenska', () => {
+  assert.equal(startLabelFor('sv', 'launcher', ''), 'Startsida');
+  assert.equal(startLabelFor('en', 'launcher', ''), 'Home page');
+  assert.equal(startLabelFor('sv', 'app', ''), 'Hem');
+  assert.equal(startLabelFor('en', 'app', ''), 'Home');
+  assert.equal(startLabelFor('sv', 'launcher', 'Till början'), 'Till början');
+  assert.equal(startLabelFor('sv', 'app', '  Tillbaka hem '), 'Tillbaka hem');
+  assert.equal(startLabelFor('en', 'launcher', 'Till början'), 'Home page'); // den egna texten gäller svenska
 });

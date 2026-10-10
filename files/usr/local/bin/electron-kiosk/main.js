@@ -279,7 +279,11 @@ function idleTick() {
   }
   const r = idleState(idle, settings.sessionSec, settings.warnSec);
   if (r.state === 'expired') goHome();
-  else if (r.state === 'warning') showOverlay({ type: 'idle', secondsLeft: r.secondsLeft });
+  else if (r.state === 'warning') {
+    // Nedräkningen (ringen) tömmas från antalet sekunder när varningen först visas
+    const total = S.overlay && S.overlay.type === 'idle' ? S.overlay.total : r.secondsLeft;
+    showOverlay({ type: 'idle', secondsLeft: r.secondsLeft, total });
+  }
   else if (S.overlay && S.overlay.type === 'idle') hideOverlay();
 }
 

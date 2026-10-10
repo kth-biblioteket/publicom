@@ -15,6 +15,19 @@ p { margin: 0; font-size: 24px; line-height: 1.4; color: #3d4452; }
 .btns { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
 .btns button { height: 68px; padding: 0 32px; border-radius: 16px; font-size: 24px; font-weight: 700; border: 2px solid #c8d1dc; background: #fff; color: #1a1f2b; }
 .btns button.primary { background: #004791; color: #fff; border-color: #004791; }
+/* Varning före tillbakagång ("Är du kvar?"), enligt skissen: centrerat kort med nedräkning, knapparna under varandra */
+#scrim.idle { background: rgba(0, 0, 40, .55); padding: 32px; }
+#card.idle { max-width: 560px; border-radius: 24px; padding: 40px; align-items: center; text-align: center; gap: 18px; }
+#card.idle h1 { font-size: 30px; line-height: 1.2; }
+#card.idle p { font-size: 20px; line-height: 1.5; }
+.count { position: relative; width: 120px; height: 120px; flex: none; }
+.count svg { display: block; width: 120px; height: 120px; transform: rotate(-90deg); }
+.count .track { fill: none; stroke: #def0ff; stroke-width: 10; }
+.count .ring { fill: none; stroke: #004791; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 327; transition: stroke-dashoffset 1s linear; }
+.count .num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; color: #000061; }
+.idlebtns { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; margin-top: 6px; }
+.idlebtns .cont { width: 100%; height: 72px; border: 0; border-radius: 16px; background: #004791; color: #fff; font-size: 24px; font-weight: 700; }
+.idlebtns .restart { height: 56px; padding: 0 24px; border: 0; border-radius: 14px; background: transparent; color: #004791; font-size: 20px; font-weight: 700; }
 </style></head>
 <body><div id="scrim" hidden><div id="card"></div></div>
 <script src="qrcode.js"></script>
@@ -25,18 +38,46 @@ function button(label, primary, act) {
   b.type = 'button'; b.onclick = () => kiosk.act(act);
   return b;
 }
+const RING = 327; // omkretsen 2π·52
+
+/** Varningen byggs en gång och uppdateras sedan på plats varje sekund, så att ringen töms mjukt */
+function renderIdle(o, t, card) {
+  if (card.dataset.kind !== 'idle') {
+    card.dataset.kind = 'idle';
+    card.className = 'idle';
+    card.innerHTML = '';
+    const count = $('div', 'count');
+    count.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="52"/><circle class="ring" cx="60" cy="60" r="52"/></svg>';
+    count.appendChild($('div', 'num'));
+    const btns = $('div', 'idlebtns');
+    const cont = $('button', 'press cont'); cont.type = 'button'; cont.id = 'idle-continue'; cont.onclick = () => kiosk.act('idleContinue');
+    const restart = $('button', 'press restart'); restart.type = 'button'; restart.id = 'idle-restart'; restart.onclick = () => kiosk.act('home');
+    btns.append(cont, restart);
+    card.append(count, $('h1', ''), $('p', ''), btns);
+  }
+  const total = Math.max(1, o.total || o.secondsLeft || 1);
+  const left = Math.max(0, Math.min(total, o.secondsLeft));
+  card.querySelector('.ring').style.strokeDashoffset = String(RING * (1 - left / total));
+  card.querySelector('.num').textContent = left;
+  card.querySelector('h1').textContent = t.idleTitle;
+  card.querySelector('p').textContent = t.idleText;
+  document.getElementById('idle-continue').textContent = t.idleContinue;
+  document.getElementById('idle-restart').textContent = t.idleRestart;
+}
+
 function render(s) {
   const scrim = document.getElementById('scrim');
   const o = s.overlay;
   scrim.hidden = !o;
   if (!o) return;
   const t = s.strings, card = document.getElementById('card');
+  scrim.className = o.type === 'idle' ? 'idle' : '';
+  if (o.type === 'idle') { renderIdle(o, t, card); return; }
+  card.dataset.kind = o.type;
+  card.className = '';
   card.innerHTML = '';
   const btns = $('div', 'btns');
-  if (o.type === 'idle') {
-    card.append($('h1', '', t.idleTitle), $('p', '', t.idleText));
-    btns.append(button(t.idleContinue, true, 'idleContinue'), button(t.idleRestart, false, 'home'));
-  } else if (o.type === 'blocked') {
+  if (o.type === 'blocked') {
     card.append($('h1', '', t.blockedTitle), $('p', '', t.blockedText));
     if (o.host) card.append($('div', 'host', o.host));
     if (o.qr) {

@@ -230,3 +230,12 @@ test('meddelandets ikon: standard info, none = ingen, okänt namn ger info', () 
   const none = new InfoFeed(buildSettings({ LAUNCHER_MESSAGE: 'Hej', LAUNCHER_MESSAGE_ICON: 'none' }, ''), new UrlPolicy([], []));
   assert.equal(none.view(false).message.icon, '');
 });
+
+test('INITIAL_SCALE: procent, 10–500, standard 100', () => {
+  assert.equal(buildSettings({}, '').initialScale, 100);
+  assert.equal(buildSettings({ INITIAL_SCALE: '140' }, '').initialScale, 140);
+  assert.equal(buildSettings({ INITIAL_SCALE: '5' }, '').initialScale, 10);
+  assert.equal(buildSettings({ INITIAL_SCALE: '900' }, '').initialScale, 500);
+  assert.equal(buildSettings({ INITIAL_SCALE: 'x' }, '').initialScale, 100);
+  assert.equal(buildSettings({ INITIAL_SCALE: '' }, '').initialScale, 100);
+});

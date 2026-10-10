@@ -173,6 +173,7 @@ function buildSettings(env, hostsText) {
     }).filter(Boolean);
   }
   const homeMode = env.HOME_MODE === 'app' ? 'app' : 'launcher';
+  const scale = parseInt(env.INITIAL_SCALE, 10);
   const sessionMin = intOr(env.SESSION_IDLE, 0);
   return {
     apps,
@@ -196,6 +197,8 @@ function buildSettings(env, hostsText) {
       icon: (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() === 'none' ? ''
         : (ICONS[(env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase()] ? (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() : 'info'),
     },
+    // Zoom på tjänsternas sidor, i procent (10–500, standard 100). Skalets egna sidor påverkas inte.
+    initialScale: Number.isFinite(scale) ? Math.max(10, Math.min(500, scale)) : 100,
     refreshMin: Math.max(1, Math.min(60, intOr(env.LAUNCHER_REFRESH, 1))),
     sessionSec: sessionMin * 60,
     warnSec: intOr(env.IDLE_WARNING, 60),

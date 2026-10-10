@@ -62,6 +62,12 @@ kvar i en timme, därefter visas ett streck (fält) eller den fasta texten (medd
 
 Korten ovanför behåller sin form: ikonrutan krymper med kortets höjd (minst 48 px) i stället för att klippas.
 
+## Zoom
+
+`INITIAL_SCALE` (procent, 10–500, standard 100) sätter zoomen på tjänsternas sidor, utöver skalningen av skalets egna sidor. Vid
+140 % har en tjänst ungefär 71 % så många CSS-pixlar att fylla, så responsiva sidor visar sin smalare layout. Zoomen sätts om efter
+varje laddning, och nypzoom är avstängd. Förstasidan, navigeringen, tangentbordet och överlägget påverkas inte.
+
 ## Tillåtna webbplatser
 
 Chromium-policyerna (`policies_*.json`) gäller inte Electron. Skalet tillåter bara **https** mot värdar från `APPS` och

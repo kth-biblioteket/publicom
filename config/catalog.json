@@ -36,6 +36,8 @@
       ],
       "perComputer": true,
       "help": "Välj stående om skärmen sitter på högkant." },
+    { "key": "INITIAL_SCALE", "label": "Zoom", "group": "skarm", "type": "int", "unit": "procent", "default": "100",
+      "help": "Hur stora tjänsternas sidor visas på en kiosk, 10–500 procent. Över 100 ger större text men plats för mindre innehåll. Förstasidan, navigeringen och tangentbordet påverkas inte." },
     { "key": "BG_LANDSCAPE", "label": "Bakgrundsbild, liggande", "group": "skarm", "type": "string",
       "default": "/usr/local/bin/screen_bg_kth_logo_navy.png", "advanced": true,
       "help": "Sökväg på datorn till bakgrundsbilden för liggande skärm." },

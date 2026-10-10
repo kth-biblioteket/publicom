@@ -163,6 +163,12 @@ function createPage() {
   win.contentView.addChildView(pageView, 0); // underst, så att navigering, tangentbord och överlägg ligger över
   const wc = pageView.webContents;
   wc.setVisualZoomLevelLimits(1, 1);          // ingen nypzoom
+  // INITIAL_SCALE gäller sidvyn, utöver skalningen av skalets egna sidor. Chromium minns zoom per värd och
+  // sidan får ny sidmiljö vid varje navigering, så faktorn sätts om efter varje laddning.
+  const applyScale = () => { if (!wc.isDestroyed()) wc.setZoomFactor(settings.initialScale / 100); };
+  wc.on('dom-ready', applyScale);
+  wc.on('did-navigate', applyScale);
+  wc.on('did-finish-load', applyScale);
   wc.setWindowOpenHandler(({ url }) => { openUrl(url); return { action: 'deny' }; });
   wc.on('will-navigate', (e, url) => guard(e, url || e.url));
   wc.on('will-redirect', (e, url) => guard(e, url || e.url));

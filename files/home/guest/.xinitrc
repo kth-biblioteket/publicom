@@ -193,7 +193,7 @@ check_background_images
 # Kiosk: pekskärm med förstasida. Ett Electron-skal (electron-kiosk) visar förstasidan, tjänsterna, navigeringen
 # och skärmtangentbordet. Skalet sköter inaktiviteten själv (varning, rensad session, tillbaka till förstasidan),
 # så varken xautolock eller restart_x.sh används. Chromium-policyerna gäller inte Electron; tillåtna webbplatser
-# läser skalet själv från APPS, WHITE_LIST och /var/lib/publicom/allowed-hosts.txt (allowlist_from_ezproxy.sh).
+# läser skalet själv från APPS och /var/lib/publicom/allowed-hosts.txt (WHITE_LIST, skrivs av allowlist_from_ezproxy.sh).
 KIOSK_DATA="/tmp/kiosk-data"
 function launch_kiosk() {
   rm -rf "$KIOSK_DATA"

@@ -132,10 +132,12 @@ function write_host_list() {
   printf '%s\n' "$@" | grep -v '^$' | sort -u > "$tmp" && chmod 644 "$tmp" && mv -f "$tmp" "$HOSTS_FILE" || rm -f "$tmp"
 }
 
-# Gästreglerna gäller gästdatorer, med samma regel som .xinitrc (allt som inte är sökdator
-# eller skylt). Sökdatorer, grupprum och skyltar får bara sin egen lista (WHITE_LIST).
-# Tidigare gällde gästreglerna även skyltar, som då tillät hela EZproxy-listan.
-if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]; then
+# Gästreglerna gäller gästdatorer, med samma regel som .xinitrc (allt som inte är sökdator,
+# skylt eller kiosk). Sökdatorer, grupprum, skyltar och kiosker får bara sin egen lista (WHITE_LIST).
+# Kioskskalet lägger själv till värdarna i APPS. EZproxy-listan innehåller hundratals domäner (även stora
+# delade som azurewebsites.net) och är för bred för en kiosk, där besökaren inte kan skriva en adress
+# men kan följa länkar. Behöver en kiosk en förlagssida lägger man den i WHITE_LIST.
+if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ] && [ "$COMPUTER_TYPE" != "kiosk" ]; then
   ###########
   # Gästdator
   ###########
@@ -174,7 +176,7 @@ if [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]
   fi
 else
   ##################################
-  # Sökdator, grupprum och skylt
+  # Sökdator, grupprum, skylt och kiosk
   ##################################
   write_host_list "${ALLOWED_DOMAINS[@]}"
   apply_restrictions "${ALLOWED_DOMAINS[@]}"

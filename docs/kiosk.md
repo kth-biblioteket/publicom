@@ -28,7 +28,7 @@ varningen, sedan rensas sessionen (cookies, cache, historik), språket återstä
 
 Nyckelkatalogen (`config/catalog.json`), gruppen *Kiosk*: `HOME_MODE`, `APPS`, `LAUNCHER_TITLE`, `LAUNCHER_SUBTITLE`,
 `LAUNCHER_FOOTER` (och `_EN`), `START_LABEL`, `START_ICON`, `NAVIGATION`, `LANGUAGE`, `IDLE_WARNING`, samt de vanliga
-`SESSION_IDLE`, `PRINTER`, `DOWNLOADS` och `WHITE_LIST`.
+`SESSION_IDLE`, `PRINTER`, `DOWNLOADS` och `WHITE_LIST` (utan EZproxy-listan, se nedan).
 
 `APPS` har högst sex tjänster. Antingen en JSON-lista:
 ```
@@ -42,9 +42,10 @@ Utan `APPS` används `WEBSITES` som tjänster, så att en kiosk utan nya instäl
 
 ## Tillåtna webbplatser
 
-Chromium-policyerna (`policies_*.json`) gäller inte Electron. Skalet tillåter bara **https** mot värdar från `APPS`,
-`WHITE_LIST` och `/var/lib/publicom/allowed-hosts.txt` (skrivs av `allowlist_from_ezproxy.sh`, innehåller EZproxy-listan),
-inklusive underdomäner. En http-länk till en tillåten värd öppnas som https. Länkar som vill öppna ett nytt fönster
+Chromium-policyerna (`policies_*.json`) gäller inte Electron. Skalet tillåter bara **https** mot värdar från `APPS` och
+`WHITE_LIST` (`allowlist_from_ezproxy.sh` skriver `WHITE_LIST` till `/var/lib/publicom/allowed-hosts.txt`), inklusive
+underdomäner. **EZproxy-listan ingår inte** i en kiosk: den har hundratals domäner, även stora delade, och är för bred när besökaren
+kan följa länkar. En förlagssida som kiosken ska nå läggs i `WHITE_LIST`. Utan `WHITE_LIST` gäller bara tjänsternas egna värdar. En http-länk till en tillåten värd öppnas som https. Länkar som vill öppna ett nytt fönster
 öppnas i samma vy. Allt annat (andra värdar, `file:`, `data:` …) blockeras och visar arket med QR-kod.
 
 ## Utskrift, nedladdningar och behörigheter

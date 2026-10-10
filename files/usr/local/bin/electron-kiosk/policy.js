@@ -1,6 +1,6 @@
 'use strict';
 // Vilka sidor skalet får visa: bara https, och bara värdar från APPS, WHITE_LIST och värdlistan
-// (EZproxy). Underdomäner ingår: kth.se tillåter www.kth.se. Allt annat (andra värdar, file:, data:,
+// (allowed-hosts.txt, som innehåller WHITE_LIST). Underdomäner ingår: kth.se tillåter www.kth.se. Allt annat (andra värdar, file:, data:,
 // javascript:, intent: …) blockeras. Chromium-policyerna gäller inte Electron, därför görs det här.
 
 function hostOf(url) {

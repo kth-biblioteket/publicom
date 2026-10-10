@@ -25,6 +25,14 @@ fi
 # Ladda ner till temporärfil, validera och ersätt målfilen först när allt är ok.
 # Vid fel (t ex 404 eller nätverksfel) behålls den befintliga filen.
 # $3 = valideringstyp: env, json eller any
+#
+# env kontrollerar formatet som load_config läser: varje rad är tom, en kommentar eller NYCKEL=värde.
+# Inte bash -n: filen körs aldrig, och bash -n underkände hela filen för ett värde med t ex ett
+# udda antal " eller $( i en text, så att datorn startade med sina gamla inställningar.
+function env_format_ok() {
+    ! grep -qvE '^[[:space:]]*(#.*)?$|^[A-Za-z_][A-Za-z0-9_]*=' "$1"
+}
+
 function safe_download() {
     local url="$1" dest="$2" type="$3" token="$4" tmp
     tmp=$(mktemp "${dest}.XXXXXX") || return 1
@@ -38,7 +46,7 @@ function safe_download() {
         return 1
     fi
     case "$type" in
-        env)  bash -n "$tmp" && grep -q '^REMOTE_CONFIG_URL=' "$tmp" ;;
+        env)  env_format_ok "$tmp" && grep -q '^REMOTE_CONFIG_URL=' "$tmp" ;;
         json) jq empty "$tmp" ;;
         *)    [ -s "$tmp" ] ;;
     esac

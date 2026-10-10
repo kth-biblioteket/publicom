@@ -47,14 +47,18 @@ def log(message):
 
 
 def load_config(path):
-    """KEY=value-rader som config_lib.sh läser dem (citattecken runt värdet tas bort)."""
+    """KEY=value-rader som config_lib.sh läser dem (ett lager citattecken runt värdet tas bort)."""
     values = {}
     try:
         with open(path, encoding="utf-8") as f:
             for line in f:
                 m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$", line.rstrip("\n"))
                 if m:
-                    values[m.group(1)] = m.group(2).strip().strip('"').strip("'")
+                    val = m.group(2)
+                    # Bara ett lager, som load_config: citattecken i själva värdet behålls
+                    if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+                        val = val[1:-1]
+                    values[m.group(1)] = val
     except OSError:
         pass
     return values

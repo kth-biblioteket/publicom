@@ -335,8 +335,9 @@ app.whenReady().then(() => {
   const isPage = (e) => pageView && e.sender === pageView.webContents;
   ipcMain.handle('ui:state', (e) => (isUi(e) ? uiState() : null));
   ipcMain.on('page:cfg', (e) => { e.returnValue = isPage(e) ? { printing: settings.printing } : { printing: false }; });
-  ipcMain.on('ui:act', (e, name, arg) => {
+  ipcMain.on('ui:act', (e, name, arg, inputAt) => {
     if (!isUi(e)) return;
+    if (Number.isFinite(inputAt) && inputAt > 0) console.log('[tryck]', name, 'nådde huvudprocessen efter', Math.round(Date.now() - inputAt), 'ms');
     if (name === 'openApp' && Number.isInteger(arg)) openApp(arg);
     else if (name === 'setLang' && (arg === 'sv' || arg === 'en')) { S.lang = arg; pushState(); }
     else if (name === 'home') goHome();

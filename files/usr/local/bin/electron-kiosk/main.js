@@ -66,6 +66,7 @@ function uiState() {
     currentIndex: S.current,
     current: cur ? { name: cur.nameFor(en), icon: cur.icon || 'info', host: hostOf(cur.url) } : null,
     overlay: S.overlay,
+    homeAt: S.homeAt || 0,
   };
 }
 
@@ -213,6 +214,7 @@ function goHome() {
   S.overlay = null;
   S.kbOpen = false;
   S.lang = settings.language;
+  S.homeAt = Date.now(); // förstasidan mäter hur länge det dröjer tills den ritat sin första bild
   const cleanup = () => {
     resetSessionData();
     createPage();
@@ -345,6 +347,7 @@ app.whenReady().then(() => {
     else if (name === 'overlayClose' || name === 'idleContinue') hideOverlay();
     else if (name === 'retry') { hideOverlay(); if (lastFailedUrl) pageView.webContents.loadURL(lastFailedUrl); }
   });
+  ipcMain.on('ui:timing', (e, what, ms) => { if (isUi(e) && typeof what === 'string' && Number.isFinite(ms)) console.log('[bild]', what.slice(0, 40), 'efter', Math.round(ms), 'ms'); });
   ipcMain.on('field-focus', (e, m) => {
     if (!isPage(e) || !m) return;
     if (!m.tap && Date.now() < S.suppressUntil) return;

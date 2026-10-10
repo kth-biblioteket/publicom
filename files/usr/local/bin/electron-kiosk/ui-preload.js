@@ -17,4 +17,5 @@ contextBridge.exposeInMainWorld('kiosk', {
   state: () => ipcRenderer.invoke('ui:state'),
   onState: (cb) => ipcRenderer.on('ui:state', (_e, s) => cb(s)),
   act: (name, arg) => ipcRenderer.send('ui:act', name, arg, lastInputAt),
+  report: (what, ms) => ipcRenderer.send('ui:timing', what, ms),
 });

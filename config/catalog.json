@@ -194,7 +194,7 @@
         { "value": "warning", "label": "Gul (varning)" },
         { "value": "alert", "label": "Röd (störning)" }
       ],
-      "help": "Färgen på meddelanderaden visar graden: blå för information, gul för varning, röd för störning." },
+      "help": "Meddelanderadens nivå, som syns på färgen: blå är information, gul varning och röd störning." },
     { "key": "LAUNCHER_MESSAGE_ICON", "label": "Meddelandets ikon", "group": "kiosk", "type": "enum", "default": "info",
       "options": [
         { "value": "none", "label": "Ingen" },

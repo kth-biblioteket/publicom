@@ -66,7 +66,6 @@ function uiState() {
     currentIndex: S.current,
     current: cur ? { name: cur.nameFor(en), icon: cur.icon || 'info', host: hostOf(cur.url) } : null,
     overlay: S.overlay,
-    homeAt: S.homeAt || 0,
   };
 }
 
@@ -203,31 +202,19 @@ function openApp(i) {
   update();
 }
 
-/**
- * Startsida: allt som besökaren gjort rensas (cookies, cache, historik), språket återställs.
- * Förstasidan visas först och städningen görs efteråt: att stänga en tung sida och starta en ny renderarprocess
- * kan ta tid på en svag dator, och besökaren ska inte vänta på det.
- */
+/** Startsida: allt som besökaren gjort rensas (cookies, cache, historik), språket återställs */
 function goHome() {
-  const t0 = Date.now();
   if (autoRetry) { clearInterval(autoRetry); autoRetry = null; }
   S.overlay = null;
   S.kbOpen = false;
   S.lang = settings.language;
-  S.homeAt = Date.now(); // förstasidan mäter hur länge det dröjer tills den ritat sin första bild
-  const cleanup = () => {
-    resetSessionData();
-    createPage();
-    layout(); // den nya sidvyn ska följa det aktuella läget
-    console.log('[startsida] städat efter', Date.now() - t0, 'ms');
-  };
-  if (settings.homeMode === 'app') { cleanup(); openApp(0); return; }
+  resetSessionData();
+  createPage();
+  if (settings.homeMode === 'app') { openApp(0); return; }
   S.view = 'home';
   S.current = -1;
   update();
   refreshInfo();
-  console.log('[startsida] visad efter', Date.now() - t0, 'ms');
-  setTimeout(cleanup, 0);
 }
 
 // ---------- tangentbord ----------
@@ -337,9 +324,8 @@ app.whenReady().then(() => {
   const isPage = (e) => pageView && e.sender === pageView.webContents;
   ipcMain.handle('ui:state', (e) => (isUi(e) ? uiState() : null));
   ipcMain.on('page:cfg', (e) => { e.returnValue = isPage(e) ? { printing: settings.printing } : { printing: false }; });
-  ipcMain.on('ui:act', (e, name, arg, inputAt) => {
+  ipcMain.on('ui:act', (e, name, arg) => {
     if (!isUi(e)) return;
-    if (Number.isFinite(inputAt) && inputAt > 0) console.log('[tryck]', name, 'nådde huvudprocessen efter', Math.round(Date.now() - inputAt), 'ms');
     if (name === 'openApp' && Number.isInteger(arg)) openApp(arg);
     else if (name === 'setLang' && (arg === 'sv' || arg === 'en')) { S.lang = arg; pushState(); }
     else if (name === 'home') goHome();
@@ -347,7 +333,6 @@ app.whenReady().then(() => {
     else if (name === 'overlayClose' || name === 'idleContinue') hideOverlay();
     else if (name === 'retry') { hideOverlay(); if (lastFailedUrl) pageView.webContents.loadURL(lastFailedUrl); }
   });
-  ipcMain.on('ui:timing', (e, what, ms) => { if (isUi(e) && typeof what === 'string' && Number.isFinite(ms)) console.log('[bild]', what.slice(0, 40), 'efter', Math.round(ms), 'ms'); });
   ipcMain.on('field-focus', (e, m) => {
     if (!isPage(e) || !m) return;
     if (!m.tap && Date.now() < S.suppressUntil) return;

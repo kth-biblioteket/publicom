@@ -64,16 +64,7 @@ footer[hidden], #info[hidden], #msg[hidden] { display: none; }
 </div>
 <script src="icons.js"></script>
 <script>
-let lastHomeAt = 0;
 function render(s) {
-  // Mät tiden från att huvudprocessen visade förstasidan tills den ritat sin första och andra bild
-  if (s.homeAt && s.homeAt !== lastHomeAt) {
-    lastHomeAt = s.homeAt;
-    requestAnimationFrame(() => {
-      kiosk.report('förstasidan, första bilden', Date.now() - s.homeAt);
-      requestAnimationFrame(() => kiosk.report('förstasidan, andra bilden', Date.now() - s.homeAt));
-    });
-  }
   document.documentElement.lang = s.lang;
   document.getElementById('org').textContent = s.strings.org;
   document.getElementById('title').textContent = s.title;

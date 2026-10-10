@@ -202,19 +202,30 @@ function openApp(i) {
   update();
 }
 
-/** Startsida: allt som besökaren gjort rensas (cookies, cache, historik), språket återställs */
+/**
+ * Startsida: allt som besökaren gjort rensas (cookies, cache, historik), språket återställs.
+ * Förstasidan visas först och städningen görs efteråt: att stänga en tung sida och starta en ny renderarprocess
+ * kan ta tid på en svag dator, och besökaren ska inte vänta på det.
+ */
 function goHome() {
+  const t0 = Date.now();
   if (autoRetry) { clearInterval(autoRetry); autoRetry = null; }
   S.overlay = null;
   S.kbOpen = false;
   S.lang = settings.language;
-  resetSessionData();
-  createPage();
-  if (settings.homeMode === 'app') { openApp(0); return; }
+  const cleanup = () => {
+    resetSessionData();
+    createPage();
+    layout(); // den nya sidvyn ska följa det aktuella läget
+    console.log('[startsida] städat efter', Date.now() - t0, 'ms');
+  };
+  if (settings.homeMode === 'app') { cleanup(); openApp(0); return; }
   S.view = 'home';
   S.current = -1;
   update();
   refreshInfo();
+  console.log('[startsida] visad efter', Date.now() - t0, 'ms');
+  setTimeout(cleanup, 0);
 }
 
 // ---------- tangentbord ----------

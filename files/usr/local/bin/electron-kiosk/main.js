@@ -97,7 +97,9 @@ function layout() {
   kbView.setVisible(S.kbOpen && inApp);
   kbView.setBounds({ x: 0, y: h - kbH, width: w, height: kbH });
   overlayView.setVisible(!!S.overlay);
-  overlayView.setBounds(full);
+  // Felsidan är en hel sida ovanför navigeringsfältet; varning och spärr-ark täcker hela skärmen
+  const navH = inApp && settings.navigation ? Math.round(BAR_H * z) : 0;
+  overlayView.setBounds(S.overlay && S.overlay.type === 'error' ? { x: 0, y: 0, width: w, height: Math.max(0, h - navH) } : full);
   for (const v of [homeView, barView, kbView, overlayView]) v.webContents.setZoomFactor(z);
 }
 

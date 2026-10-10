@@ -4,21 +4,16 @@
 <style>
 body { background: transparent; }
 #scrim[hidden] { display: none; }
-#scrim { position: fixed; inset: 0; background: rgba(0, 0, 40, .62); display: flex; align-items: center; justify-content: center; padding: 40px; box-sizing: border-box; }
-#card { width: 100%; max-width: 760px; box-sizing: border-box; background: #fff; border-radius: 28px; padding: 48px; display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
-h1 { margin: 0; font-size: 44px; font-weight: 800; color: #000061; line-height: 1.1; }
-p { margin: 0; font-size: 24px; line-height: 1.4; color: #3d4452; }
-.host { font-size: 24px; font-weight: 700; color: #000061; overflow-wrap: anywhere; }
-.qr { align-self: center; padding: 16px; border: 2px solid #dde2e9; border-radius: 18px; }
-.qr svg { display: block; width: 240px; height: 240px; }
-.qrtext { align-self: center; text-align: center; font-size: 20px; }
-.btns { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
-.btns button { height: 68px; padding: 0 32px; border-radius: 16px; font-size: 24px; font-weight: 700; border: 2px solid #c8d1dc; background: #fff; color: #1a1f2b; }
-.btns button.primary { background: #004791; color: #fff; border-color: #004791; }
-/* Varning före tillbakagång ("Är du kvar?"), enligt skissen: centrerat kort med nedräkning, knapparna under varandra */
+#scrim { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+#card { box-sizing: border-box; background: #fff; display: flex; flex-direction: column; }
+h1 { margin: 0; color: #000061; }
+p { margin: 0; color: #3d4452; }
+button { border: 0; }
+
+/* Varning före tillbakagång ("Är du kvar?"): centrerat kort med nedräkning, knapparna under varandra */
 #scrim.idle { background: rgba(0, 0, 40, .55); padding: 32px; }
-#card.idle { max-width: 560px; border-radius: 24px; padding: 40px; align-items: center; text-align: center; gap: 18px; }
-#card.idle h1 { font-size: 30px; line-height: 1.2; }
+#card.idle { width: 100%; max-width: 560px; border-radius: 24px; padding: 40px; align-items: center; text-align: center; gap: 18px; }
+#card.idle h1 { font-size: 30px; line-height: 1.2; font-weight: 800; }
 #card.idle p { font-size: 20px; line-height: 1.5; }
 .count { position: relative; width: 120px; height: 120px; flex: none; }
 .count svg { display: block; width: 120px; height: 120px; transform: rotate(-90deg); }
@@ -26,15 +21,37 @@ p { margin: 0; font-size: 24px; line-height: 1.4; color: #3d4452; }
 .count .ring { fill: none; stroke: #004791; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 327; transition: stroke-dashoffset 1s linear; }
 .count .num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; color: #000061; }
 .idlebtns { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; margin-top: 6px; }
-.idlebtns .cont { width: 100%; height: 72px; border: 0; border-radius: 16px; background: #004791; color: #fff; font-size: 24px; font-weight: 700; }
-.idlebtns .restart { height: 56px; padding: 0 24px; border: 0; border-radius: 14px; background: transparent; color: #004791; font-size: 20px; font-weight: 700; }
+.idlebtns .cont { width: 100%; height: 72px; border-radius: 16px; background: #004791; color: #fff; font-size: 24px; font-weight: 700; }
+.idlebtns .restart { height: 56px; padding: 0 24px; border-radius: 14px; background: transparent; color: #004791; font-size: 20px; font-weight: 700; }
+
+/* Spärr-ark ("Sidan kan inte öppnas här"): ett ark längst ner med text och knapp till vänster och QR-kod till höger */
+#scrim.blocked { background: rgba(0, 0, 40, .45); align-items: flex-end; }
+#card.blocked { width: 100%; max-width: 760px; border-radius: 24px 24px 0 0; padding: 36px 40px 40px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 32px; text-align: left; }
+.blocked .left { flex: 1 1 300px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.blocked h1 { font-size: 30px; font-weight: 800; line-height: 1.2; }
+.blocked p { font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; }
+.blocked .close { align-self: flex-start; height: 60px; padding: 0 28px; margin-top: 6px; border-radius: 14px; background: #004791; color: #fff; font-size: 20px; font-weight: 700; }
+.blocked .qr { flex: none; padding: 14px; border: 1px solid #d6dce4; border-radius: 16px; background: #fff; }
+.blocked .qr svg { display: block; width: 210px; height: 210px; }
+
+/* Felsida ("Sidan kunde inte laddas"): en hel vit sida ovanför navigeringsfältet */
+#scrim.error { background: #fff; padding: 48px; }
+#card.error { width: 100%; max-width: 560px; background: transparent; align-items: center; text-align: center; gap: 18px; }
+.error h1 { font-size: 34px; font-weight: 800; line-height: 1.2; }
+.error p { font-size: 20px; line-height: 1.5; }
+.error .icon { width: 72px; height: 72px; flex: none; }
+.errbtns { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+.errbtns button { height: 60px; padding: 0 28px; border-radius: 14px; font-size: 20px; font-weight: 700; }
+.errbtns .retry { background: #fff; color: #004791; border: 2px solid #004791; }
+.errbtns .home { background: #004791; color: #fff; }
 </style></head>
 <body><div id="scrim" hidden><div id="card"></div></div>
 <script src="qrcode.js"></script>
+<script src="icons.js"></script>
 <script>
 const $ = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
-function button(label, primary, act) {
-  const b = $('button', 'press' + (primary ? ' primary' : ''), label);
+function button(label, cls, act) {
+  const b = $('button', 'press ' + cls, label);
   b.type = 'button'; b.onclick = () => kiosk.act(act);
   return b;
 }
@@ -50,8 +67,8 @@ function renderIdle(o, t, card) {
     count.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="52"/><circle class="ring" cx="60" cy="60" r="52"/></svg>';
     count.appendChild($('div', 'num'));
     const btns = $('div', 'idlebtns');
-    const cont = $('button', 'press cont'); cont.type = 'button'; cont.id = 'idle-continue'; cont.onclick = () => kiosk.act('idleContinue');
-    const restart = $('button', 'press restart'); restart.type = 'button'; restart.id = 'idle-restart'; restart.onclick = () => kiosk.act('home');
+    const cont = button('', 'cont', 'idleContinue'); cont.id = 'idle-continue';
+    const restart = button('', 'restart', 'home'); restart.id = 'idle-restart';
     btns.append(cont, restart);
     card.append(count, $('h1', ''), $('p', ''), btns);
   }
@@ -65,33 +82,44 @@ function renderIdle(o, t, card) {
   document.getElementById('idle-restart').textContent = t.idleRestart;
 }
 
+function renderBlocked(o, t, card) {
+  card.dataset.kind = 'blocked';
+  card.className = 'blocked';
+  card.innerHTML = '';
+  const left = $('div', 'left');
+  left.append($('h1', '', t.blockedTitle), $('p', '', o.qr && o.host ? t.blockedHost.replace('{host}', o.host) : t.blockedText), button(t.close, 'close', 'overlayClose'));
+  card.append(left);
+  if (o.qr) {
+    const q = qrcode(0, 'M'); q.addData(o.url); q.make();
+    const box = $('div', 'qr');
+    box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }).replace(/fill="black"/g, 'fill="#000061"');
+    card.append(box);
+  }
+}
+
+function renderError(o, t, s, card) {
+  card.dataset.kind = 'error';
+  card.className = 'error';
+  card.innerHTML = '';
+  const icon = $('div', 'icon');
+  icon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#004791" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    (ICONS['wifi-off'] || []).map((d) => '<path d="' + d + '"/>').join('') + '</svg>';
+  const btns = $('div', 'errbtns');
+  if (!o.offline) btns.append(button(t.retry, 'retry', 'retry'));
+  btns.append(button(s.startLabel || t.start, 'home', 'home'));
+  card.append(icon, $('h1', '', o.offline ? t.offlineTitle : t.errorTitle), $('p', '', o.offline ? t.offlineText : t.errorText), btns);
+}
+
 function render(s) {
   const scrim = document.getElementById('scrim');
   const o = s.overlay;
   scrim.hidden = !o;
   if (!o) return;
   const t = s.strings, card = document.getElementById('card');
-  scrim.className = o.type === 'idle' ? 'idle' : '';
-  if (o.type === 'idle') { renderIdle(o, t, card); return; }
-  card.dataset.kind = o.type;
-  card.className = '';
-  card.innerHTML = '';
-  const btns = $('div', 'btns');
-  if (o.type === 'blocked') {
-    card.append($('h1', '', t.blockedTitle), $('p', '', t.blockedText));
-    if (o.host) card.append($('div', 'host', o.host));
-    if (o.qr) {
-      const q = qrcode(0, 'M'); q.addData(o.url); q.make();
-      const box = $('div', 'qr'); box.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-      card.append(box, $('p', 'qrtext', t.blockedQr));
-    }
-    btns.append(button(t.close, true, 'overlayClose'));
-  } else if (o.type === 'error') {
-    card.append($('h1', '', o.offline ? t.offlineTitle : t.errorTitle), $('p', '', o.offline ? t.offlineText : t.errorText));
-    if (!o.offline) btns.append(button(t.retry, true, 'retry'));
-    btns.append(button(t.startOver, !!o.offline, 'home'));
-  }
-  card.append(btns);
+  scrim.className = o.type;
+  if (o.type === 'idle') renderIdle(o, t, card);
+  else if (o.type === 'blocked') renderBlocked(o, t, card);
+  else if (o.type === 'error') renderError(o, t, s, card);
 }
 kiosk.state().then(render);
 kiosk.onState(render);

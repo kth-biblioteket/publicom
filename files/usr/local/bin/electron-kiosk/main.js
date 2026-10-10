@@ -7,6 +7,7 @@ const path = require('path');
 const { loadSettings } = require('./config');
 const { UrlPolicy, hostOf } = require('./policy');
 const { idleState } = require('./idle');
+const { InfoFeed } = require('./info');
 const { stringsFor, pick } = require('./strings');
 
 const argv = process.argv.slice(2);
@@ -16,6 +17,7 @@ const settings = loadSettings(
   option('--config', '/usr/local/bin/config/.config'),
   option('--hosts', '/var/lib/publicom/allowed-hosts.txt'));
 const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
+const info = new InfoFeed(settings, policy);
 
 const DESIGN_W = 1280;                                  // skalets sidor är ritade för 1280 px bredd och skalas med bredden
 const BAR_H = 88;                                       // navigeringsramen, i designpixlar
@@ -57,6 +59,7 @@ function uiState() {
     title: pick(S.lang, settings.texts.title, settings.texts.titleEn, t.title),
     subtitle: pick(S.lang, settings.texts.subtitle, settings.texts.subtitleEn, t.subtitle),
     footer: pick(S.lang, settings.texts.footer, settings.texts.footerEn, ''),
+    info: info.view(en),
     startLabel: en ? t.start : (settings.startLabel || t.start),
     startIcon: settings.startIcon,
     canBack: S.canBack,
@@ -205,6 +208,7 @@ function goHome() {
   S.view = 'home';
   S.current = -1;
   update();
+  refreshInfo();
 }
 
 // ---------- tangentbord ----------
@@ -248,6 +252,14 @@ function sendKey(msg) {
   } else if (msg.kind === 'hide') {
     hideKeyboard();
   }
+}
+
+// ---------- förstasidans nederkant ----------
+
+// Text från webbadresser hämtas bara medan förstasidan visas
+function refreshInfo() {
+  if (S.view !== 'home' || !info.urls().length) return;
+  info.refresh().then(pushState).catch(() => {});
 }
 
 // ---------- inaktivitet ----------
@@ -327,6 +339,7 @@ app.whenReady().then(() => {
   win.on('resize', layout);
   goHome();
   setInterval(idleTick, 1000);
+  setInterval(refreshInfo, settings.refreshMin * 60 * 1000);
 });
 
 app.on('window-all-closed', () => app.quit());

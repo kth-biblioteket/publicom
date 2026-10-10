@@ -128,6 +128,25 @@ function parseApps(raw) {
   return apps;
 }
 
+/** Ett informationsfält: "Etikett|typ|värde|Label". Typ text, url (https) eller clock. Ogiltig rad ger null. */
+class Field {
+  constructor(label, labelEn, type, value) { Object.assign(this, { label, labelEn, type, value }); }
+  labelFor(en) { return en && this.labelEn ? this.labelEn : this.label; }
+
+  static parse(line) {
+    if (!line || !line.trim()) return null;
+    const p = line.split('|').map((s) => s.trim());
+    const type = (p[1] || '').toLowerCase();
+    const label = p[0] || '', value = p[2] || '', labelEn = p[3] || '';
+    if (type === 'clock') return new Field(label, labelEn, type, '');
+    if (type === 'text' && value) return new Field(label, labelEn, type, value);
+    if (type === 'url' && value.startsWith('https://') && parseUrl(value)) return new Field(label, labelEn, type, value);
+    return null;
+  }
+}
+
+const MAX_FIELDS = 4;
+
 function csv(value) {
   return String(value || '').split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
 }
@@ -166,6 +185,14 @@ function buildSettings(env, hostsText) {
       subtitle: env.LAUNCHER_SUBTITLE || '', subtitleEn: env.LAUNCHER_SUBTITLE_EN || '',
       footer: env.LAUNCHER_FOOTER || '', footerEn: env.LAUNCHER_FOOTER_EN || '',
     },
+    fields: [env.LAUNCHER_FIELD_1, env.LAUNCHER_FIELD_2, env.LAUNCHER_FIELD_3, env.LAUNCHER_FIELD_4]
+      .map((line) => Field.parse(line)).filter(Boolean).slice(0, MAX_FIELDS),
+    message: {
+      text: (env.LAUNCHER_MESSAGE || '').trim(), textEn: (env.LAUNCHER_MESSAGE_EN || '').trim(),
+      url: (env.LAUNCHER_MESSAGE_URL || '').trim(),
+      style: env.LAUNCHER_MESSAGE_STYLE === 'alert' ? 'alert' : 'warning',
+    },
+    refreshMin: Math.max(1, Math.min(60, intOr(env.LAUNCHER_REFRESH, 1))),
     sessionSec: sessionMin * 60,
     warnSec: intOr(env.IDLE_WARNING, 60),
     printing: bool(env.PRINTER, false),
@@ -182,4 +209,4 @@ function loadSettings(configPath, hostsPath) {
   return buildSettings(env, hosts);
 }
 
-module.exports = { parseEnv, parseApps, buildSettings, loadSettings, Scope, MAX_APPS };
+module.exports = { parseEnv, parseApps, buildSettings, loadSettings, Scope, Field, MAX_APPS, MAX_FIELDS };

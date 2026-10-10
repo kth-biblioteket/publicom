@@ -40,6 +40,26 @@ https-adress krävs. Ikonerna är Lucide: `house`, `search`, `map`, `map-pin`, `
 
 Utan `APPS` används `WEBSITES` som tjänster, så att en kiosk utan nya inställningar ändå visar något.
 
+## Förstasidans nederkant
+
+Längst ner kan förstasidan ha ett **informationsfält** (upp till fyra fält) och en **meddelanderad** ovanför. Samma nycklar
+som i Android-appen PubLiKiosk, så att publicomtools redigerare delas.
+
+- `LAUNCHER_FIELD_1` till `_4`: en rad `Etikett|typ|värde|Label`. Typ `text` (värdet visas som det står), `url` (värdet är en
+  https-adress som svarar med ren text) eller `clock` (klockan, HH:mm; värde behövs inte). Ogiltiga rader (okänd typ, tom text,
+  adress som inte är https) ignoreras. Finns något fält döljs textraden `LAUNCHER_FOOTER`.
+- `LAUNCHER_MESSAGE`, `LAUNCHER_MESSAGE_EN`: raden ovanför fälten. `LAUNCHER_MESSAGE_URL`: en https-adress som ger texten. Tom
+  text från adressen döljer raden, inget svar ger den fasta texten. `LAUNCHER_MESSAGE_STYLE`: `warning` (gul, standard) eller `alert` (röd).
+- `LAUNCHER_REFRESH`: minuter mellan hämtningarna (1–60, standard 1), bara medan förstasidan visas.
+
+Adresserna hämtas av skalet självt, **bara över https mot en tillåten värd** (en tjänst i `APPS` eller `WHITE_LIST`, så en kiosk som
+ska visa text från `apps.lib.kth.se` måste ha den värden i `WHITE_LIST`), utan omdirigeringar, med 5 sekunders tidsgräns, högst
+2 kB och högst 300 tecken. Svaret visas alltid som **ren text**, aldrig som HTML. Misslyckas en hämtning ligger den senaste texten
+kvar i en timme, därefter visas ett streck (fält) eller den fasta texten (meddelande). De engelska etiketterna (fjärde delen) och
+`LAUNCHER_MESSAGE_EN` följer språkknappen.
+
+Korten ovanför behåller sin form: ikonrutan krymper med kortets höjd (minst 48 px) i stället för att klippas.
+
 ## Tillåtna webbplatser
 
 Chromium-policyerna (`policies_*.json`) gäller inte Electron. Skalet tillåter bara **https** mot värdar från `APPS` och

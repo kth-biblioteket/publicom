@@ -4,7 +4,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const dir = path.join(__dirname, '..', '..', 'files', 'usr', 'local', 'bin', 'electron-kiosk');
-const { parseEnv, parseApps, buildSettings, Scope, MAX_APPS } = require(path.join(dir, 'config.js'));
+const { parseEnv, parseApps, buildSettings, Scope, Field, MAX_APPS } = require(path.join(dir, 'config.js'));
+const { InfoFeed, clean, STALE_MS } = require(path.join(dir, 'info.js'));
 const { UrlPolicy, normalize } = require(path.join(dir, 'policy.js'));
 const { idleState } = require(path.join(dir, 'idle.js'));
 const { stringsFor, pick } = require(path.join(dir, 'strings.js'));
@@ -132,4 +133,86 @@ test('strings: pick och språk', () => {
   assert.equal(pick('sv', '', '', 'standard'), 'standard');
   assert.match(stringsFor('en', 12).idleText, /In 12 seconds/);
   assert.equal(stringsFor('sv').back, 'Tillbaka');
+});
+
+test('Field.parse: text, url och clock; ogiltiga rader ignoreras', () => {
+  const t = Field.parse('Öppet idag|text|8–19|Open today');
+  assert.equal(t.type, 'text');
+  assert.equal(t.value, '8–19');
+  assert.equal(t.labelFor(true), 'Open today');
+  assert.equal(t.labelFor(false), 'Öppet idag');
+  assert.equal(Field.parse('Besökare|url|https://a.example.se/x|Visitors').type, 'url');
+  assert.equal(Field.parse('|clock').type, 'clock');
+  assert.equal(Field.parse('Klockan|CLOCK|').type, 'clock');
+  assert.equal(Field.labelFor, undefined);
+  for (const bad of ['', '   ', null, 'Etikett|okänd|x', 'Tom|text|', 'Http|url|http://a.example.se/', 'Fel|url|inte en adress', 'Bara etikett']) {
+    assert.equal(Field.parse(bad), null, String(bad));
+  }
+  assert.equal(Field.parse('Etikett|text|a|').labelFor(true), 'Etikett'); // engelska faller tillbaka på svenska
+});
+
+test('buildSettings: fält, meddelande och uppdateringsintervall', () => {
+  const s = buildSettings({
+    LAUNCHER_FIELD_1: 'A|text|1|', LAUNCHER_FIELD_2: 'Trasig|okänd|x', LAUNCHER_FIELD_3: '|clock', LAUNCHER_FIELD_4: 'D|text|4|',
+    LAUNCHER_MESSAGE: 'Stängt', LAUNCHER_MESSAGE_STYLE: 'alert', LAUNCHER_REFRESH: '5',
+  }, '');
+  assert.deepEqual(s.fields.map((f) => f.type), ['text', 'clock', 'text']);
+  assert.equal(s.message.text, 'Stängt');
+  assert.equal(s.message.style, 'alert');
+  assert.equal(s.refreshMin, 5);
+  const d = buildSettings({ LAUNCHER_MESSAGE_STYLE: 'blå', LAUNCHER_REFRESH: '999' }, '');
+  assert.equal(d.message.style, 'warning');
+  assert.equal(d.refreshMin, 60);
+  assert.equal(buildSettings({ LAUNCHER_REFRESH: '0' }, '').refreshMin, 1);
+  assert.equal(buildSettings({ LAUNCHER_REFRESH: 'x' }, '').refreshMin, 1);
+  assert.equal(buildSettings({}, '').fields.length, 0);
+});
+
+test('clean: ren text, kontrolltecken bort, radbrytningar som blanksteg, högst 300 tecken', () => {
+  assert.equal(clean('  rad 1\n\n  rad 2\r\n'), 'rad 1 rad 2');
+  assert.equal(clean('a\u0000b\u0007c\u001bd'), 'abcd');
+  assert.equal(clean('<b>fet</b> & mer'), '<b>fet</b> & mer'); // visas som text, aldrig som HTML
+  assert.equal(clean('x'.repeat(500)).length, 300);
+  assert.equal(clean(null), '');
+});
+
+test('InfoFeed: hämtar bara tillåtna adresser, behåller senaste text och går ut efter en timme', async () => {
+  const settings = buildSettings({
+    APPS: 'T|https://a.example.se/',
+    LAUNCHER_FIELD_1: 'Besökare|url|https://a.example.se/n|Visitors',
+    LAUNCHER_FIELD_2: 'Annan|url|https://otillaten.example.org/n|',
+    LAUNCHER_FIELD_3: 'Öppet|text|8–19|Open',
+    LAUNCHER_MESSAGE: 'Fast text', LAUNCHER_MESSAGE_EN: 'Fixed text', LAUNCHER_MESSAGE_URL: 'https://a.example.se/m',
+  }, '');
+  const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
+  const asked = [];
+  let answers = { 'https://a.example.se/n': '42', 'https://a.example.se/m': 'Stängt i dag' };
+  let t = 1000;
+  const feed = new InfoFeed(settings, policy, async (u) => { asked.push(u); return u in answers ? answers[u] : null; }, () => t);
+
+  let v = feed.view(false);
+  assert.equal(v.fields[0].value, '–');                       // inget hämtat än
+  assert.equal(v.message.text, 'Fast text');                  // reservtexten
+  await feed.refresh();
+  assert.ok(!asked.includes('https://otillaten.example.org/n')); // otillåten värd hämtas aldrig
+  v = feed.view(false);
+  assert.equal(v.fields[0].value, '42');
+  assert.equal(v.fields[1].value, '–');
+  assert.equal(v.fields[2].value, '8–19');
+  assert.equal(v.message.text, 'Stängt i dag');
+  assert.equal(feed.view(true).fields[0].label, 'Visitors');
+
+  answers = {};                                               // nätet försvinner: senaste texten ligger kvar
+  t += 30 * 60 * 1000;
+  await feed.refresh();
+  assert.equal(feed.view(false).fields[0].value, '42');
+  t += STALE_MS;                                              // efter en timme: streck, och reservtexten på meddelandet
+  assert.equal(feed.view(false).fields[0].value, '–');
+  assert.equal(feed.view(false).message.text, 'Fast text');
+  assert.equal(feed.view(true).message.text, 'Fixed text');
+
+  answers = { 'https://a.example.se/m': '' };                 // tom text från adressen = ingen rad
+  await feed.refresh();
+  assert.equal(feed.view(false).message, null);
+  assert.equal(feed.view(true).message, null);
 });

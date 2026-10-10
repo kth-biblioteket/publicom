@@ -42,6 +42,7 @@
 0644 root:root   /usr/local/bin/electron-kiosk/fonts/OFL.txt
 0644 root:root   /usr/local/bin/electron-kiosk/icons.js
 0644 root:root   /usr/local/bin/electron-kiosk/idle.js
+0644 root:root   /usr/local/bin/electron-kiosk/info.js
 0644 root:root   /usr/local/bin/electron-kiosk/img/kth-logo-white.svg
 0644 root:root   /usr/local/bin/electron-kiosk/kb-preload.js
 0644 root:root   /usr/local/bin/electron-kiosk/keyboard.html

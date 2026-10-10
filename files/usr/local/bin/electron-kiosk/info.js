@@ -85,7 +85,7 @@ class InfoFeed {
     let text = english && s.message.textEn ? s.message.textEn : s.message.text;
     const fromUrl = s.message.url ? this.fresh(s.message.url, null) : null;
     if (fromUrl !== null) text = fromUrl;
-    return { fields, message: text ? { text, style: s.message.style } : null };
+    return { fields, message: text ? { text, style: s.message.style, icon: s.message.icon } : null };
   }
 }
 

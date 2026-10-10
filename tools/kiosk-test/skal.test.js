@@ -216,3 +216,15 @@ test('InfoFeed: hämtar bara tillåtna adresser, behåller senaste text och går
   assert.equal(feed.view(false).message, null);
   assert.equal(feed.view(true).message, null);
 });
+
+test('meddelandets ikon: standard info, none = ingen, okänt namn ger info', () => {
+  assert.equal(buildSettings({}, '').message.icon, 'info');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_ICON: 'none' }, '').message.icon, '');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_ICON: 'printer' }, '').message.icon, 'printer');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_ICON: ' Map-Pin ' }, '').message.icon, 'map-pin');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_ICON: 'finns-inte' }, '').message.icon, 'info');
+  const feed = new InfoFeed(buildSettings({ LAUNCHER_MESSAGE: 'Hej', LAUNCHER_MESSAGE_ICON: 'clock' }, ''), new UrlPolicy([], []));
+  assert.equal(feed.view(false).message.icon, 'clock');
+  const none = new InfoFeed(buildSettings({ LAUNCHER_MESSAGE: 'Hej', LAUNCHER_MESSAGE_ICON: 'none' }, ''), new UrlPolicy([], []));
+  assert.equal(none.view(false).message.icon, '');
+});

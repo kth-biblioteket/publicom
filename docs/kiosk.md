@@ -50,6 +50,8 @@ som i Android-appen PubLiKiosk, så att publicomtools redigerare delas.
   adress som inte är https) ignoreras. Finns något fält döljs textraden `LAUNCHER_FOOTER`.
 - `LAUNCHER_MESSAGE`, `LAUNCHER_MESSAGE_EN`: raden ovanför fälten. `LAUNCHER_MESSAGE_URL`: en https-adress som ger texten. Tom
   text från adressen döljer raden, inget svar ger den fasta texten. `LAUNCHER_MESSAGE_STYLE`: `warning` (gul, standard) eller `alert` (röd).
+- `LAUNCHER_MESSAGE_ICON`: ikonen före texten i meddelanderaden: `none` (ingen) eller samma ikoner som `START_ICON` (standard `info`).
+  Färgen visar graden, så ikonen kan vara densamma.
 - `LAUNCHER_REFRESH`: minuter mellan hämtningarna (1–60, standard 1), bara medan förstasidan visas.
 
 Adresserna hämtas av skalet självt, **bara över https mot en tillåten värd** (en tjänst i `APPS` eller `WHITE_LIST`, så en kiosk som

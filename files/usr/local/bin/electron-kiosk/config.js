@@ -2,6 +2,7 @@
 // Inställningar för kioskskalet: läser .config, tolkar APPS och bygger listan över tillåtna värdar.
 // Ren logik utan Electron, så att den går att testa med node --test (tools/kiosk-test/).
 const fs = require('fs');
+const { ICONS } = require('./icons');
 
 // Samma regler som load_config i config_lib.sh: bara rader NYCKEL=värde, ett lager citattecken
 // tas bort, och inget i filen körs.
@@ -191,6 +192,9 @@ function buildSettings(env, hostsText) {
       text: (env.LAUNCHER_MESSAGE || '').trim(), textEn: (env.LAUNCHER_MESSAGE_EN || '').trim(),
       url: (env.LAUNCHER_MESSAGE_URL || '').trim(),
       style: env.LAUNCHER_MESSAGE_STYLE === 'alert' ? 'alert' : 'warning',
+      // Ikonen före texten: none = ingen, annars en av ikonerna (standard info). Okänt namn ger info.
+      icon: (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() === 'none' ? ''
+        : (ICONS[(env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase()] ? (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() : 'info'),
     },
     refreshMin: Math.max(1, Math.min(60, intOr(env.LAUNCHER_REFRESH, 1))),
     sessionSec: sessionMin * 60,

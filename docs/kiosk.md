@@ -49,7 +49,7 @@ som i Android-appen PubLiKiosk, så att publicomtools redigerare delas.
   https-adress som svarar med ren text) eller `clock` (klockan, HH:mm; värde behövs inte). Ogiltiga rader (okänd typ, tom text,
   adress som inte är https) ignoreras. Finns något fält döljs textraden `LAUNCHER_FOOTER`.
 - `LAUNCHER_MESSAGE`, `LAUNCHER_MESSAGE_EN`: raden ovanför fälten. `LAUNCHER_MESSAGE_URL`: en https-adress som ger texten. Tom
-  text från adressen döljer raden, inget svar ger den fasta texten. `LAUNCHER_MESSAGE_STYLE`: `warning` (gul, standard) eller `alert` (röd).
+  text från adressen döljer raden, inget svar ger den fasta texten. `LAUNCHER_MESSAGE_STYLE`: `info` (blå), `warning` (gul, standard) eller `alert` (röd).
 - `LAUNCHER_MESSAGE_ICON`: ikonen före texten i meddelanderaden: `none` (ingen) eller samma ikoner som `START_ICON` (standard `info`).
   Färgen visar graden, så ikonen kan vara densamma.
 - `LAUNCHER_REFRESH`: minuter mellan hämtningarna (1–60, standard 1), bara medan förstasidan visas.

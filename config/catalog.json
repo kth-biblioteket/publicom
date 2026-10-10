@@ -190,10 +190,11 @@
       "help": "En https-adress på en tillåten webbplats som svarar med ren text. En tom text från adressen döljer raden, och får adressen inget svar används Meddelanderad." },
     { "key": "LAUNCHER_MESSAGE_STYLE", "label": "Meddelandets färg", "group": "kiosk", "type": "enum", "default": "warning",
       "options": [
-        { "value": "warning", "label": "Gul (information)" },
+        { "value": "info", "label": "Blå (information)" },
+        { "value": "warning", "label": "Gul (varning)" },
         { "value": "alert", "label": "Röd (störning)" }
       ],
-      "help": "Färgen på meddelanderaden." },
+      "help": "Färgen på meddelanderaden visar graden: blå för information, gul för varning, röd för störning." },
     { "key": "LAUNCHER_MESSAGE_ICON", "label": "Meddelandets ikon", "group": "kiosk", "type": "enum", "default": "info",
       "options": [
         { "value": "none", "label": "Ingen" },

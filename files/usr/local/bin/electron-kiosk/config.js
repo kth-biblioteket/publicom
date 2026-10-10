@@ -191,7 +191,7 @@ function buildSettings(env, hostsText) {
     message: {
       text: (env.LAUNCHER_MESSAGE || '').trim(), textEn: (env.LAUNCHER_MESSAGE_EN || '').trim(),
       url: (env.LAUNCHER_MESSAGE_URL || '').trim(),
-      style: env.LAUNCHER_MESSAGE_STYLE === 'alert' ? 'alert' : 'warning',
+      style: ['info', 'warning', 'alert'].includes(env.LAUNCHER_MESSAGE_STYLE) ? env.LAUNCHER_MESSAGE_STYLE : 'warning',
       // Ikonen före texten: none = ingen, annars en av ikonerna (standard info). Okänt namn ger info.
       icon: (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() === 'none' ? ''
         : (ICONS[(env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase()] ? (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() : 'info'),

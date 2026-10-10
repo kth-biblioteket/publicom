@@ -160,6 +160,8 @@ test('buildSettings: fält, meddelande och uppdateringsintervall', () => {
   assert.equal(s.message.text, 'Stängt');
   assert.equal(s.message.style, 'alert');
   assert.equal(s.refreshMin, 5);
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_STYLE: 'info' }, '').message.style, 'info');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_STYLE: 'warning' }, '').message.style, 'warning');
   const d = buildSettings({ LAUNCHER_MESSAGE_STYLE: 'blå', LAUNCHER_REFRESH: '999' }, '');
   assert.equal(d.message.style, 'warning');
   assert.equal(d.refreshMin, 60);

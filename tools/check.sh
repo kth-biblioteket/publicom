@@ -60,6 +60,35 @@ else
     fail "config/catalog.json: ogiltig JSON eller fel format"
 fi
 
+echo "== Bildval i katalogen (skärmsläckare och bakgrunder)"
+# Admin väljer bland bilderna som står som val i config/catalog.json. Varje bild i repot ska vara ett val och tvärtom,
+# så att listan i admin aldrig visar en bild som inte finns eller saknar en som finns.
+IMG_FAIL=$FAIL
+sc_opts=$(jq -r '.keys[] | select(.key=="SCREENSAVER_FILES") | .options[]?.value' config/catalog.json)
+for f in $(ls screensaver 2>/dev/null); do
+    echo "$sc_opts" | grep -qxF "$f" || fail "screensaver/$f saknas som val i SCREENSAVER_FILES (config/catalog.json)"
+done
+for v in $sc_opts; do
+    [ -f "screensaver/$v" ] || fail "$v är ett val i SCREENSAVER_FILES men finns inte i screensaver/"
+done
+[ -n "$sc_opts" ] || fail "SCREENSAVER_FILES har inga val i config/catalog.json"
+for key in BG_LANDSCAPE BG_PORTRAIT; do
+    bg_opts=$(jq -r --arg k "$key" '.keys[] | select(.key==$k) | .options[]?.value' config/catalog.json)
+    [ -n "$bg_opts" ] || fail "$key har inga val i config/catalog.json"
+    for v in $bg_opts; do
+        name=${v##*/}
+        [ "$v" = "/usr/local/bin/$name" ] || fail "$key: $v ska ligga i /usr/local/bin/ (som files.manifest installerar bakgrunderna)"
+        [ -f "backgrounds/$name" ] || fail "$key: backgrounds/$name saknas"
+        grep -qE "[[:space:]]/usr/local/bin/$name[[:space:]]+backgrounds/$name" files.manifest || fail "$key: $name installeras inte av files.manifest"
+    done
+    def=$(jq -r --arg k "$key" '.keys[] | select(.key==$k) | .default // empty' config/catalog.json)
+    echo "$bg_opts" | grep -qxF "$def" || fail "$key: standardvärdet $def är inte ett av valen"
+done
+for pv in $(jq -r '.keys[].options[]? | .preview // empty' config/catalog.json); do
+    [ -f "$pv" ] || fail "förhandsvisningen $pv (config/catalog.json) finns inte"
+done
+[ $FAIL -eq "$IMG_FAIL" ] && ok "bilderna i repot och valen i katalogen stämmer"
+
 echo "== JavaScript (Electron)"
 for f in files/usr/local/bin/electron-login/*.js files/usr/local/bin/electron-kiosk/*.js; do
     node --check "$f" 2>/dev/null && ok "$f" || fail "$f: syntaxfel"

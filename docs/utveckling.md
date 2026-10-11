@@ -35,6 +35,9 @@ Skydda `pilot` och `stable` på GitHub (kräv granskning, få personer med skriv
   En ny fil i `files/` måste läggas till där.
 - Chromiums grundpolicyer (`policies_*.json`) och skärmsläckarbilderna (`screensaver/`) installeras också via manifestet,
   till `/usr/local/share/publicom/`, så att de alltid följer koden. En ny bild i `screensaver/` måste läggas i manifestet.
+- **Ny skärmsläckarbild eller bakgrund:** lägg filen i `screensaver/` respektive `backgrounds/`, en rad i `files.manifest`, och ett val med namn
+  och `preview` i `config/catalog.json` (`SCREENSAVER_FILES`, eller `BG_LANDSCAPE` och `BG_PORTRAIT`). Admin väljer bland valen, med miniatyr,
+  i stället för att skriva filnamn. `tools/check.sh` felar om bilderna och valen inte stämmer.
 - `deploy.sh` validerar allt innan något installeras och skriver bara ändrade filer.
 
 ## Ny inställning
@@ -46,6 +49,8 @@ En inställning skapas i koden här, och admin får veta om den via katalogen.
    (`bool`, `int`, `string`, `csv`, `url`, `enum`), och vid behov `options`, `unit`, `separator`, `default`,
    `help`, `example`, `advanced` (tekniska inställningar som döljs som standard), `perComputer` (hör till den enskilda
    datorn, t ex namn och resurs-id, och står kvar när datorn byter profil; andra egna värden tas bort vid bytet).
+   Ett val i `options` är `{ "value", "label" }` och kan ha `"preview"`: en sökväg i repot till en bild som publicomtools visar som miniatyr.
+   En `csv`-nyckel med `options` väljs ur listan i den ordning valen görs (`SCREENSAVER_FILES`).
 3. `tools/check.sh` kontrollerar att varje nyckel i katalogen läses av koden.
 4. I publicomtools: *Inställningskatalog* → **Hämta från stable** efter releasen (eller **Läs in från fil…** med
    `config/catalog.json` innan dess). Granska de nya, ändrade och borttagna nycklarna och uppdatera.

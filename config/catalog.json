@@ -38,12 +38,24 @@
       "help": "Välj stående om skärmen sitter på högkant." },
     { "key": "INITIAL_SCALE", "label": "Zoom", "group": "skarm", "type": "int", "unit": "procent", "default": "100",
       "help": "Hur stora tjänsternas sidor visas på en kiosk, 10–500 procent. Över 100 ger större text men plats för mindre innehåll. Förstasidan, navigeringen och tangentbordet påverkas inte." },
-    { "key": "BG_LANDSCAPE", "label": "Bakgrundsbild, liggande", "group": "skarm", "type": "string",
+    { "key": "BG_LANDSCAPE", "label": "Bakgrundsbild, liggande", "group": "skarm", "type": "enum",
+      "options": [
+        { "value": "/usr/local/bin/screen_bg_kth_logo_navy.png", "label": "KTH, mörkblå med logga", "preview": "backgrounds/screen_bg_kth_logo_navy.png" },
+        { "value": "/usr/local/bin/screen_bg_kth_logo_navy_portrait.png", "label": "KTH, mörkblå med logga, stående", "preview": "backgrounds/screen_bg_kth_logo_navy_portrait.png" },
+        { "value": "/usr/local/bin/screen_bg_gc.png", "label": "Gästdator för dig som besöker KTH", "preview": "backgrounds/screen_bg_gc.png" },
+        { "value": "/usr/local/bin/screen_bg_gc_empty.png", "label": "Mörkblå, bara mönstret", "preview": "backgrounds/screen_bg_gc_empty.png" }
+      ],
       "default": "/usr/local/bin/screen_bg_kth_logo_navy.png", "advanced": true,
-      "help": "Sökväg på datorn till bakgrundsbilden för liggande skärm." },
-    { "key": "BG_PORTRAIT", "label": "Bakgrundsbild, stående", "group": "skarm", "type": "string",
+      "help": "Bakgrunden bakom fönstren på en dator med liggande skärm. Bilderna följer med koden på datorn." },
+    { "key": "BG_PORTRAIT", "label": "Bakgrundsbild, stående", "group": "skarm", "type": "enum",
+      "options": [
+        { "value": "/usr/local/bin/screen_bg_kth_logo_navy.png", "label": "KTH, mörkblå med logga", "preview": "backgrounds/screen_bg_kth_logo_navy.png" },
+        { "value": "/usr/local/bin/screen_bg_kth_logo_navy_portrait.png", "label": "KTH, mörkblå med logga, stående", "preview": "backgrounds/screen_bg_kth_logo_navy_portrait.png" },
+        { "value": "/usr/local/bin/screen_bg_gc.png", "label": "Gästdator för dig som besöker KTH", "preview": "backgrounds/screen_bg_gc.png" },
+        { "value": "/usr/local/bin/screen_bg_gc_empty.png", "label": "Mörkblå, bara mönstret", "preview": "backgrounds/screen_bg_gc_empty.png" }
+      ],
       "default": "/usr/local/bin/screen_bg_kth_logo_navy.png", "advanced": true,
-      "help": "Sökväg på datorn till bakgrundsbilden för stående skärm." },
+      "help": "Bakgrunden bakom fönstren på en dator med stående skärm. Bilderna följer med koden på datorn." },
 
     { "key": "SCREENSAVER", "label": "Skärmsläckare", "group": "skarmslackare", "type": "bool", "default": "false",
       "help": "Visar bilder när ingen använder datorn." },
@@ -51,7 +63,14 @@
       "default": "00:30:00", "example": "00:30:00",
       "help": "Tid utan aktivitet, skrivs timmar:minuter:sekunder." },
     { "key": "SCREENSAVER_FILES", "label": "Bilder i skärmsläckaren", "group": "skarmslackare", "type": "csv",
-      "help": "Filnamn på bilderna i publicoms mapp screensaver/, i den ordning de visas. Bilderna följer med koden på datorn. Tom lista visar KTH-bakgrunden." },
+      "options": [
+        { "value": "screen_bg_kth_logo_navy_search.png", "label": "Sökdator (Primo), mörkblå", "preview": "screensaver/screen_bg_kth_logo_navy_search.png" },
+        { "value": "screen_bg_kth_logo_navy_search_2.png", "label": "Sökdator (Primo), logga överst", "preview": "screensaver/screen_bg_kth_logo_navy_search_2.png" },
+        { "value": "screen_bg_kth_logo_navy_guest.png", "label": "Gästdator, mörkblå", "preview": "screensaver/screen_bg_kth_logo_navy_guest.png" },
+        { "value": "screen_bg_kth_logo_heaven_guest.png", "label": "Gästdator, ljusblå", "preview": "screensaver/screen_bg_kth_logo_heaven_guest.png" },
+        { "value": "screen_bg_kth_logo_navy_grupprum.png", "label": "Grupprum, boka här", "preview": "screensaver/screen_bg_kth_logo_navy_grupprum.png" }
+      ],
+      "help": "Bilderna som visas när skärmsläckaren går, i den ordning de väljs. Bilderna följer med koden på datorn. Tom lista visar KTH-bakgrunden." },
 
     { "key": "LOGINTYPE", "label": "Inloggning med", "group": "session", "type": "enum", "default": "password",
       "options": [

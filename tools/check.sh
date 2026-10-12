@@ -65,7 +65,9 @@ echo "== Bildval i katalogen (skärmsläckare och bakgrunder)"
 # så att listan i admin aldrig visar en bild som inte finns eller saknar en som finns.
 IMG_FAIL=$FAIL
 sc_opts=$(jq -r '.keys[] | select(.key=="SCREENSAVER_FILES") | .options[]?.value' config/catalog.json)
-for f in $(ls screensaver 2>/dev/null); do
+for f in screensaver/*; do
+    [ -e "$f" ] || continue
+    f=${f#screensaver/}
     echo "$sc_opts" | grep -qxF "$f" || fail "screensaver/$f saknas som val i SCREENSAVER_FILES (config/catalog.json)"
 done
 for v in $sc_opts; do
@@ -79,7 +81,7 @@ for key in BG_LANDSCAPE BG_PORTRAIT; do
         name=${v##*/}
         [ "$v" = "/usr/local/bin/$name" ] || fail "$key: $v ska ligga i /usr/local/bin/ (som files.manifest installerar bakgrunderna)"
         [ -f "backgrounds/$name" ] || fail "$key: backgrounds/$name saknas"
-        grep -qE "[[:space:]]/usr/local/bin/$name[[:space:]]+backgrounds/$name" files.manifest || fail "$key: $name installeras inte av files.manifest"
+        grep -qE "[[:space:]]/usr/local/bin/${name}[[:space:]]+backgrounds/${name}" files.manifest || fail "$key: $name installeras inte av files.manifest"
     done
     def=$(jq -r --arg k "$key" '.keys[] | select(.key==$k) | .default // empty' config/catalog.json)
     echo "$bg_opts" | grep -qxF "$def" || fail "$key: standardvärdet $def är inte ett av valen"

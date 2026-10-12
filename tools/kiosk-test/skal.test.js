@@ -32,6 +32,17 @@ test('parseApps: radform med alla sju delar', () => {
   assert.ok(!a.scope.contains('https://primo.example.se/annat'));
 });
 
+test('parseApps: engelsk adress, värden tillåts och båda räknas som inne i tjänsten', () => {
+  const { UrlPolicy } = require(path.join(dir, 'policy.js'));
+  const [a] = parseApps('Karta|https://karta.example.se/|map||b|Map|d|https://map.example.se/?lang=en');
+  assert.equal(a.urlFor(true), 'https://map.example.se/?lang=en');
+  assert.equal(a.urlFor(false), 'https://karta.example.se/');
+  assert.ok(a.inScope('https://karta.example.se/x') && a.inScope('https://map.example.se/x'));
+  assert.ok(new UrlPolicy([a], []).allows('https://map.example.se/y'));
+  const [j] = parseApps(JSON.stringify([{ name: 'K', url: 'https://k.example.se/', urlEn: 'http://k.example.se/en' }]));
+  assert.equal(j.urlFor(true), 'https://k.example.se/', 'http är ogiltigt, den vanliga används');
+});
+
 test('parseApps: engelska faller tillbaka på svenska, och bara namn och adress krävs', () => {
   const [a] = parseApps('Karta|https://karta.example.se/');
   assert.equal(a.nameFor(true), 'Karta');

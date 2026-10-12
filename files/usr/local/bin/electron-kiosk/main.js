@@ -200,7 +200,7 @@ function openApp(i) {
   S.view = 'app';
   S.current = i;
   S.kbOpen = false;
-  pageView.webContents.loadURL(a.url);
+  pageView.webContents.loadURL(a.urlFor(S.lang === 'en'));
   update();
 }
 

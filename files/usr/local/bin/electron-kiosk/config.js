@@ -72,6 +72,10 @@ class App {
   /** Namn och beskrivning på besökarens språk; saknas den engelska används den svenska */
   nameFor(en) { return en && this.labelEn ? this.labelEn : this.label; }
   descFor(en) { return en && this.descEn ? this.descEn : this.desc; }
+  /** Adressen på besökarens språk; saknas den engelska (eller är ogiltig) används den vanliga */
+  urlFor(en) { return en && this.urlEn ? this.urlEn : this.url; }
+  /** Inne i tjänsten: på någon av de två adresserna (ett angivet område gäller båda) */
+  inScope(url) { return this.scope.contains(url) || (!!this.scopeEn && this.scopeEn.contains(url)); }
 }
 
 function makeApp(f) {
@@ -79,10 +83,14 @@ function makeApp(f) {
   const url = (f.url || '').trim();
   const u = parseUrl(url);
   if (!label || !u || u.protocol !== 'https:' || !u.hostname) return null;
+  const ue = parseUrl((f.urlEn || '').trim());
+  const urlEn = ue && ue.protocol === 'https:' && ue.hostname ? f.urlEn.trim() : '';
+  const explicit = Scope.parse(f.scope || '');
   return new App({
-    label, url,
+    label, url, urlEn,
     icon: (f.icon || '').trim(),
-    scope: Scope.parse(f.scope || '') || Scope.fromStartUrl(url),
+    scope: explicit || Scope.fromStartUrl(url),
+    scopeEn: explicit ? null : (urlEn ? Scope.fromStartUrl(urlEn) : null),
     desc: (f.desc || '').trim(),
     labelEn: (f.labelEn || '').trim(),
     descEn: (f.descEn || '').trim(),
@@ -91,8 +99,8 @@ function makeApp(f) {
 
 /**
  * APPS har två former. En JSON-lista (när någon text innehåller | , " eller radbrytning):
- * [{"name":"Sök","url":"https://…","icon":"search","scope":"","desc":"…","nameEn":"…","descEn":"…"}].
- * Annars en post per rad: "Namn|https://adress/|ikon|område|beskrivning|namn_en|beskrivning_en".
+ * [{"name":"Sök","url":"https://…","icon":"search","scope":"","desc":"…","nameEn":"…","descEn":"…","urlEn":"https://…"}].
+ * Annars en post per rad: "Namn|https://adress/|ikon|område|beskrivning|namn_en|beskrivning_en|adress_en".
  * Allt utom namn och adress är valfritt. Ogiltiga poster hoppas över, och går JSON-listan inte att
  * läsa tolkas texten som rader.
  */
@@ -106,7 +114,7 @@ function parseApps(raw) {
         const apps = [];
         for (const o of list) {
           if (!o || typeof o !== 'object') continue;
-          const a = makeApp({ label: o.name, url: o.url, icon: o.icon, scope: o.scope, desc: o.desc, labelEn: o.nameEn, descEn: o.descEn });
+          const a = makeApp({ label: o.name, url: o.url, icon: o.icon, scope: o.scope, desc: o.desc, labelEn: o.nameEn, descEn: o.descEn, urlEn: o.urlEn });
           if (!a) continue;
           if (apps.length >= MAX_APPS) break;
           apps.push(a);
@@ -121,7 +129,7 @@ function parseApps(raw) {
   for (const line of lines) {
     if (!line.trim()) continue;
     const p = line.split('|').map((s) => s.trim());
-    const a = makeApp({ label: p[0], url: p[1], icon: p[2], scope: p[3], desc: p[4], labelEn: p[5], descEn: p[6] });
+    const a = makeApp({ label: p[0], url: p[1], icon: p[2], scope: p[3], desc: p[4], labelEn: p[5], descEn: p[6], urlEn: p[7] });
     if (!a) continue;
     if (apps.length >= MAX_APPS) break;
     apps.push(a);

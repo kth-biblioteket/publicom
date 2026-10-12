@@ -23,7 +23,7 @@ class UrlPolicy {
   /** apps: tjänsterna (deras värdar tillåts), extraHosts: övriga värdnamn eller adresser */
   constructor(apps, extraHosts) {
     this.hosts = [];
-    for (const a of apps || []) this.add(hostOf(a.url));
+    for (const a of apps || []) { this.add(hostOf(a.url)); if (a.urlEn) this.add(hostOf(a.urlEn)); }
     for (const h of extraHosts || []) this.add(normalize(h));
   }
 

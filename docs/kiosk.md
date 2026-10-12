@@ -32,10 +32,10 @@ Nyckelkatalogen (`config/catalog.json`), gruppen *Kiosk*: `HOME_MODE`, `APPS`, `
 
 `APPS` har högst sex tjänster. Antingen en JSON-lista:
 ```
-[{"name":"Sök böcker","url":"https://…","icon":"search","scope":"","desc":"…","nameEn":"…","descEn":"…"}]
+[{"name":"Sök böcker","url":"https://…","icon":"search","scope":"","desc":"…","nameEn":"…","descEn":"…","urlEn":"https://…"}]
 ```
-eller en post per rad: `Namn|https://adress/|ikon|område|beskrivning|namn_en|beskrivning_en`. Bara namn och
-https-adress krävs. Ikonerna är Lucide: `house`, `search`, `map`, `map-pin`, `calendar`, `book-open`, `library`, `info`,
+eller en post per rad: `Namn|https://adress/|ikon|område|beskrivning|namn_en|beskrivning_en|adress_en`. Bara namn och
+https-adress krävs. Den engelska adressen (`urlEn`, åttonde delen) öppnas när besökaren valt English; är den tom eller inte https används den vanliga. Dess värd tillåts också. Ikonerna är Lucide: `house`, `search`, `map`, `map-pin`, `calendar`, `book-open`, `library`, `info`,
 `circle-help`, `printer`, `monitor`, `user`, `clock`, `graduation-cap`.
 
 Utan `APPS` används `WEBSITES` som tjänster, så att en kiosk utan nya inställningar ändå visar något.

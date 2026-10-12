@@ -171,6 +171,13 @@ function intOr(value, def) {
   return Number.isFinite(n) && n >= 0 ? n : def;
 }
 
+/** Antal kort per sida: ett jämnt tal, 2 till 12 (udda avrundas nedåt), 4 om inget anges */
+function perPage(raw) {
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n)) return 4;
+  return Math.max(2, Math.min(MAX_APPS, n - (n % 2)));
+}
+
 /** Bygger skalets inställningar från en tolkad .config och värdlistan som allowlist_from_ezproxy.sh skriver */
 function buildSettings(env, hostsText) {
   let apps = parseApps(env.APPS);
@@ -188,7 +195,7 @@ function buildSettings(env, hostsText) {
   return {
     apps,
     homeMode,
-    layout: env.LAUNCHER_LAYOUT === 'compact' ? 'compact' : 'pages',
+    perPage: perPage(env.LAUNCHER_PER_PAGE),
     language: env.LANGUAGE === 'en' ? 'en' : 'sv',
     navigation: bool(env.NAVIGATION, true),
     startLabel: (env.START_LABEL || '').trim(),

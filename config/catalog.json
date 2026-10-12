@@ -166,12 +166,12 @@
       "help": "Gäller kiosker. Förstasidan visar stora kort för tjänsterna. I det andra läget öppnas första tjänsten direkt och de övriga ligger som flikar i navigeringen." },
     { "key": "APPS", "label": "Tjänster", "group": "kiosk", "type": "apps",
       "help": "Tjänsterna som kiosken visar, högst tolv (i appläget högst sex). Namn och https-adress krävs; ikon, område och beskrivning är valfria. Varje tjänst kan också ha ett engelskt namn, en engelsk beskrivning och en engelsk adress (sjätte, sjunde och åttonde delen), som används när besökaren valt English. Den engelska adressen skrivs ut i sin helhet, t ex https://tjänst.kth.se/?lang=en, eftersom tjänster anger språk på olika sätt. Adresserna tillåts automatiskt." },
-    { "key": "LAUNCHER_LAYOUT", "label": "Förstasidan med fler än fyra tjänster", "group": "kiosk", "type": "enum", "default": "pages",
+    { "key": "LAUNCHER_PER_PAGE", "label": "Tjänster per sida på förstasidan", "group": "kiosk", "type": "enum", "default": "4",
       "options": [
-        { "value": "pages", "label": "Sidor med prickar (besökaren sveper)" },
-        { "value": "compact", "label": "Alla på en sida (mindre kort)" }
+        { "value": "2", "label": "2" }, { "value": "4", "label": "4" }, { "value": "6", "label": "6" },
+        { "value": "8", "label": "8" }, { "value": "10", "label": "10" }, { "value": "12", "label": "12" }
       ],
-      "help": "Hur förstasidan visar fler än fyra tjänster. Sidor har fyra kort per sida med prickar under. Alla på en sida visar allt samtidigt med mindre kort, och beskrivningen döljs vid fler än sex. Med fyra tjänster eller färre spelar valet ingen roll." },
+      "help": "Hur många tjänster som visas samtidigt, ett jämnt antal. Korten anpassar sig i storlek efter antalet och skärmen. Finns det fler tjänster blir det flera sidor, som besökaren bläddrar mellan med svep och prickar." },
     { "key": "LAUNCHER_TITLE", "label": "Rubrik på förstasidan", "group": "kiosk", "type": "string",
       "help": "Tomt ger standardtexten (Vad vill du göra?)." },
     { "key": "LAUNCHER_TITLE_EN", "label": "Rubrik på förstasidan, engelska", "group": "kiosk", "type": "string",

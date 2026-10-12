@@ -64,11 +64,15 @@ test('parseApps: ogiltiga poster hoppas över, http är ogiltigt, tak på tolv',
   assert.equal(parseApps(many).length, MAX_APPS);
 });
 
-test('buildSettings: LAUNCHER_LAYOUT sidor som standard, och i appläget högst sex tjänster', () => {
+test('buildSettings: LAUNCHER_PER_PAGE är ett jämnt tal 2-12 (4 som standard), och i appläget högst sex tjänster', () => {
   const apps = Array.from({ length: 10 }, (_, i) => `T${i}|https://t${i}.example.se/`).join('\n');
-  assert.equal(buildSettings({ APPS: apps }, '').layout, 'pages');
-  assert.equal(buildSettings({ APPS: apps, LAUNCHER_LAYOUT: 'compact' }, '').layout, 'compact');
-  assert.equal(buildSettings({ APPS: apps, LAUNCHER_LAYOUT: 'x' }, '').layout, 'pages');
+  const pp = (v) => buildSettings({ APPS: apps, LAUNCHER_PER_PAGE: v }, '').perPage;
+  assert.equal(pp(undefined), 4);
+  assert.equal(pp('6'), 6);
+  assert.equal(pp('7'), 6, 'udda avrundas nedåt');
+  assert.equal(pp('1'), 2);
+  assert.equal(pp('40'), 12);
+  assert.equal(pp('x'), 4);
   assert.equal(buildSettings({ APPS: apps }, '').apps.length, 10);
   assert.equal(buildSettings({ APPS: apps, HOME_MODE: 'app' }, '').apps.length, 6);
 });

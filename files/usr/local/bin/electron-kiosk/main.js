@@ -204,12 +204,12 @@ function openApp(i) {
   update();
 }
 
-/** Startsida: allt som besökaren gjort rensas (cookies, cache, historik), språket återställs */
-function goHome() {
+/** Startsida: allt som besökaren gjort rensas (cookies, cache, historik). Språket återställs bara för en ny besökare (keepLang: samma besökare) */
+function goHome(keepLang) {
   if (autoRetry) { clearInterval(autoRetry); autoRetry = null; }
   S.overlay = null;
   S.kbOpen = false;
-  S.lang = settings.language;
+  if (!keepLang) S.lang = settings.language;
   resetSessionData();
   createPage();
   if (settings.homeMode === 'app') { openApp(0); return; }
@@ -334,8 +334,8 @@ app.whenReady().then(() => {
     if (!isUi(e)) return;
     if (name === 'openApp' && Number.isInteger(arg)) openApp(arg);
     else if (name === 'setLang' && (arg === 'sv' || arg === 'en')) { S.lang = arg; pushState(); }
-    else if (name === 'home') goHome();
-    else if (name === 'back') { if (pageView && pageView.webContents.navigationHistory.canGoBack()) pageView.webContents.navigationHistory.goBack(); else goHome(); }
+    else if (name === 'home') goHome(true);
+    else if (name === 'back') { if (pageView && pageView.webContents.navigationHistory.canGoBack()) pageView.webContents.navigationHistory.goBack(); else goHome(true); }
     else if (name === 'overlayClose' || name === 'idleContinue') hideOverlay();
     else if (name === 'retry') { hideOverlay(); if (lastFailedUrl) pageView.webContents.loadURL(lastFailedUrl); }
   });

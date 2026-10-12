@@ -27,10 +27,13 @@ varningen, sedan rensas sessionen (cookies, cache, historik), språket återstä
 ## Inställningar
 
 Nyckelkatalogen (`config/catalog.json`), gruppen *Kiosk*: `HOME_MODE`, `APPS`, `LAUNCHER_TITLE`, `LAUNCHER_SUBTITLE`,
-`LAUNCHER_FOOTER` (och `_EN`), `START_LABEL`, `START_ICON`, `NAVIGATION`, `LANGUAGE`, `IDLE_WARNING`, samt de vanliga
+`LAUNCHER_FOOTER` (och `_EN`), `LAUNCHER_LAYOUT`, `START_LABEL`, `START_ICON`, `NAVIGATION`, `LANGUAGE`, `IDLE_WARNING`, samt de vanliga
 `SESSION_IDLE`, `PRINTER`, `DOWNLOADS` och `WHITE_LIST` (utan EZproxy-listan, se nedan).
 
-`APPS` har högst sex tjänster. Antingen en JSON-lista:
+`APPS` har högst tolv tjänster (i appläget sex). Upp till fyra kort ryms på förstasidan. Med fler väljer `LAUNCHER_LAYOUT`:
+`pages` (standard) ger sidor om fyra kort med prickar under, som besökaren sveper mellan (med mus räcker det att dra), och
+`compact` visar alla på en sida med mindre kort (beskrivningen döljs vid fler än sex). Startsida går tillbaka till första sidan.
+Antingen en JSON-lista:
 ```
 [{"name":"Sök böcker","url":"https://…","icon":"search","scope":"","desc":"…","nameEn":"…","descEn":"…","urlEn":"https://…"}]
 ```

@@ -57,11 +57,20 @@ test('parseApps: JSON-form med tecken som annars förstör raderna', () => {
   assert.equal(apps[0].nameFor(true), 'A and B');
 });
 
-test('parseApps: ogiltiga poster hoppas över, http är ogiltigt, tak på sex', () => {
+test('parseApps: ogiltiga poster hoppas över, http är ogiltigt, tak på tolv', () => {
   const raw = ['Ok|https://ok.example.se/', 'Http|http://nej.example.se/', 'Utan adress', '|https://tomt.example.se/'].join('\n');
   assert.deepEqual(parseApps(raw).map((a) => a.label), ['Ok']);
-  const many = Array.from({ length: 9 }, (_, i) => `T${i}|https://t${i}.example.se/`).join('\n');
+  const many = Array.from({ length: 15 }, (_, i) => `T${i}|https://t${i}.example.se/`).join('\n');
   assert.equal(parseApps(many).length, MAX_APPS);
+});
+
+test('buildSettings: LAUNCHER_LAYOUT sidor som standard, och i appläget högst sex tjänster', () => {
+  const apps = Array.from({ length: 10 }, (_, i) => `T${i}|https://t${i}.example.se/`).join('\n');
+  assert.equal(buildSettings({ APPS: apps }, '').layout, 'pages');
+  assert.equal(buildSettings({ APPS: apps, LAUNCHER_LAYOUT: 'compact' }, '').layout, 'compact');
+  assert.equal(buildSettings({ APPS: apps, LAUNCHER_LAYOUT: 'x' }, '').layout, 'pages');
+  assert.equal(buildSettings({ APPS: apps }, '').apps.length, 10);
+  assert.equal(buildSettings({ APPS: apps, HOME_MODE: 'app' }, '').apps.length, 6);
 });
 
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {

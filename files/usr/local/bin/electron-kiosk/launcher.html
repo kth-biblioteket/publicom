@@ -12,7 +12,7 @@ header .pattern { position: absolute; right: 0; bottom: 0; transform: scaleY(-1)
 #org { font-size: 28px; font-weight: 700; color: #def0ff; letter-spacing: .02em; }
 #title { font-size: 76px; font-weight: 800; line-height: 1.05; }
 #subtitle { font-size: 28px; color: #def0ff; }
-#grid { flex: 1; min-height: 0; overflow-y: auto; box-sizing: border-box; padding: 28px 56px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(76px, 1fr); gap: 24px; background: #f3f5f8; }
+#grid, .page { flex: 1; min-height: 0; overflow-y: auto; box-sizing: border-box; padding: 28px 56px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(76px, 1fr); gap: 24px; background: #f3f5f8; }
 .tile { container-type: size; border: 2px solid #dde2e9; border-radius: 24px; background: #fff; padding: 0 36px; display: flex; align-items: center; gap: 28px; text-align: left; color: inherit; }
 .tile .ico { flex: none; width: clamp(48px, calc(100cqh - 24px), 112px); height: clamp(48px, calc(100cqh - 24px), 112px); border-radius: 25%; background: #def0ff; color: #004791; display: flex; align-items: center; justify-content: center; }
 .tile .ico svg { width: 54%; height: 54%; }
@@ -38,7 +38,7 @@ footer[hidden], #info[hidden], #msg[hidden] { display: none; }
   #title { font-size: clamp(48px, 5.2vh, 66px); }
   #logo { width: 86px; height: 96px; }
   #lang { right: 48px; }
-  #grid { grid-template-columns: 1fr; padding: clamp(16px, 2.5vh, 32px) 48px; gap: clamp(12px, 1.9vh, 24px); }
+  #grid, .page { grid-template-columns: 1fr; padding: clamp(16px, 2.5vh, 32px) 48px; gap: clamp(12px, 1.9vh, 24px); }
   #msg { padding: 12px 48px; font-size: 20px; }
   #msg svg { width: 26px; height: 26px; }
   #info { height: 110px; padding: 0 48px; }
@@ -48,6 +48,34 @@ footer[hidden], #info[hidden], #msg[hidden] { display: none; }
   #info .clock { font-size: 38px; }
   header .pattern { width: 260px; height: 160px; }
 }
+/* Stående men nästan kvadratisk (bredare än 3:4, t.ex. 1024x1280): två kolumner med rutor, tunnare huvud */
+@media (min-aspect-ratio: 3/4) and (max-aspect-ratio: 1/1) {
+  header { padding: clamp(32px, 3.5vh, 44px) 48px clamp(28px, 3.1vh, 40px); }
+  #title { font-size: 54px; }
+  #logo { width: 70px; height: 78px; }
+  header .pattern { display: none; }
+  #grid, .page { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 24px 40px; gap: 20px; grid-auto-rows: minmax(150px, 1fr); }
+  .tile { flex-direction: column; justify-content: center; text-align: center; padding: 16px 20px; gap: 14px; }
+  .tile .ico { width: clamp(64px, 38cqh, 112px); height: clamp(64px, 38cqh, 112px); }
+  .tile .name { font-size: 30px; }
+  .tile .desc { font-size: 18px; margin-top: 4px; }
+}
+/* Fler än fyra tjänster: sidor med prickar (LAUNCHER_LAYOUT=pages) eller ett kompakt rutnät (compact) */
+#grid.paged { display: flex; padding: 0; gap: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; }
+#grid.paged::-webkit-scrollbar { display: none; }
+.page { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; box-sizing: border-box; overflow: hidden; }
+#dots { flex: none; display: flex; justify-content: center; gap: 6px; padding: 0 0 10px; background: #f3f5f8; }
+#dots button { width: 36px; height: 30px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; }
+#dots i { width: 12px; height: 12px; border-radius: 50%; background: #b9c2d0; display: block; transition: background .15s; }
+#dots .on i { background: #000061; }
+#grid.compact { grid-auto-rows: minmax(110px, 1fr); gap: 14px; padding: 20px 32px; }
+#grid.compact.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#grid.compact.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#grid.compact.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#grid.compact .tile { flex-direction: column; justify-content: center; text-align: center; padding: 10px; gap: 8px; }
+#grid.compact .tile .ico { width: clamp(48px, 40cqh, 80px); height: clamp(48px, 40cqh, 80px); }
+#grid.compact .tile .name { font-size: 24px; }
+#grid.compact.nodesc .tile .desc { display: none; }
 </style></head>
 <body>
 <div id="app">
@@ -64,6 +92,65 @@ footer[hidden], #info[hidden], #msg[hidden] { display: none; }
 </div>
 <script src="icons.js"></script>
 <script>
+const PAGE = 4;
+let pageNow = 0, lastMode = null;
+function tileFor(a, i) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'tile press';
+  b.innerHTML = '<div class="ico">' + iconSvg(a.icon, 60) + '</div><div class="txt"><div class="name"></div><div class="desc"></div></div>';
+  b.querySelector('.name').textContent = a.name;
+  b.querySelector('.desc').textContent = a.desc;
+  b.onclick = () => kiosk.act('openApp', i);
+  return b;
+}
+function fillGrid(s) {
+  const grid = document.getElementById('grid');
+  const old = document.getElementById('dots');
+  if (old) old.remove();
+  if (s.mode !== lastMode) { if (s.mode === 'home') pageNow = 0; lastMode = s.mode; }
+  grid.className = ''; grid.innerHTML = ''; grid.onscroll = grid.onpointerdown = null;
+  const n = s.apps.length;
+  if (n <= PAGE) { s.apps.forEach((a, i) => grid.appendChild(tileFor(a, i))); return; }
+  if (s.layout === 'compact') {
+    grid.className = 'compact c' + (n <= 6 ? 2 : n <= 9 ? 3 : 4) + (n > 6 ? ' nodesc' : '');
+    s.apps.forEach((a, i) => grid.appendChild(tileFor(a, i)));
+    return;
+  }
+  grid.className = 'paged';
+  const pages = Math.ceil(n / PAGE);
+  for (let p = 0; p < pages; p++) {
+    const pg = document.createElement('div'); pg.className = 'page';
+    s.apps.slice(p * PAGE, (p + 1) * PAGE).forEach((a, k) => pg.appendChild(tileFor(a, p * PAGE + k)));
+    grid.appendChild(pg);
+  }
+  pageNow = Math.min(pageNow, pages - 1);
+  const dots = document.createElement('div'); dots.id = 'dots';
+  for (let p = 0; p < pages; p++) {
+    const d = document.createElement('button'); d.type = 'button'; d.setAttribute('aria-label', String(p + 1)); d.innerHTML = '<i></i>';
+    d.onclick = () => grid.scrollTo({ left: p * grid.clientWidth, behavior: 'smooth' });
+    dots.appendChild(d);
+  }
+  grid.after(dots);
+  const mark = () => { [...dots.children].forEach((d, p) => d.classList.toggle('on', p === pageNow)); };
+  mark();
+  grid.onscroll = () => { const k = Math.round(grid.scrollLeft / Math.max(1, grid.clientWidth)); if (k !== pageNow) { pageNow = k; mark(); } };
+  grid.scrollLeft = pageNow * grid.clientWidth;
+  // En mus kan inte svepa; dra med musen bläddrar också (på pekskärm sköter webbläsaren svepet)
+  let drag = null;
+  grid.onpointerdown = (e) => {
+    if (e.pointerType !== 'mouse') return;
+    drag = { x: e.clientX, left: grid.scrollLeft, moved: false };
+    const move = (m) => { if (!drag) return; const dx = m.clientX - drag.x; if (Math.abs(dx) > 8) { drag.moved = true; grid.style.scrollSnapType = 'none'; grid.scrollLeft = drag.left - dx; } };
+    const up = () => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
+      if (drag && drag.moved) {
+        window.addEventListener('click', (c) => c.stopPropagation(), { capture: true, once: true }); // ett drag öppnar ingen tjänst
+        const k = Math.max(0, Math.min(pages - 1, Math.round(grid.scrollLeft / grid.clientWidth))); grid.style.scrollSnapType = ''; grid.scrollTo({ left: k * grid.clientWidth, behavior: 'smooth' }); }
+      drag = null;
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  };
+}
 function render(s) {
   document.documentElement.lang = s.lang;
   document.getElementById('org').textContent = s.strings.org;
@@ -73,17 +160,7 @@ function render(s) {
   lang.innerHTML = iconSvg('globe', 22) + '<span></span>';
   lang.lastChild.textContent = s.strings.langSwitch;
   lang.onclick = () => kiosk.act('setLang', s.lang === 'en' ? 'sv' : 'en');
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  s.apps.forEach((a, i) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'tile press';
-    b.innerHTML = '<div class="ico">' + iconSvg(a.icon, 60) + '</div><div class="txt"><div class="name"></div><div class="desc"></div></div>';
-    b.querySelector('.name').textContent = a.name;
-    b.querySelector('.desc').textContent = a.desc;
-    b.onclick = () => kiosk.act('openApp', i);
-    grid.appendChild(b);
-  });
+  fillGrid(s);
   // Nederkanten: informationsfält (ersätter textraden) med en meddelanderad ovanför
   const info = s.info || { fields: [], message: null };
   const msg = document.getElementById('msg');

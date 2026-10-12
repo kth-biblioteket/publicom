@@ -54,6 +54,7 @@ function uiState() {
     strings: t,
     mode: S.view,
     homeMode: settings.homeMode,
+    layout: settings.layout,
     navigation: settings.navigation,
     apps: settings.apps.map((a) => ({ name: a.nameFor(en), desc: a.descFor(en), icon: a.icon || 'info' })),
     title: pick(S.lang, settings.texts.title, settings.texts.titleEn, t.title),

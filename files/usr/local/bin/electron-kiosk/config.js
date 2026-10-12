@@ -64,8 +64,9 @@ class Scope {
   }
 }
 
-/** Högst sex tjänster: på förstasidan sex kort, i appläget hem-appen och fem till */
-const MAX_APPS = 6;
+/** Högst tolv tjänster på förstasidan (sidor eller kompakt rutnät); i appläget högst sex, hem-appen och fem till */
+const MAX_APPS = 12;
+const MAX_APPS_TABS = 6;
 
 class App {
   constructor(o) { Object.assign(this, o); }
@@ -181,11 +182,13 @@ function buildSettings(env, hostsText) {
     }).filter(Boolean);
   }
   const homeMode = env.HOME_MODE === 'app' ? 'app' : 'launcher';
+  if (homeMode === 'app') apps = apps.slice(0, MAX_APPS_TABS);
   const scale = parseInt(env.INITIAL_SCALE, 10);
   const sessionMin = intOr(env.SESSION_IDLE, 0);
   return {
     apps,
     homeMode,
+    layout: env.LAUNCHER_LAYOUT === 'compact' ? 'compact' : 'pages',
     language: env.LANGUAGE === 'en' ? 'en' : 'sv',
     navigation: bool(env.NAVIGATION, true),
     startLabel: (env.START_LABEL || '').trim(),
@@ -224,4 +227,4 @@ function loadSettings(configPath, hostsPath) {
   return buildSettings(env, hosts);
 }
 
-module.exports = { parseEnv, parseApps, buildSettings, loadSettings, Scope, Field, MAX_APPS, MAX_FIELDS };
+module.exports = { parseEnv, parseApps, buildSettings, loadSettings, Scope, Field, MAX_APPS, MAX_APPS_TABS, MAX_FIELDS };

@@ -57,10 +57,10 @@ test('parseApps: JSON-form med tecken som annars förstör raderna', () => {
   assert.equal(apps[0].nameFor(true), 'A and B');
 });
 
-test('parseApps: ogiltiga poster hoppas över, http är ogiltigt, tak på tolv', () => {
+test('parseApps: ogiltiga poster hoppas över, http är ogiltigt, tak på 36', () => {
   const raw = ['Ok|https://ok.example.se/', 'Http|http://nej.example.se/', 'Utan adress', '|https://tomt.example.se/'].join('\n');
   assert.deepEqual(parseApps(raw).map((a) => a.label), ['Ok']);
-  const many = Array.from({ length: 15 }, (_, i) => `T${i}|https://t${i}.example.se/`).join('\n');
+  const many = Array.from({ length: 40 }, (_, i) => `T${i}|https://t${i}.example.se/`).join('\n');
   assert.equal(parseApps(many).length, MAX_APPS);
 });
 

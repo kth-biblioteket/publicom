@@ -30,7 +30,7 @@ Nyckelkatalogen (`config/catalog.json`), gruppen *Kiosk*: `HOME_MODE`, `APPS`, `
 `LAUNCHER_FOOTER` (och `_EN`), `LAUNCHER_PER_PAGE`, `START_LABEL`, `START_ICON`, `NAVIGATION`, `LANGUAGE`, `IDLE_WARNING`, samt de vanliga
 `SESSION_IDLE`, `PRINTER`, `DOWNLOADS` och `WHITE_LIST` (utan EZproxy-listan, se nedan).
 
-`APPS` har högst tolv tjänster (i appläget sex). `LAUNCHER_PER_PAGE` (2, 4, 6, 8, 10 eller 12, standard 4) bestämmer hur många
+`APPS` har högst 36 tjänster (i appläget sex). `LAUNCHER_PER_PAGE` (2, 4, 6, 8, 10 eller 12, standard 4) bestämmer hur många
 som visas samtidigt; korten anpassar kolumner, rader och storlek efter antalet och skärmen (rutor eller breda rader, beskrivningen
 döljs när korten blir små). Finns det fler tjänster blir det flera sidor med prickar under, som besökaren sveper mellan (med mus
 räcker det att dra). Startsida går tillbaka till första sidan.

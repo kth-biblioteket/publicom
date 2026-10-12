@@ -165,7 +165,7 @@
       ],
       "help": "Gäller kiosker. Förstasidan visar stora kort för tjänsterna. I det andra läget öppnas första tjänsten direkt och de övriga ligger som flikar i navigeringen." },
     { "key": "APPS", "label": "Tjänster", "group": "kiosk", "type": "apps",
-      "help": "Tjänsterna som kiosken visar, högst tolv (i appläget högst sex). Namn och https-adress krävs; ikon, område och beskrivning är valfria. Varje tjänst kan också ha ett engelskt namn, en engelsk beskrivning och en engelsk adress (sjätte, sjunde och åttonde delen), som används när besökaren valt English. Den engelska adressen skrivs ut i sin helhet, t ex https://tjänst.kth.se/?lang=en, eftersom tjänster anger språk på olika sätt. Adresserna tillåts automatiskt." },
+      "help": "Tjänsterna som kiosken visar, högst 36 (i appläget högst sex). Namn och https-adress krävs; ikon, område och beskrivning är valfria. Varje tjänst kan också ha ett engelskt namn, en engelsk beskrivning och en engelsk adress (sjätte, sjunde och åttonde delen), som används när besökaren valt English. Den engelska adressen skrivs ut i sin helhet, t ex https://tjänst.kth.se/?lang=en, eftersom tjänster anger språk på olika sätt. Adresserna tillåts automatiskt." },
     { "key": "LAUNCHER_PER_PAGE", "label": "Tjänster per sida på förstasidan", "group": "kiosk", "type": "enum", "default": "4",
       "options": [
         { "value": "2", "label": "2" }, { "value": "4", "label": "4" }, { "value": "6", "label": "6" },

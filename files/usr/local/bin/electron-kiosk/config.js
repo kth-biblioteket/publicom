@@ -64,8 +64,9 @@ class Scope {
   }
 }
 
-/** Högst tolv tjänster på förstasidan (sidor eller kompakt rutnät); i appläget högst sex, hem-appen och fem till */
-const MAX_APPS = 12;
+/** Högst 36 tjänster totalt (flera sidor med prickar); på en sida högst 12 (MAX_PER_PAGE). I appläget högst sex, hem-appen och fem till */
+const MAX_APPS = 36;
+const MAX_PER_PAGE = 12;
 const MAX_APPS_TABS = 6;
 
 class App {
@@ -175,7 +176,7 @@ function intOr(value, def) {
 function perPage(raw) {
   const n = parseInt(raw, 10);
   if (!Number.isFinite(n)) return 4;
-  return Math.max(2, Math.min(MAX_APPS, n - (n % 2)));
+  return Math.max(2, Math.min(MAX_PER_PAGE, n - (n % 2)));
 }
 
 /** En https-adress med värd, annars tom text */
@@ -253,4 +254,4 @@ function loadSettings(configPath, hostsPath) {
   return buildSettings(env, hosts);
 }
 
-module.exports = { parseEnv, parseApps, buildSettings, loadSettings, Scope, Field, MAX_APPS, MAX_APPS_TABS, MAX_FIELDS };
+module.exports = { parseEnv, parseApps, buildSettings, loadSettings, Scope, Field, MAX_APPS, MAX_PER_PAGE, MAX_APPS_TABS, MAX_FIELDS };

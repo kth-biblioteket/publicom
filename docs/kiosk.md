@@ -114,3 +114,19 @@ Se [Hårdvarutest](hardvarutest.md) för checklistan på en riktig dator.
 ## Inte med i första versionen
 
 Inloggade gäster (Alma) och öppna gäster, fält i iframes är inte provade med riktiga tjänster, och `FILE_DIALOGS`.
+
+## Fotrad som webbsida och attract loop
+
+Två vyer som visar en hel webbsida. De är isolerade i `sandboxed-page.js`: ingen brygga mot skalet, ingen navigering (länkar,
+omdirigeringar och nya fönster nekas), egen session utan delade kakor, inga behörigheter eller nedladdningar, ingen nypzoom, och
+JavaScript bara om `*_JS` är på. Sidan och dess delresurser (bilder, film, typsnitt, skript) hämtas bara över https från tillåtna
+värdar (`APPS`, `WHITE_LIST`); sidans egen värd måste alltså finnas där. Film utan ljud startar av sig själv, film med ljud gör det inte.
+
+- **Fotrad** (`LAUNCHER_HTML_URL`, `_HEIGHT` 40–400 standard 100, `_JS`, `_TOUCH`): ersätter informationsfälten längst ner på
+  förstasidan. Meddelanderaden ligger kvar ovanför. Går sidan inte att ladda (nätfel eller http-svar 400 eller högre) visas
+  fälten som förut. Sidan ritas för 1280 pixlar bred (liggande) eller 800 (stående) och skalas efter fönstrets bredd, som övriga sidor.
+  Tryck på fotraden gör inget om inte `LAUNCHER_HTML_TOUCH` är på. Sidan laddas om var `LAUNCHER_REFRESH`:e minut.
+- **Attract loop** (`ATTRACT_URL`, `ATTRACT_AFTER` sekunder, standard 120, 0 = av, `ATTRACT_REFRESH` minuter, standard 10,
+  `ATTRACT_JS`): när förstasidan står orörd så länge visas sidan i helskärm över den (aldrig i en tjänst, inte i appläget).
+  Första trycket tar bort den, går inte vidare till något under och är ingen annan åtgärd; skalets inaktivitetsklocka startar bara om.
+  Går sidan inte att ladda visas förstasidan som vanligt. När en tjänst öppnas släpps sidan, så att film och skript stannar.

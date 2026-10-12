@@ -8,6 +8,7 @@ const { loadSettings } = require('./config');
 const { UrlPolicy, hostOf } = require('./policy');
 const { idleState } = require('./idle');
 const { InfoFeed } = require('./info');
+const { SandboxedPage } = require('./sandboxed-page');
 const { stringsFor, pick, startLabelFor } = require('./strings');
 
 const argv = process.argv.slice(2);
@@ -27,7 +28,9 @@ const PAGE_PARTITION = 'kiosk-page';                    // utan persist: allt li
 app.commandLine.appendSwitch('overscroll-history-navigation', '0'); // ingen svep-bakåt på pekskärmen
 if (!app.requestSingleInstanceLock()) app.quit();
 
-let win, pageView, homeView, barView, kbView, overlayView;
+let win, pageView, homeView, barView, kbView, overlayView, shieldView;
+let footerPage = null, attractPage = null;   // webbsidor (SandboxedPage): fotrad och attract loop
+const A = { showing: false, nextAt: 0 };    // attract loop: visas just nu, tidigast nästa visning
 let autoRetry = null;
 let lastFailedUrl = null;
 const S = {
@@ -40,7 +43,7 @@ const S = {
 };
 
 const ui = (file) => path.join(__dirname, file);
-const uiViews = () => [homeView, barView, overlayView].filter(Boolean);
+const uiViews = () => [homeView, barView, overlayView, shieldView].filter(Boolean);
 const zoom = (w, h) => Math.min(2.5, Math.max(0.6, w / (h > w ? DESIGN_W.portrait : DESIGN_W.landscape)));
 
 // ---------- tillstånd till skalets egna sidor ----------
@@ -61,6 +64,7 @@ function uiState() {
     subtitle: pick(S.lang, settings.texts.subtitle, settings.texts.subtitleEn, t.subtitle),
     footer: pick(S.lang, settings.texts.footer, settings.texts.footerEn, ''),
     info: info.view(en),
+    webFooter: footerPage && footerPage.ok && S.view === 'home' ? { height: settings.htmlFooter.height } : null,
     startLabel: startLabelFor(S.lang, settings.homeMode, settings.startLabel),
     startIcon: settings.startIcon,
     canBack: S.canBack,
@@ -101,7 +105,20 @@ function layout() {
   // Felsidan är en hel sida ovanför navigeringsfältet; varning och spärr-ark täcker hela skärmen
   const navH = inApp && settings.navigation ? Math.round(BAR_H * z) : 0;
   overlayView.setBounds(S.overlay && S.overlay.type === 'error' ? { x: 0, y: 0, width: w, height: Math.max(0, h - navH) } : full);
-  for (const v of [homeView, barView, kbView, overlayView]) v.webContents.setZoomFactor(z);
+  for (const v of [homeView, barView, kbView, overlayView, shieldView]) v.webContents.setZoomFactor(z);
+  if (footerPage) {
+    const fh = Math.round(settings.htmlFooter.height * z);
+    footerPage.setZoom(z);
+    footerPage.view.setVisible(!inApp && footerPage.ok && !A.showing);
+    footerPage.view.setBounds({ x: 0, y: h - fh, width: w, height: fh });
+  }
+  if (attractPage) {
+    attractPage.setZoom(z);
+    attractPage.view.setVisible(A.showing);
+    attractPage.view.setBounds(full);
+  }
+  shieldView.setVisible(A.showing);
+  shieldView.setBounds(full);
 }
 
 function update() { layout(); pushState(); }
@@ -199,6 +216,7 @@ function openApp(i) {
   if (!pageView) createPage();
   hideOverlay();
   S.view = 'app';
+  stopHomePages();
   S.current = i;
   S.kbOpen = false;
   pageView.webContents.loadURL(a.urlFor(S.lang === 'en'));
@@ -218,6 +236,37 @@ function goHome(keepLang) {
   S.current = -1;
   update();
   refreshInfo();
+  startHomePages();
+}
+
+// ---------- webbsidor på förstasidan: fotrad och attract loop ----------
+
+/** Laddar fotraden och attract-sidan när förstasidan visas */
+function startHomePages() {
+  if (footerPage) footerPage.load(settings.htmlFooter.url);
+  if (attractPage && settings.attract.afterSec > 0) attractPage.load(settings.attract.url);
+}
+
+/** Släpper dem när en tjänst öppnas, så att film och skript stannar */
+function stopHomePages() {
+  hideAttract();
+  if (footerPage) footerPage.unload();
+  if (attractPage) attractPage.unload();
+}
+
+function showAttract() {
+  if (A.showing || !attractPage || !attractPage.ok) return;
+  A.showing = true;
+  attractPage.view.webContents.setAudioMuted(false);
+  update();
+}
+
+function hideAttract() {
+  if (!A.showing) return;
+  A.showing = false;
+  A.nextAt = Date.now() + settings.attract.afterSec * 1000;
+  if (attractPage && !attractPage.view.webContents.isDestroyed()) attractPage.view.webContents.setAudioMuted(true);
+  update();
 }
 
 // ---------- tangentbord ----------
@@ -274,8 +323,15 @@ function refreshInfo() {
 // ---------- inaktivitet ----------
 
 function idleTick() {
-  if (!win || settings.sessionSec <= 0) return;
+  if (!win) return;
   const idle = powerMonitor.getSystemIdleTime();
+  // Attract loop: förstasidan orörd i ATTRACT_AFTER sekunder. Trycket som tar bort den hanteras av shield.html.
+  if (attractPage && settings.attract.afterSec > 0) {
+    if (S.view === 'home' && !S.overlay) {
+      if (!A.showing && attractPage.ok && idle >= settings.attract.afterSec && Date.now() >= A.nextAt) showAttract();
+    } else hideAttract();
+  }
+  if (settings.sessionSec <= 0) return;
   if (S.view !== 'app') {
     if (idle >= settings.sessionSec && S.lang !== settings.language) { S.lang = settings.language; pushState(); } // förstasidan återställs tyst
     return;
@@ -319,6 +375,20 @@ app.whenReady().then(() => {
   kbView.webContents.loadFile(ui('keyboard.html'));
   overlayView = makeUi('overlay.html');
   overlayView.setBackgroundColor('#00000000');
+  shieldView = makeUi('shield.html');
+  shieldView.setBackgroundColor('#00000000');
+  if (settings.htmlFooter.url) {
+    footerPage = new SandboxedPage({ name: 'footer', policy, js: settings.htmlFooter.js, touch: settings.htmlFooter.touch, onChange: update });
+    win.contentView.addChildView(footerPage.view);
+  }
+  if (settings.attract.url && settings.attract.afterSec > 0) {
+    attractPage = new SandboxedPage({ name: 'attract', policy, js: settings.attract.js, touch: false, onChange: () => { if (!attractPage.ok) hideAttract(); } });
+    win.contentView.addChildView(attractPage.view);
+  }
+  // Lagerordning underifrån: sidvyn, förstasidan, fotraden, attract-sidan, trycksköld, navigering, tangentbord, överlägg
+  for (const v of [homeView, footerPage && footerPage.view, attractPage && attractPage.view, shieldView, barView, kbView, overlayView]) {
+    if (v) win.contentView.addChildView(v);
+  }
 
   // Sidvyn får inga behörigheter (kamera, plats, notiser …) och inga nedladdningar om inte DOWNLOADS=true
   const ses = session.fromPartition(PAGE_PARTITION);
@@ -335,6 +405,7 @@ app.whenReady().then(() => {
     if (!isUi(e)) return;
     if (name === 'openApp' && Number.isInteger(arg)) openApp(arg);
     else if (name === 'setLang' && (arg === 'sv' || arg === 'en')) { S.lang = arg; pushState(); }
+    else if (name === 'attractDismiss') { if (e.sender === shieldView.webContents) hideAttract(); }
     else if (name === 'home') goHome(true);
     else if (name === 'back') { if (pageView && pageView.webContents.navigationHistory.canGoBack()) pageView.webContents.navigationHistory.goBack(); else goHome(true); }
     else if (name === 'overlayClose' || name === 'idleContinue') hideOverlay();
@@ -353,6 +424,9 @@ app.whenReady().then(() => {
   goHome();
   setInterval(idleTick, 1000);
   setInterval(refreshInfo, settings.refreshMin * 60 * 1000);
+  // Webbsidorna laddas om medan förstasidan visas (attract-sidan inte medan den syns)
+  if (footerPage) setInterval(() => { if (S.view === 'home') footerPage.load(settings.htmlFooter.url); }, settings.refreshMin * 60 * 1000);
+  if (attractPage) setInterval(() => { if (S.view === 'home' && !A.showing) attractPage.load(settings.attract.url); }, settings.attract.refreshMin * 60 * 1000);
 });
 
 app.on('window-all-closed', () => app.quit());

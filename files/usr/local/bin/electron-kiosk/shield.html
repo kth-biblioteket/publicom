@@ -1,0 +1,9 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Skärmsläckare</title>
+<style>html, body { margin: 0; height: 100%; background: transparent; cursor: none; }</style></head>
+<body>
+<script>
+// Ligger ovanför attract-sidan och tar emot första trycket. Trycket går inte vidare till något under.
+const stop = (e) => { e.preventDefault(); kiosk.act('attractDismiss'); };
+for (const t of ['pointerdown', 'mousedown', 'touchstart']) window.addEventListener(t, stop, { passive: false });
+</script></body></html>

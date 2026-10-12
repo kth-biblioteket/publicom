@@ -178,6 +178,13 @@ function perPage(raw) {
   return Math.max(2, Math.min(MAX_APPS, n - (n % 2)));
 }
 
+/** En https-adress med värd, annars tom text */
+function httpsUrl(value) {
+  const v = (value || '').trim();
+  const u = parseUrl(v);
+  return u && u.protocol === 'https:' && u.hostname ? v : '';
+}
+
 /** Bygger skalets inställningar från en tolkad .config och värdlistan som allowlist_from_ezproxy.sh skriver */
 function buildSettings(env, hostsText) {
   let apps = parseApps(env.APPS);
@@ -217,6 +224,18 @@ function buildSettings(env, hostsText) {
     },
     // Zoom på tjänsternas sidor, i procent (10–500, standard 100). Skalets egna sidor påverkas inte.
     initialScale: Number.isFinite(scale) ? Math.max(10, Math.min(500, scale)) : 100,
+    // Fotrad som webbsida (ersätter informationsfälten) och attract loop (helskärmssida när förstasidan står orörd)
+    htmlFooter: {
+      url: httpsUrl(env.LAUNCHER_HTML_URL),
+      height: Math.max(40, Math.min(400, intOr(env.LAUNCHER_HTML_HEIGHT, 100))),
+      js: bool(env.LAUNCHER_HTML_JS, false), touch: bool(env.LAUNCHER_HTML_TOUCH, false),
+    },
+    attract: {
+      url: httpsUrl(env.ATTRACT_URL),
+      afterSec: Math.max(0, intOr(env.ATTRACT_AFTER, 120)),
+      refreshMin: Math.max(1, Math.min(1440, intOr(env.ATTRACT_REFRESH, 10))),
+      js: bool(env.ATTRACT_JS, false),
+    },
     refreshMin: Math.max(1, Math.min(60, intOr(env.LAUNCHER_REFRESH, 1))),
     sessionSec: sessionMin * 60,
     warnSec: intOr(env.IDLE_WARNING, 60),

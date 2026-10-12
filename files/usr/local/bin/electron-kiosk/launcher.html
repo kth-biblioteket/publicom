@@ -12,7 +12,7 @@ header .pattern { position: absolute; right: 0; bottom: 0; transform: scaleY(-1)
 #org { font-size: 28px; font-weight: 700; color: #def0ff; letter-spacing: .02em; }
 #title { font-size: 76px; font-weight: 800; line-height: 1.05; }
 #subtitle { font-size: 28px; color: #def0ff; }
-#grid { flex: 1; min-height: 0; box-sizing: border-box; padding: 28px 56px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 24px; background: #f3f5f8; }
+#grid { flex: 1; min-height: 0; overflow-y: auto; box-sizing: border-box; padding: 28px 56px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(76px, 1fr); gap: 24px; background: #f3f5f8; }
 .tile { container-type: size; border: 2px solid #dde2e9; border-radius: 24px; background: #fff; padding: 0 36px; display: flex; align-items: center; gap: 28px; text-align: left; color: inherit; }
 .tile .ico { flex: none; width: clamp(48px, calc(100cqh - 24px), 112px); height: clamp(48px, calc(100cqh - 24px), 112px); border-radius: 25%; background: #def0ff; color: #004791; display: flex; align-items: center; justify-content: center; }
 .tile .ico svg { width: 54%; height: 54%; }
@@ -34,11 +34,11 @@ footer[hidden], #info[hidden], #msg[hidden] { display: none; }
 #info .value { font-size: 36px; font-weight: 800; color: #000061; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #info .clock { flex: none; font-size: 46px; font-weight: 800; color: #000061; }
 @media (max-aspect-ratio: 1/1) {
-  header { padding: 104px 48px 160px; }
-  #title { font-size: 66px; }
+  header { padding: clamp(60px, 8.125vh, 104px) 48px clamp(36px, 12.5vh, 160px); }
+  #title { font-size: clamp(48px, 5.2vh, 66px); }
   #logo { width: 86px; height: 96px; }
   #lang { right: 48px; }
-  #grid { grid-template-columns: 1fr; padding: 32px 48px; }
+  #grid { grid-template-columns: 1fr; padding: clamp(16px, 2.5vh, 32px) 48px; gap: clamp(12px, 1.9vh, 24px); }
   #msg { padding: 12px 48px; font-size: 20px; }
   #msg svg { width: 26px; height: 26px; }
   #info { height: 110px; padding: 0 48px; }

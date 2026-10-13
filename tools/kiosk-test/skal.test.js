@@ -99,6 +99,8 @@ test('strings: ramen och dialogerna på två språk, START_LABEL på en rad', ()
   assert.deepEqual(startLabels('launcher', ''), { sv: 'Startsida', en: 'Home page' });
   assert.deepEqual(startLabels('app', ''), { sv: 'Hem', en: 'Home' });
   assert.deepEqual(startLabels('app', ' Till start '), { sv: 'Till start', en: '' });
+  assert.deepEqual(startLabels('app', 'Till start', 'To start'), { sv: 'Till start', en: 'To start' });
+  assert.deepEqual(startLabels('launcher', '', 'Main page'), { sv: 'Startsida', en: 'Main page' });
 });
 
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {

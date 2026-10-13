@@ -69,7 +69,7 @@ function uiState() {
     navigation: settings.navigation,
     apps: settings.apps.map((a) => ({ name: a.nameFor(en), nameSv: a.label, nameEn: a.labelEn, desc: a.descFor(en), icon: a.icon || 'info' })),
     bi: bothStrings(S.overlay && S.overlay.secondsLeft),
-    startBi: startLabels(settings.homeMode, settings.startLabel),
+    startBi: startLabels(settings.homeMode, settings.startLabel, settings.startLabelEn),
     barStacked: barStacked(),
     title: pick(S.lang, settings.texts.title, settings.texts.titleEn, t.title),
     subtitle: pick(S.lang, settings.texts.subtitle, settings.texts.subtitleEn, t.subtitle),

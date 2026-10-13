@@ -80,12 +80,14 @@ function bothStrings(idleSecondsLeft) {
 
 /**
  * Startknappen på två språk: { sv, en }. En egen text i START_LABEL visas på en rad (en: ''),
- * annars Startsida / Home page (förstasida) eller Hem / Home (första tjänsten är hem).
+ * annars Startsida / Home page (förstasida) eller Hem / Home (första tjänsten är hem). START_LABEL_EN ersätter den engelska raden.
  */
-function startLabels(homeMode, custom) {
+function startLabels(homeMode, custom, customEn) {
   const c = (custom || '').trim();
-  if (c) return { sv: c, en: '' };
-  return homeMode === 'app' ? { sv: SV.startApp, en: EN.startApp } : { sv: SV.start, en: EN.start };
+  const e = (customEn || '').trim();
+  const std = homeMode === 'app' ? { sv: SV.startApp, en: EN.startApp } : { sv: SV.start, en: EN.start };
+  if (c) return { sv: c, en: e };            // eget namn: den engelska raden bara om START_LABEL_EN är satt
+  return { sv: std.sv, en: e || std.en };    // standardtexten, med eget engelskt namn om det finns
 }
 
 module.exports = { stringsFor, bothStrings, startLabels, pick, startLabelFor };

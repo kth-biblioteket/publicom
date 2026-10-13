@@ -186,6 +186,8 @@
       "help": "Tomt visar den svenska texten." },
     { "key": "START_LABEL", "label": "Namn på startknappen", "group": "kiosk", "type": "string", "example": "Startsida",
       "help": "Texten på knappen som tar besökaren tillbaka till början (navigeringen och felsidan). Tomt: Startsida (Home page på engelska) med förstasida och Hem (Home) när första tjänsten är hem." },
+    { "key": "START_LABEL_EN", "label": "Namn på startknappen, engelska", "group": "kiosk", "type": "string",
+      "help": "Startknappens namn på engelska, visas mindre under det svenska. Tomt: ingen engelsk rad när Namn på knappen är ifyllt; annars standardtexten (Home page / Home)." },
     { "key": "START_ICON", "label": "Ikon på startknappen", "group": "kiosk", "type": "string", "example": "house",
       "help": "Namn på en av ikonerna: house, search, map, map-pin, calendar, book-open, library, info, circle-help, printer, monitor, user, clock, graduation-cap. Tomt ger house." },
     { "key": "NAVIGATION", "label": "Visa navigeringen", "group": "kiosk", "type": "bool", "default": "true",

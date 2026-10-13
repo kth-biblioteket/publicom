@@ -27,7 +27,7 @@ varningen, sedan rensas sessionen (cookies, cache, historik), språket återstä
 ## Inställningar
 
 Nyckelkatalogen (`config/catalog.json`), gruppen *Kiosk*: `HOME_MODE`, `APPS`, `LAUNCHER_TITLE`, `LAUNCHER_SUBTITLE`,
-`LAUNCHER_FOOTER` (och `_EN`), `LAUNCHER_PER_PAGE`, `START_LABEL`, `START_ICON`, `NAVIGATION`, `LANGUAGE`, `IDLE_WARNING`, samt de vanliga
+`LAUNCHER_FOOTER` (och `_EN`), `LAUNCHER_PER_PAGE`, `START_LABEL` (och `_EN`), `START_ICON`, `NAVIGATION`, `LANGUAGE`, `IDLE_WARNING`, samt de vanliga
 `SESSION_IDLE`, `PRINTER`, `DOWNLOADS` och `WHITE_LIST` (utan EZproxy-listan, se nedan).
 
 `APPS` har högst 36 tjänster (i appläget sex). `LAUNCHER_PER_PAGE` (2, 4, 6, 8, 10 eller 12, standard 4) bestämmer hur många
@@ -120,7 +120,7 @@ Inloggade gäster (Alma) och öppna gäster, fält i iframes är inte provade me
 Som i PubLiKiosk visar ramen och dialogerna svenska och engelska samtidigt, utan språkknapp. Varje knapp har svenska fet överst och
 engelska mindre och ljusare under; varje rad kortas för sig med … när den inte ryms, och engelskan utelämnas när den saknas eller
 är lika med svenskan. Tillbaka heter Tillbaka / Back, startknappen Startsida / Home page (förstasidan) eller Hem / Home (första
-tjänsten är hem); en egen `START_LABEL` visas på en rad. Flikarnas engelska namn är tjänstens `nameEn`.
+tjänsten är hem); en egen `START_LABEL` visas på en rad, eller med engelska raden under om `START_LABEL_EN` är satt (en `START_LABEL_EN` utan `START_LABEL` ersätter bara engelska raden). Flikarnas engelska namn är tjänstens `nameEn`.
 
 Måtten ges för en skärm 1280 bred liggande eller 800 stående och skalas efter fönstrets bredd. Liggande ramen är 88 hög med knappar 60
 höga och ikonen till vänster. Stående, eller med fler än fem knappar (Hem och fler än fyra tjänster som flikar), är ramen 116 hög med knappar 88 höga

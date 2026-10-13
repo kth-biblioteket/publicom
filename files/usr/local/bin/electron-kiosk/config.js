@@ -207,6 +207,7 @@ function buildSettings(env, hostsText) {
     language: env.LANGUAGE === 'en' ? 'en' : 'sv',
     navigation: bool(env.NAVIGATION, true),
     startLabel: (env.START_LABEL || '').trim(),
+    startLabelEn: (env.START_LABEL_EN || '').trim(),
     startIcon: (env.START_ICON || '').trim() || 'house',
     texts: {
       title: env.LAUNCHER_TITLE || '', titleEn: env.LAUNCHER_TITLE_EN || '',

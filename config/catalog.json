@@ -165,7 +165,7 @@
       ],
       "help": "Gäller kiosker. Förstasidan visar stora kort för tjänsterna. I det andra läget öppnas första tjänsten direkt och de övriga ligger som flikar i navigeringen." },
     { "key": "APPS", "label": "Tjänster", "group": "kiosk", "type": "apps",
-      "help": "Tjänsterna som kiosken visar, högst 36 (i appläget högst sex). Namn och https-adress krävs; ikon, område och beskrivning är valfria. Varje tjänst kan också ha ett engelskt namn, en engelsk beskrivning och en engelsk adress (sjätte, sjunde och åttonde delen), som används när besökaren valt English. Den engelska adressen skrivs ut i sin helhet, t ex https://tjänst.kth.se/?lang=en, eftersom tjänster anger språk på olika sätt. Adresserna tillåts automatiskt." },
+      "help": "Tjänsterna som kiosken visar, högst 36 (i appläget högst sex). Namn och https-adress krävs; ikon (namnet på en Lucide-ikon, lucide.dev/icons, version 1.48.0), område och beskrivning är valfria. Varje tjänst kan också ha ett engelskt namn, en engelsk beskrivning och en engelsk adress (sjätte, sjunde och åttonde delen), som används när besökaren valt English. Den engelska adressen skrivs ut i sin helhet, t ex https://tjänst.kth.se/?lang=en, eftersom tjänster anger språk på olika sätt. Adresserna tillåts automatiskt." },
     { "key": "LAUNCHER_PER_PAGE", "label": "Tjänster per sida på förstasidan", "group": "kiosk", "type": "enum", "default": "4",
       "options": [
         { "value": "2", "label": "2" }, { "value": "4", "label": "4" }, { "value": "6", "label": "6" },
@@ -189,7 +189,7 @@
     { "key": "START_LABEL_EN", "label": "Namn på startknappen, engelska", "group": "kiosk", "type": "string",
       "help": "Startknappens namn på engelska, visas mindre under det svenska. Tomt: ingen engelsk rad när Namn på knappen är ifyllt; annars standardtexten (Home page / Home)." },
     { "key": "START_ICON", "label": "Ikon på startknappen", "group": "kiosk", "type": "string", "example": "house",
-      "help": "Namn på en av ikonerna: house, search, map, map-pin, calendar, book-open, library, info, circle-help, printer, monitor, user, clock, graduation-cap. Tomt ger house." },
+      "help": "Namnet på en Lucide-ikon (lucide.dev/icons), version 1.48.0. Tomt ger house." },
     { "key": "NAVIGATION", "label": "Visa navigeringen", "group": "kiosk", "type": "bool", "default": "true",
       "help": "Raden längst ner med Tillbaka, tjänstens namn och Startsida. Utan den måste tjänsten själv leda tillbaka." },
     { "key": "LANGUAGE", "label": "Språk vid start", "group": "kiosk", "type": "enum", "default": "sv",

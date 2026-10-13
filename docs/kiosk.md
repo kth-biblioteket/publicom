@@ -39,8 +39,9 @@ Antingen en JSON-lista:
 [{"name":"Sök böcker","url":"https://…","icon":"search","scope":"","desc":"…","nameEn":"…","descEn":"…","urlEn":"https://…"}]
 ```
 eller en post per rad: `Namn|https://adress/|ikon|område|beskrivning|namn_en|beskrivning_en|adress_en`. Bara namn och
-https-adress krävs. Den engelska adressen (`urlEn`, åttonde delen) öppnas när besökaren valt English; är den tom eller inte https används den vanliga. Dess värd tillåts också. Ikonerna är Lucide: `house`, `search`, `map`, `map-pin`, `calendar`, `book-open`, `library`, `info`,
-`circle-help`, `printer`, `monitor`, `user`, `clock`, `graduation-cap`.
+https-adress krävs. Den engelska adressen (`urlEn`, åttonde delen) öppnas när besökaren valt English; är den tom eller inte https används den vanliga. Dess värd tillåts också. Ikonerna är Lucide version 1.48.0 (lucide.dev/icons, ISC): alla 2 118 namn, också de äldre aliasen (`circle-help`, `building-2`,
+`book-marked`), används för tjänsternas `icon`, `START_ICON` och meddelandets ikon. Ikonerna ligger oförändrade i `icons.js` (genererad av
+`tools/build-icons.js` ur paketet `lucide-static`; licensen i `icons-LICENSE.txt`), inget hämtas i drift. Ett okänt eller tomt namn ger `info`.
 
 Utan `APPS` används `WEBSITES` som tjänster, så att en kiosk utan nya inställningar ändå visar något.
 

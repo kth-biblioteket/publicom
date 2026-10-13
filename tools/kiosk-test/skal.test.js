@@ -115,6 +115,15 @@ test('usage: byte av tjänst skrivs som rader, samma tjänst två gånger bara e
   assert.deepEqual(rows, [{ t: 1000, url: '', name: '' }, { t: 1010, url: 'https://a.example.se/', name: 'A' }, { t: 1030, url: '', name: '' }]);
 });
 
+test('ikoner: hela Lucide 1.48.0 med alias, okänt namn ger info, ikoner i skalet finns', () => {
+  const { ICONS, iconSvg } = require(path.join(dir, 'icons.js'));
+  assert.equal(Object.keys(ICONS).length, 2118);
+  for (const n of ['circle-help', 'building-2', 'book-marked', 'circle-user', 'house', 'globe', 'chevron-left', 'wifi-off', 'info']) assert.ok(ICONS[n], n);
+  assert.ok(iconSvg('Circle-Help', 26).includes('<circle'), 'versaler och alias, med cirkel-element');
+  assert.equal(iconSvg('finns-inte', 26), iconSvg('info', 26));
+  assert.equal(iconSvg('', 26), iconSvg('info', 26));
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

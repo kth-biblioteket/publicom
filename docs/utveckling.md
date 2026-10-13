@@ -77,3 +77,9 @@ Tills den sista gamla datorn är ominstallerad finns de gamla configfilerna kvar
 `config/base.env`, `config/profiles/`, `config/hosts/` och de genererade `.config_*` i roten (`tools/build-configs.sh`).
 De gamla datorerna läser `.config_*` och `policies_*.json` från `main`, därför får **`main` inte ändras**.
 När alla är ominstallerade tas filerna bort och `main` kan bli utvecklingsgren igen.
+
+## Uppdatera ikonerna
+
+`electron-kiosk/icons.js` är genererad ur Lucide. Byt version med `npm pack lucide-static@<version>`, packa upp och kör
+`node tools/build-icons.js <uppackad>/package files/usr/local/bin/electron-kiosk`. Uppdatera versionen i hjälptexterna för `START_ICON` och `APPS`
+i `config/catalog.json`, och i publicomtools (lucide-react ska ha samma version så att samma namn finns).

@@ -140,7 +140,7 @@ function renderError(o, t, s, card) {
   card.innerHTML = '';
   const icon = $('div', 'icon');
   icon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#004791" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    (ICONS['wifi-off'] || []).map((d) => '<path d="' + d + '"/>').join('') + '</svg>';
+    (ICONS['wifi-off'] || '') + '</svg>';
   const btns = $('div', 'errbtns');
   if (!o.offline) btns.append(bbtn('white', 'retry', 'retry', t.sv.retry, t.en.retry));
   btns.append(bbtn('blue', 'home', 'home', s.startBi.sv, s.startBi.en));

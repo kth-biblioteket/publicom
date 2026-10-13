@@ -20,6 +20,8 @@ button { border: 0; }
 .bbtn.blue .en { color: rgba(255, 255, 255, .78); }
 .bbtn.white { background: #fff; color: #1f2937; border: 2px solid #dde2e9; }
 .bbtn.white .en { color: #6b7280; }
+.bbtn.plain { background: transparent; color: #004791; border: 0; } /* utan ram och bakgrund (Börja om nu) */
+.bbtn.plain .en { color: #6b7280; }
 
 /* Varning före tillbakagång ("Är du kvar?"): centrerat kort med nedräkning, knapparna under varandra */
 #scrim.idle { background: rgba(0, 0, 40, .55); padding: 32px; }
@@ -37,7 +39,7 @@ button { border: 0; }
 .idlebtns .cont { width: 100%; height: 72px; }
 .idlebtns .cont .sv { font-size: 24px; }
 .idlebtns .cont .en { font-size: 15px; }
-.idlebtns .restart { height: 56px; padding: 0 24px; }
+.idlebtns .restart { height: 56px; padding: 0 24px; align-self: center; width: auto; margin-top: 2px; }
 .idlebtns .restart .sv { font-size: 20px; }
 .idlebtns .restart .en { font-size: 13px; }
 
@@ -101,7 +103,7 @@ function renderIdle(o, t, card) {
     count.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="52"/><circle class="ring" cx="60" cy="60" r="52"/></svg>';
     count.appendChild($('div', 'num'));
     const btns = $('div', 'idlebtns');
-    btns.append(bbtn('blue', 'cont', 'idleContinue', '', ''), bbtn('white', 'restart', 'home', '', ''));
+    btns.append(bbtn('blue', 'cont', 'idleContinue', '', ''), bbtn('plain', 'restart', 'home', '', ''));
     card.append(count, $('div', 'head'), $('div', 'body'), btns);
   }
   const total = Math.max(1, o.total || o.secondsLeft || 1);

@@ -20,7 +20,7 @@ const settings = loadSettings(
   option('--hosts', '/var/lib/publicom/allowed-hosts.txt'));
 const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
 const info = new InfoFeed(settings, policy);
-const usage = new UsageLog(option('--usage-file', '/tmp/publicom-app-usage'));
+const usage = new UsageLog(option('--usage-file', '/run/publicom-guest/app-usage'));
 
 const DESIGN_W = { landscape: 1280, portrait: 800 };    // skalets sidor är ritade för 1280 px (liggande) och 800 px (stående) och skalas med bredden, som i PubLiKiosk
 const BAR_H = { land: 88, stacked: 116 };               // navigeringsramen, i designpixlar: liggande, och stående eller fler än fem knappar (ikonen ovanför texten)

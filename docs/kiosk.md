@@ -147,7 +147,7 @@ värdar (`APPS`, `WHITE_LIST`); sidans egen värd måste alltså finnas där. Fi
 
 Varje besök i statusrapporten (`visits`) får på kiosker ett valfritt fält `apps`: `[{ "url": …, "name": …, "s": sekunder }]`, högst 36, flest
 sekunder först. Kiosken skriver varje byte av aktiv tjänst (epoch-sekund, tjänstens adress enligt `APPS` och namn, tom när förstasidan visas)
-till `/tmp/publicom-app-usage` (en rad per byte, filen skrivs om atomiskt och begränsas till de senaste tre dygnen). `visit_tracker.py` läser den när ett
+till `/run/publicom-guest/app-usage` (en rad per byte, filen skrivs om atomiskt och begränsas till de senaste tre dygnen). Katalogen skapas av `/etc/tmpfiles.d/publicom-guest.conf` (ägare guest, 0700; `deploy.sh` kör `systemd-tmpfiles --create` vid varje start). `visit_tracker.py` läser den när ett
 besök slutar, klipper tiden till besökets start och slut (slut = sista aktiviteten), summerar per tjänst och lägger `apps` på besöket. Hem-fliken i appläget
 räknas som första tjänsten; tid på förstasidan räknas inte. Bara tjänstens vanliga adress (inte den engelska) och namn sparas, aldrig sidor eller andra
-adresser. Besök utan uppgifter får inget `apps`. Gäst- och sökdatorer ändras inte.
+adresser. Eftersom gästen skriver filen och trackern läser den som root öppnas den utan att följa länkar och utan att blockera, och måste vara en vanlig fil som ägs av `guest` utan fler hårda länkar och högst 256 kB; annars skickas besöket utan `apps`. Besök utan uppgifter får inget `apps`. Gäst- och sökdatorer ändras inte.

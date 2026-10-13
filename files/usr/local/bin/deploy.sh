@@ -150,6 +150,10 @@ for timer in apt-daily apt-daily-upgrade; do
         systemctl restart "$timer.timer"
     fi
 done
+# Katalogen där kiosken (guest) skriver vilken tjänst som är öppen och som visit_tracker.py (root) läser: bara guest och root når den
+if [ -f /etc/tmpfiles.d/publicom-guest.conf ]; then
+    systemd-tmpfiles --create /etc/tmpfiles.d/publicom-guest.conf
+fi
 if changed "/etc/sysctl.d/*"; then
     sysctl --system > /dev/null
 fi

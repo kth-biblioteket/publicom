@@ -24,8 +24,10 @@ import fcntl
 import glob
 import json
 import os
+import pwd
 import re
 import select
+import stat
 import struct
 import sys
 import time
@@ -35,8 +37,11 @@ VISITS_FILE = "/var/lib/publicom/visits.jsonl"
 # Skrivs av logout_timer.sh (timeout) och logout_and_cancel.sh (logout) innan X avslutas
 REASON_FILE = "/tmp/publicom-end-reason"
 MAX_QUEUED = 500
-# Skrivs av kiosken (guest) vid varje byte av tjänst: JSON-rader {t, url, name}, tomma url/name = förstasidan
-APP_USAGE_FILE = "/tmp/publicom-app-usage"
+# Skrivs av kiosken (guest) vid varje byte av tjänst: JSON-rader {t, url, name}, tomma url/name = förstasidan.
+# Katalogen skapas av tmpfiles.d (ägare guest, 0700)
+APP_USAGE_FILE = "/run/publicom-guest/app-usage"
+APP_USAGE_OWNER = "guest"
+APP_USAGE_MAX_BYTES = 256 * 1024
 MAX_APPS_PER_VISIT = 36
 TICK = 5
 RESCAN_EVERY = 30
@@ -95,14 +100,32 @@ def open_devices(current):
     return current
 
 
-def read_app_events(path=APP_USAGE_FILE):
-    """Händelserna som kiosken skrev, sorterade på tid: [(t, url, name)]. Tom lista om filen saknas eller är trasig."""
+def read_app_events(path=APP_USAGE_FILE, owner_uid=None):
+    """Händelserna som kiosken skrev, sorterade på tid: [(t, url, name)]. Tom lista om filen saknas eller är trasig.
+
+    Filen skrivs av gästen och läses här som root, så den kontrolleras innan något läses: öppnas utan att följa länkar
+    och utan att blockera (en fifo), och måste vara en vanlig fil, ägd av gästkontot, utan fler hårda länkar och inte större
+    än APP_USAGE_MAX_BYTES. Annars ignoreras den (besöket skickas utan apps)."""
+    if owner_uid is None:
+        try:
+            owner_uid = pwd.getpwnam(APP_USAGE_OWNER).pw_uid
+        except KeyError:
+            return []
     try:
-        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)  # filen ägs av gästen: följ inga länkar
-        with os.fdopen(fd, encoding="utf-8", errors="replace") as f:
-            data = f.read(1_000_000)
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     except OSError:
         return []
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode) or st.st_uid != owner_uid or st.st_nlink != 1 or st.st_size > APP_USAGE_MAX_BYTES:
+            log(f"Ignorerar {path}: inte en vanlig fil som ägs av {APP_USAGE_OWNER} (länkar, storlek eller ägare stämmer inte)")
+            return []
+        with os.fdopen(fd, encoding="utf-8", errors="replace", closefd=False) as f:
+            data = f.read(APP_USAGE_MAX_BYTES)
+    except OSError:
+        return []
+    finally:
+        os.close(fd)
     events = []
     for line in data.splitlines():
         try:

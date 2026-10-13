@@ -40,8 +40,8 @@ class AppUsage(unittest.TestCase):
             p = os.path.join(d, "u")
             with open(p, "w") as f:
                 f.write('{"t": 5, "url": "https://a.example.se/", "name": "A"}\nskräp\n[1]\n{"t": "x", "url": "u", "name": "n"}\n{"t": true, "url": "u", "name": "n"}\n{"t": 9, "url": 1, "name": "n"}\n')
-            self.assertEqual(vt.read_app_events(p), [(5.0, "https://a.example.se/", "A")])
-            self.assertEqual(vt.read_app_events(os.path.join(d, "saknas")), [])
+            self.assertEqual(vt.read_app_events(p, os.getuid()), [(5.0, "https://a.example.se/", "A")])
+            self.assertEqual(vt.read_app_events(os.path.join(d, "saknas"), os.getuid()), [])
 
     def test_lanken_foljs_inte(self):
         with tempfile.TemporaryDirectory() as d:
@@ -49,7 +49,24 @@ class AppUsage(unittest.TestCase):
             open(real, "w").write('{"t": 1, "url": "https://a.example.se/", "name": "A"}\n')
             link = os.path.join(d, "link")
             os.symlink(real, link)
-            self.assertEqual(vt.read_app_events(link), [])
+            self.assertEqual(vt.read_app_events(link, os.getuid()), [])
+
+    def test_fifo_hardlank_fel_agare_och_stor_fil_ignoreras(self):
+        row = '{"t": 1, "url": "https://a.example.se/", "name": "A"}\n'
+        with tempfile.TemporaryDirectory() as d:
+            me = os.getuid()
+            ok = os.path.join(d, "ok")
+            open(ok, "w").write(row)
+            self.assertEqual(len(vt.read_app_events(ok, me)), 1)
+            self.assertEqual(vt.read_app_events(ok, me + 1), [], "annan ägare")
+            os.link(ok, os.path.join(d, "andra"))
+            self.assertEqual(vt.read_app_events(ok, me), [], "hårda länkar")
+            fifo = os.path.join(d, "fifo")
+            os.mkfifo(fifo)
+            self.assertEqual(vt.read_app_events(fifo, me), [], "fifo blockerar inte")
+            big = os.path.join(d, "stor")
+            open(big, "w").write(row * (vt.APP_USAGE_MAX_BYTES // len(row) + 10))
+            self.assertEqual(vt.read_app_events(big, me), [], "för stor")
 
 
 if __name__ == "__main__":

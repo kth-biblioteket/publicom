@@ -115,6 +115,7 @@
 0644 root:root   /etc/systemd/system/apt-daily.timer.d/publicom.conf
 0644 root:root   /etc/systemd/system/apt-daily-upgrade.timer.d/publicom.conf
 0644 root:root   /etc/sysctl.d/99-disable-sysrq.conf
+0644 root:root   /etc/tmpfiles.d/publicom-guest.conf
 0644 root:root   /etc/modprobe.d/disable-usb-storage.conf
 0644 root:root   /etc/X11/Xwrapper.config
 0644 root:root   /usr/share/X11/xorg.conf.d/50-novtswitch.conf

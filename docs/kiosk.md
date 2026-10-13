@@ -22,7 +22,7 @@ Electron från `electron-login`, så ingen egen installation behövs. Det bestå
 
 **Inaktivitet** hanteras av skalet: efter `SESSION_IDLE` minuter utan aktivitet (minus `IDLE_WARNING` sekunder) visas
 varningen, sedan rensas sessionen (cookies, cache, historik), språket återställs och förstasidan visas. Varken `xautolock` eller
-`restart_x.sh` används. Besöksräkningen (`visit_tracker.py`) fungerar som förut.
+`restart_x.sh` används. Besöksräkningen (`visit_tracker.py`) fungerar som förut och skickar dessutom vilka tjänster som användes (se Besöksstatistik nedan).
 
 ## Inställningar
 
@@ -142,3 +142,12 @@ värdar (`APPS`, `WHITE_LIST`); sidans egen värd måste alltså finnas där. Fi
   `ATTRACT_JS`): när förstasidan står orörd så länge visas sidan i helskärm över den (aldrig i en tjänst, inte i appläget).
   Första trycket tar bort den, går inte vidare till något under och är ingen annan åtgärd; skalets inaktivitetsklocka startar bara om.
   Går sidan inte att ladda visas förstasidan som vanligt. När en tjänst öppnas släpps sidan, så att film och skript stannar.
+
+## Besöksstatistik per tjänst
+
+Varje besök i statusrapporten (`visits`) får på kiosker ett valfritt fält `apps`: `[{ "url": …, "name": …, "s": sekunder }]`, högst 36, flest
+sekunder först. Kiosken skriver varje byte av aktiv tjänst (epoch-sekund, tjänstens adress enligt `APPS` och namn, tom när förstasidan visas)
+till `/tmp/publicom-app-usage` (en rad per byte, filen skrivs om atomiskt och begränsas till de senaste tre dygnen). `visit_tracker.py` läser den när ett
+besök slutar, klipper tiden till besökets start och slut (slut = sista aktiviteten), summerar per tjänst och lägger `apps` på besöket. Hem-fliken i appläget
+räknas som första tjänsten; tid på förstasidan räknas inte. Bara tjänstens vanliga adress (inte den engelska) och namn sparas, aldrig sidor eller andra
+adresser. Besök utan uppgifter får inget `apps`. Gäst- och sökdatorer ändras inte.

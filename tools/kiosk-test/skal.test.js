@@ -103,6 +103,18 @@ test('strings: ramen och dialogerna på två språk, START_LABEL på en rad', ()
   assert.deepEqual(startLabels('launcher', '', 'Main page'), { sv: 'Startsida', en: 'Main page' });
 });
 
+test('usage: byte av tjänst skrivs som rader, samma tjänst två gånger bara en gång, bara adress och namn', () => {
+  const fs = require('fs'); const os = require('os');
+  const { UsageLog } = require(path.join(dir, 'usage.js'));
+  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'usage-')), 'u');
+  let now = 1000;
+  const u = new UsageLog(file, () => now);
+  u.record('', ''); now = 1010; u.record('https://a.example.se/', 'A'); now = 1020; u.record('https://a.example.se/', 'A');
+  now = 1030; u.record('', 'ignoreras');
+  const rows = fs.readFileSync(file, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  assert.deepEqual(rows, [{ t: 1000, url: '', name: '' }, { t: 1010, url: 'https://a.example.se/', name: 'A' }, { t: 1030, url: '', name: '' }]);
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

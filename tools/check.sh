@@ -96,6 +96,12 @@ for f in files/usr/local/bin/electron-login/*.js files/usr/local/bin/electron-ki
     node --check "$f" 2>/dev/null && ok "$f" || fail "$f: syntaxfel"
 done
 
+echo "== Besöksstatistik per tjänst (python)"
+if command -v python3 >/dev/null 2>&1; then
+    out=$(python3 -I tools/kiosk-test/test_visit_apps.py 2>&1) && ok "tools/kiosk-test/test_visit_apps.py" || { fail "tools/kiosk-test/test_visit_apps.py"; echo "$out" | tail -15 | sed 's/^/        /'; }
+else
+    echo "  (python3 saknas, hoppar över)"
+fi
 echo "== Kioskskalets logik (node --test)"
 if node -e "require('node:test')" 2>/dev/null; then
     out=$(node --test tools/kiosk-test/skal.test.js 2>&1) && ok "tools/kiosk-test/skal.test.js" || { fail "tools/kiosk-test/skal.test.js"; echo "$out" | grep -E "^not ok|expected|actual|Error" | sed 's/^/        /'; }

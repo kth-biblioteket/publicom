@@ -13,6 +13,10 @@ Avslutade besök läggs i VISITS_FILE (en JSON-rad per besök) och skickas med n
 (heartbeat.sh), som tar bort dem när publicomtools har tagit emot dem. Inga användare, tangenter
 eller adresser sparas, bara tider.
 
+På kiosker (COMPUTER_TYPE=kiosk) får varje besök också apps: vilka tjänster som användes och hur många sekunder var.
+Kiosken (electron-kiosk, usage.js) skriver varje byte av aktiv tjänst till APP_USAGE_FILE; här klipps tiden till besökets
+start och slut och summeras per tjänst. Bara tjänstens konfigurerade adress och namn, tid på förstasidan räknas inte.
+
 Körs av visit-tracker.service som root (krävs för /dev/input). Gör ingenting på skyltar.
 """
 
@@ -31,6 +35,9 @@ VISITS_FILE = "/var/lib/publicom/visits.jsonl"
 # Skrivs av logout_timer.sh (timeout) och logout_and_cancel.sh (logout) innan X avslutas
 REASON_FILE = "/tmp/publicom-end-reason"
 MAX_QUEUED = 500
+# Skrivs av kiosken (guest) vid varje byte av tjänst: JSON-rader {t, url, name}, tomma url/name = förstasidan
+APP_USAGE_FILE = "/tmp/publicom-app-usage"
+MAX_APPS_PER_VISIT = 36
 TICK = 5
 RESCAN_EVERY = 30
 MIN_ACTIVE_TICKS = 2
@@ -88,7 +95,62 @@ def open_devices(current):
     return current
 
 
-def queue_visit(start, end, reason):
+def read_app_events(path=APP_USAGE_FILE):
+    """Händelserna som kiosken skrev, sorterade på tid: [(t, url, name)]. Tom lista om filen saknas eller är trasig."""
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)  # filen ägs av gästen: följ inga länkar
+        with os.fdopen(fd, encoding="utf-8", errors="replace") as f:
+            data = f.read(1_000_000)
+    except OSError:
+        return []
+    events = []
+    for line in data.splitlines():
+        try:
+            o = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(o, dict):
+            continue
+        t, url, name = o.get("t"), o.get("url", ""), o.get("name", "")
+        if isinstance(t, bool) or not isinstance(t, (int, float)) or not isinstance(url, str) or not isinstance(name, str):
+            continue
+        events.append((float(t), url[:500], name[:100]))
+    events.sort(key=lambda e: e[0])
+    return events
+
+
+def app_usage(events, start, end):
+    """Sekunder per tjänst mellan start och slut: [{url, name, s}], flest först, högst 36, 0 s utelämnas.
+    Tillståndet vid start är den senaste händelsen före den; tid på förstasidan (tom url) räknas inte."""
+    if not events or end <= start:
+        return []
+    cur_url, cur_name = "", ""
+    i = 0
+    while i < len(events) and events[i][0] <= start:
+        cur_url, cur_name = events[i][1], events[i][2]
+        i += 1
+    totals = {}
+
+    def add(url, name, a, b):
+        if url and b > a:
+            entry = totals.setdefault(url, [0.0, name])
+            entry[0] += b - a
+            entry[1] = name or entry[1]
+
+    pos = start
+    while i < len(events) and events[i][0] < end:
+        t, url, name = events[i]
+        add(cur_url, cur_name, pos, t)
+        pos, cur_url, cur_name = t, url, name
+        i += 1
+    add(cur_url, cur_name, pos, end)
+    apps = [{"url": u, "name": v[1], "s": int(round(v[0]))} for u, v in totals.items()]
+    apps = [a for a in apps if a["s"] >= 1]
+    apps.sort(key=lambda a: -a["s"])
+    return apps[:MAX_APPS_PER_VISIT]
+
+
+def queue_visit(start, end, reason, apps=None):
     os.makedirs(os.path.dirname(VISITS_FILE), exist_ok=True)
     with open(VISITS_FILE + ".lock", "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
@@ -97,7 +159,10 @@ def queue_visit(start, end, reason):
                 lines = f.read().splitlines()
         except OSError:
             lines = []
-        lines.append(json.dumps({"start": int(start), "end": int(end), "reason": reason}))
+        visit = {"start": int(start), "end": int(end), "reason": reason}
+        if apps:
+            visit["apps"] = apps
+        lines.append(json.dumps(visit))
         # Utan nät i flera dagar: behåll bara de senaste
         lines = lines[-MAX_QUEUED:]
         tmp = VISITS_FILE + ".tmp"
@@ -137,6 +202,8 @@ def main():
     last_input = None  # tid för senaste aktiviteten
     active_ticks = set()  # 5-sekundersintervall med aktivitet under besöket
 
+    kiosk = config.get("COMPUTER_TYPE") == "kiosk"
+
     def end_visit(reason):
         nonlocal started, last_input, active_ticks
         if started is None:
@@ -144,7 +211,7 @@ def main():
         if len(active_ticks) < MIN_ACTIVE_TICKS:
             log(f"Ignorerade kort aktivitet {time.strftime('%H:%M:%S', time.localtime(started))} (inget besök)")
         else:
-            queue_visit(started, last_input, reason)
+            queue_visit(started, last_input, reason, app_usage(read_app_events(), started, last_input) if kiosk else None)
         started, last_input, active_ticks = None, None, set()
 
     while True:

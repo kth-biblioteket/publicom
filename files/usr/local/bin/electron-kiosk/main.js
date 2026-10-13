@@ -9,6 +9,7 @@ const { UrlPolicy, hostOf } = require('./policy');
 const { idleState } = require('./idle');
 const { InfoFeed } = require('./info');
 const { SandboxedPage } = require('./sandboxed-page');
+const { UsageLog } = require('./usage');
 const { stringsFor, bothStrings, startLabels, pick, startLabelFor } = require('./strings');
 
 const argv = process.argv.slice(2);
@@ -19,6 +20,7 @@ const settings = loadSettings(
   option('--hosts', '/var/lib/publicom/allowed-hosts.txt'));
 const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
 const info = new InfoFeed(settings, policy);
+const usage = new UsageLog(option('--usage-file', '/tmp/publicom-app-usage'));
 
 const DESIGN_W = { landscape: 1280, portrait: 800 };    // skalets sidor är ritade för 1280 px (liggande) och 800 px (stående) och skalas med bredden, som i PubLiKiosk
 const BAR_H = { land: 88, stacked: 116 };               // navigeringsramen, i designpixlar: liggande, och stående eller fler än fem knappar (ikonen ovanför texten)
@@ -230,6 +232,7 @@ function openApp(i) {
   S.view = 'app';
   stopHomePages();
   S.current = i;
+  usage.record(a.url, a.label); // tjänstens konfigurerade adress och namn, till besöksstatistiken
   S.kbOpen = false;
   pageView.webContents.loadURL(a.urlFor(S.lang === 'en'));
   update();
@@ -246,6 +249,7 @@ function goHome(keepLang) {
   if (settings.homeMode === 'app') { openApp(0); return; }
   S.view = 'home';
   S.current = -1;
+  usage.record('', '');
   update();
   refreshInfo();
   startHomePages();

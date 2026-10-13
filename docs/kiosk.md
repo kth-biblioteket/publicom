@@ -115,6 +115,18 @@ Se [Hårdvarutest](hardvarutest.md) för checklistan på en riktig dator.
 
 Inloggade gäster (Alma) och öppna gäster, fält i iframes är inte provade med riktiga tjänster, och `FILE_DIALOGS`.
 
+## Navigeringen och dialogerna på två språk
+
+Som i PubLiKiosk visar ramen och dialogerna svenska och engelska samtidigt, utan språkknapp. Varje knapp har svenska fet överst och
+engelska mindre och ljusare under; varje rad kortas för sig med … när den inte ryms, och engelskan utelämnas när den saknas eller
+är lika med svenskan. Tillbaka heter Tillbaka / Back, startknappen Startsida / Home page (förstasidan) eller Hem / Home (första
+tjänsten är hem); en egen `START_LABEL` visas på en rad. Flikarnas engelska namn är tjänstens `nameEn`.
+
+Måtten ges för en skärm 1280 bred liggande eller 800 stående och skalas efter fönstrets bredd. Liggande ramen är 88 hög med knappar 60
+höga och ikonen till vänster. Stående, eller med fler än fem knappar (Hem och fler än fyra tjänster som flikar), är ramen 116 hög med knappar 88 höga
+och ikonen ovanför texten; Tillbaka är då 88 bred och övriga knappar lika breda. Dialogerna (Är du kvar?, Sidan kan inte öppnas här,
+felsidan) har rubrik och brödtext på båda språken. Förstasidans egen språkknapp och korten är oförändrade.
+
 ## Fotrad som webbsida och attract loop
 
 Två vyer som visar en hel webbsida. De är isolerade i `sandboxed-page.js`: ingen brygga mot skalet, ingen navigering (länkar,

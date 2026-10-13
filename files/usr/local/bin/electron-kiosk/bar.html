@@ -2,51 +2,84 @@
 <html lang="sv"><head><meta charset="utf-8"><title>Navigering</title>
 <link rel="stylesheet" href="ui.css">
 <style>
+/* Tvåspråkig ram, samma mått som PubLiKiosk (skisspixlar: ramen ritas för 1280 bred liggande, 800 stående).
+   Varje knapp har svenska fet överst och engelska mindre och ljusare under; varje rad kortas för sig med … */
 body { background: #fff; }
-#bar { height: 100%; box-sizing: border-box; background: #fff; border-top: 1px solid #d6dce4; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
-#back { height: 60px; padding: 0 22px 0 14px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #1a1f2b; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-#back:disabled { opacity: .45; cursor: default; }
+[hidden] { display: none !important; }
+#bar { height: 100%; box-sizing: border-box; background: #fff; border-top: 2px solid #dde2e9; padding: 0 20px; display: flex; align-items: center; gap: 16px; }
+.btn { box-sizing: border-box; height: 60px; flex: none; min-width: 0; padding: 0 20px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 10px; white-space: nowrap; }
+.btn svg { flex: none; width: 26px; height: 26px; }
+.lbl { display: flex; flex-direction: column; justify-content: center; min-width: 0; line-height: 1.1; text-align: left; }
+.sv, .en { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sv { font-size: 20px; font-weight: 700; }
+.en { font-size: 14px; font-weight: 400; color: #6b7280; margin-top: 2px; }
+.btn.on { background: #004791; border-color: #004791; color: #fff; }
+.btn.on .en { color: rgba(255, 255, 255, .78); }
+.btn.off, .btn:disabled { opacity: .45; cursor: default; }
+.tab { flex: 1 1 0; }
+#back { padding-right: 22px; }
 #mid { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 12px; color: #000061; font-size: 22px; font-weight: 800; }
 #mid .names { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
 #mid .label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 #mid .host { font-size: 15px; font-weight: 500; color: #5a6b86; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.tab { height: 60px; padding: 0 22px; border-radius: 14px; border: 2px solid #c8d1dc; background: #fff; color: #000061; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-.tab.on { background: #def0ff; border-color: #004791; }
-#home { height: 60px; padding: 0 24px 0 18px; border-radius: 14px; border: 0; background: #004791; color: #fff; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+#mid.tabs { justify-content: stretch; gap: 16px; }
+/* Stående, eller fler än fem knappar: ikonen ovanför texten, 88 hög, lika breda knappar */
+#bar.stacked { gap: 8px; }
+#bar.stacked .btn { height: 88px; flex-direction: column; gap: 4px; padding: 0 4px; }
+#bar.stacked .lbl { align-items: center; text-align: center; max-width: 100%; }
+#bar.stacked .sv { font-size: 15px; }
+#bar.stacked .en { font-size: 11px; }
+#bar.stacked #back { width: 88px; padding: 0 4px; }
+#bar.stacked #home { min-width: 88px; }
+#bar.stacked #mid.tabs { gap: 8px; }
 </style></head>
 <body><div id="bar">
-  <button id="back" class="press" type="button"></button>
+  <button id="back" class="btn press" type="button"></button>
   <div id="mid"></div>
-  <button id="home" class="press" type="button"></button>
+  <button id="home" class="btn on press" type="button"></button>
 </div>
 <script src="icons.js"></script>
 <script>
+/** Innehållet i en knapp: ikon och två textrader. Engelskan utelämnas när den saknas eller är lika med svenskan. */
+function fill(btn, icon, sv, en) {
+  const two = en && en.trim() && en.trim().toLowerCase() !== (sv || '').trim().toLowerCase();
+  btn.innerHTML = iconSvg(icon, 26) + '<span class="lbl"><span class="sv"></span>' + (two ? '<span class="en"></span>' : '') + '</span>';
+  btn.querySelector('.sv').textContent = sv;
+  if (two) btn.querySelector('.en').textContent = en.trim();
+  btn.setAttribute('aria-label', two ? sv + ' / ' + en.trim() : sv);
+}
+
 function render(s) {
+  const bar = document.getElementById('bar');
+  bar.className = s.barStacked ? 'stacked' : '';
   const back = document.getElementById('back');
-  back.innerHTML = iconSvg('chevron-left', 26) + '<span></span>';
-  back.lastChild.textContent = s.strings.back;
+  fill(back, 'chevron-left', s.bi.sv.back, s.bi.en.back);
   back.disabled = !s.canBack;
   back.onclick = () => kiosk.act('back');
   const mid = document.getElementById('mid');
+  const home = document.getElementById('home');
   mid.innerHTML = '';
-  if (s.homeMode === 'app' && s.apps.length > 1) {
+  const tabs = s.homeMode === 'app' && s.apps.length > 1;
+  mid.className = tabs ? 'tabs' : '';
+  home.hidden = tabs; // med flera tjänster som flikar är första fliken Hem
+  if (tabs) {
     s.apps.forEach((a, i) => {
       const t = document.createElement('button');
-      t.type = 'button'; t.className = 'tab press' + (i === s.currentIndex ? ' on' : '');
-      t.innerHTML = iconSvg(a.icon, 26) + '<span></span>';
-      t.lastChild.textContent = a.name;
+      t.type = 'button'; t.className = 'btn tab press' + (i === s.currentIndex ? ' on' : '');
+      if (i === 0) fill(t, s.startIcon, s.startBi.sv, s.startBi.en);
+      else fill(t, a.icon, a.nameSv, a.nameEn);
       t.onclick = () => kiosk.act('openApp', i);
       mid.appendChild(t);
     });
-  } else if (s.current) {
-    mid.innerHTML = iconSvg(s.current.icon, 26) + '<span class="names"><span class="label"></span><span class="host"></span></span>';
-    mid.querySelector('.label').textContent = s.current.name;
-    mid.querySelector('.host').textContent = s.current.host || '';
+  } else {
+    if (s.current) {
+      mid.innerHTML = iconSvg(s.current.icon, 26) + '<span class="names"><span class="label"></span><span class="host"></span></span>';
+      mid.querySelector('.label').textContent = s.current.name;
+      mid.querySelector('.host').textContent = s.current.host || '';
+    }
+    fill(home, s.startIcon, s.startBi.sv, s.startBi.en);
+    home.onclick = () => kiosk.act('home');
   }
-  const home = document.getElementById('home');
-  home.innerHTML = iconSvg(s.startIcon, 26) + '<span></span>';
-  home.lastChild.textContent = s.startLabel;
-  home.onclick = () => kiosk.act('home');
 }
 kiosk.state().then(render);
 kiosk.onState(render);

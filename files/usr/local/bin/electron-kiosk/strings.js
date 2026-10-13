@@ -73,4 +73,19 @@ function startLabelFor(lang, homeMode, custom) {
   return (custom || '').trim() || standard;
 }
 
-module.exports = { stringsFor, pick, startLabelFor };
+/** Svenska och engelska samtidigt (ramen och dialogerna visar båda): { sv, en } */
+function bothStrings(idleSecondsLeft) {
+  return { sv: stringsFor('sv', idleSecondsLeft), en: stringsFor('en', idleSecondsLeft) };
+}
+
+/**
+ * Startknappen på två språk: { sv, en }. En egen text i START_LABEL visas på en rad (en: ''),
+ * annars Startsida / Home page (förstasida) eller Hem / Home (första tjänsten är hem).
+ */
+function startLabels(homeMode, custom) {
+  const c = (custom || '').trim();
+  if (c) return { sv: c, en: '' };
+  return homeMode === 'app' ? { sv: SV.startApp, en: EN.startApp } : { sv: SV.start, en: EN.start };
+}
+
+module.exports = { stringsFor, bothStrings, startLabels, pick, startLabelFor };

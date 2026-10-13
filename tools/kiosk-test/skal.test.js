@@ -90,6 +90,17 @@ test('buildSettings: fotrad som webbsida och attract loop, https krävs och grä
   assert.equal(buildSettings({ LAUNCHER_HTML_HEIGHT: '10' }, '').htmlFooter.height, 40);
 });
 
+test('strings: ramen och dialogerna på två språk, START_LABEL på en rad', () => {
+  const { bothStrings, startLabels } = require(path.join(dir, 'strings.js'));
+  const b = bothStrings(8);
+  assert.equal(b.sv.idleTitle, 'Är du kvar?');
+  assert.equal(b.en.idleTitle, 'Are you still there?');
+  assert.ok(b.sv.idleText.includes('Om 8 sekunder') && b.en.idleText.includes('In 8 seconds'));
+  assert.deepEqual(startLabels('launcher', ''), { sv: 'Startsida', en: 'Home page' });
+  assert.deepEqual(startLabels('app', ''), { sv: 'Hem', en: 'Home' });
+  assert.deepEqual(startLabels('app', ' Till start '), { sv: 'Till start', en: '' });
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

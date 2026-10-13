@@ -9,7 +9,7 @@ const { UrlPolicy, hostOf } = require('./policy');
 const { idleState } = require('./idle');
 const { InfoFeed } = require('./info');
 const { SandboxedPage } = require('./sandboxed-page');
-const { stringsFor, pick, startLabelFor } = require('./strings');
+const { stringsFor, bothStrings, startLabels, pick, startLabelFor } = require('./strings');
 
 const argv = process.argv.slice(2);
 const option = (name, def) => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -21,7 +21,7 @@ const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
 const info = new InfoFeed(settings, policy);
 
 const DESIGN_W = { landscape: 1280, portrait: 800 };    // skalets sidor är ritade för 1280 px (liggande) och 800 px (stående) och skalas med bredden, som i PubLiKiosk
-const BAR_H = 88;                                       // navigeringsramen, i designpixlar
+const BAR_H = { land: 88, stacked: 116 };               // navigeringsramen, i designpixlar: liggande, och stående eller fler än fem knappar (ikonen ovanför texten)
 const KB_H = { text: 392, email: 464, number: 392 };    // skärmtangentbordet, i designpixlar
 const PAGE_PARTITION = 'kiosk-page';                    // utan persist: allt ligger i minnet
 
@@ -46,6 +46,14 @@ const ui = (file) => path.join(__dirname, file);
 const uiViews = () => [homeView, barView, overlayView, shieldView].filter(Boolean);
 const zoom = (w, h) => Math.min(2.5, Math.max(0.6, w / (h > w ? DESIGN_W.portrait : DESIGN_W.landscape)));
 
+/** Ramen med ikonen ovanför texten: stående skärm, eller fler än fem knappar (flikar i appläget) */
+function barStacked() {
+  if (!win) return false;
+  const [w, h] = win.getContentSize();
+  return h > w || (settings.homeMode === 'app' && settings.apps.length > 5);
+}
+const barDesignH = () => (barStacked() ? BAR_H.stacked : BAR_H.land);
+
 // ---------- tillstånd till skalets egna sidor ----------
 
 function uiState() {
@@ -59,7 +67,10 @@ function uiState() {
     homeMode: settings.homeMode,
     perPage: settings.perPage,
     navigation: settings.navigation,
-    apps: settings.apps.map((a) => ({ name: a.nameFor(en), desc: a.descFor(en), icon: a.icon || 'info' })),
+    apps: settings.apps.map((a) => ({ name: a.nameFor(en), nameSv: a.label, nameEn: a.labelEn, desc: a.descFor(en), icon: a.icon || 'info' })),
+    bi: bothStrings(S.overlay && S.overlay.secondsLeft),
+    startBi: startLabels(settings.homeMode, settings.startLabel),
+    barStacked: barStacked(),
     title: pick(S.lang, settings.texts.title, settings.texts.titleEn, t.title),
     subtitle: pick(S.lang, settings.texts.subtitle, settings.texts.subtitleEn, t.subtitle),
     footer: pick(S.lang, settings.texts.footer, settings.texts.footerEn, ''),
@@ -87,7 +98,8 @@ function layout() {
   const z = zoom(w, h);
   const inApp = S.view === 'app';
   const showBar = inApp && settings.navigation && !S.kbOpen;
-  const barH = showBar ? Math.round(BAR_H * z) : 0;
+  const barDH = Math.round(barDesignH() * z);
+  const barH = showBar ? barDH : 0;
   const kbH = S.kbOpen && inApp ? Math.round(KB_H[S.kbType] * z) : 0;
   const full = { x: 0, y: 0, width: w, height: h };
 
@@ -98,12 +110,12 @@ function layout() {
     pageView.setBounds({ x: 0, y: 0, width: w, height: Math.max(0, h - barH - kbH) });
   }
   barView.setVisible(showBar);
-  barView.setBounds({ x: 0, y: h - Math.round(BAR_H * z), width: w, height: Math.round(BAR_H * z) });
+  barView.setBounds({ x: 0, y: h - barDH, width: w, height: barDH });
   kbView.setVisible(S.kbOpen && inApp);
   kbView.setBounds({ x: 0, y: h - kbH, width: w, height: kbH });
   overlayView.setVisible(!!S.overlay);
   // Felsidan är en hel sida ovanför navigeringsfältet; varning och spärr-ark täcker hela skärmen
-  const navH = inApp && settings.navigation ? Math.round(BAR_H * z) : 0;
+  const navH = inApp && settings.navigation ? barDH : 0;
   overlayView.setBounds(S.overlay && S.overlay.type === 'error' ? { x: 0, y: 0, width: w, height: Math.max(0, h - navH) } : full);
   for (const v of [homeView, barView, kbView, overlayView, shieldView]) v.webContents.setZoomFactor(z);
   if (footerPage) {
@@ -420,7 +432,7 @@ app.whenReady().then(() => {
   ipcMain.on('field-auto', () => {}); // fokus som sidan satte själv visar inte tangentbordet
   ipcMain.on('kb', (e, m) => { if (e.sender === kbView.webContents && m) sendKey(m); });
 
-  win.on('resize', layout);
+  win.on('resize', update);
   goHome();
   setInterval(idleTick, 1000);
   setInterval(refreshInfo, settings.refreshMin * 60 * 1000);

@@ -17,6 +17,7 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   Menu.setApplicationMenu(null);
   const win = new BrowserWindow({
     kiosk: !windowed, width: 1280, height: 720, backgroundColor: '#000000',
+    enableLargerThanScreen: !!process.env.KIOSK_TEST_LARGER, // bara för skärmbilder i full storlek på en mindre skärm
     webPreferences: { sandbox: true, contextIsolation: true, devTools: false },
   });
   win.removeMenu();

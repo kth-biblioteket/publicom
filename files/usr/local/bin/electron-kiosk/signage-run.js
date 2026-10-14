@@ -128,6 +128,7 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   /** Börjar visa en spellista från första sidan (null = svart skärm) */
   function applyList(list, key) {
     clearTimeout(rotateTimer); clearTimeout(retryTimer);
+    const hadPage = pages.length > 0 && !overlay && views[active].ok; // en sida visas just nu
     listKey = key;
     pages = list || [];
     for (const v of views) { if (v !== views[active]) v.unload(); }
@@ -147,7 +148,12 @@ module.exports = function startSignage({ settings, policy, windowed }) {
     }
     overlay = null;
     layout();
-    show(0);
+    // Vid byte från en visad lista förladdas den nya listans första sida bakom den som visas och byts in när den är klar (högst 10 s);
+    // från svart skärm eller felsida börjar den direkt
+    if (hadPage) {
+      views[1 - active].load(pages[0].url);
+      swapTo(0, 0);
+    } else show(0);
   }
 
   /** Vilken lista ska visas just nu? Byte av lista börjar direkt på listans första sida. */

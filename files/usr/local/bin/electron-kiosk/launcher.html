@@ -131,9 +131,8 @@ function layoutGrid() {
 }
 /** Ett långt ord (t.ex. Studieplatsväljaren) får inte läcka ur kortet. Först krymper texten; blir den då för liten
  *  krymper ikonen i steg (till som mest en fjärdedel), därefter läggs ikonen ovanför texten (mer plats), och sist krymper texten
- *  till som minst 12 px. Namnen på en sida får samma storlek. */
+ *  till som minst 12 px. Valet gäller alla sidor (alla kort ser likadana ut), och namnen får samma storlek på alla kort. */
 function fitPage(pg) {
-  const names = [];
   let tooSmall = false;
   pg.querySelectorAll('.tile').forEach((t) => {
     const tb = t.getBoundingClientRect();
@@ -148,34 +147,38 @@ function fitPage(pg) {
       const fits = () => { const b = range.getBoundingClientRect(); return b.right <= tb.right - pad + 1 && b.left >= tb.left + pad - 1; };
       for (let i = 0; i < 24 && size > 12 && !fits(); i++) { size = Math.max(12, size * 0.93); el.style.fontSize = size + 'px'; }
       if (!fits()) el.style.overflowWrap = 'anywhere'; // sista utväg: ett ord som ändå inte ryms bryts
-      if (el.classList.contains('name')) { names.push(el); if (size < natural * 0.75) tooSmall = true; }
+      if (el.classList.contains('name') && size < natural * 0.75) tooSmall = true;
     }
   });
-  if (names.length) {
-    const min = Math.min(...names.map((n) => parseFloat(getComputedStyle(n).fontSize)));
-    names.forEach((n) => { n.style.fontSize = min + 'px'; });
-  }
   return tooSmall;
 }
 function fitText() {
-  document.querySelectorAll('.page').forEach((pg) => {
-    pg.classList.remove('stack', 'short'); pg.style.removeProperty('--ico');
-    if (!fitPage(pg)) return;
-    const first = pg.querySelector('.ico');
-    const natural = first ? first.offsetWidth : 0;
+  const pages = [...document.querySelectorAll('.page')];
+  const fitAll = () => pages.map(fitPage).some(Boolean); // true: något är för litet
+  pages.forEach((pg) => { pg.classList.remove('stack', 'short'); pg.style.removeProperty('--ico'); });
+  if (fitAll() && pages.length) {
+    const natural = Math.min(...pages.map((pg) => { const i = pg.querySelector('.ico'); return i ? i.offsetWidth : 0; }).filter(Boolean));
     let size = natural, ok = false;
     for (let i = 0; i < 8 && natural && !ok; i++) {
       size = Math.round(size * 0.9);
       if (size < natural * 0.75) break;
-      pg.style.setProperty('--ico', size + 'px');
-      ok = !fitPage(pg);
+      pages.forEach((pg) => pg.style.setProperty('--ico', size + 'px'));
+      ok = !fitAll();
     }
-    if (ok) return;
-    pg.style.removeProperty('--ico');
-    pg.classList.add('stack');
-    pg.classList.toggle('short', !!pg.firstChild && pg.firstChild.clientHeight < 150);
-    fitPage(pg);
-  });
+    if (!ok) {
+      pages.forEach((pg) => {
+        pg.style.removeProperty('--ico');
+        pg.classList.add('stack');
+        pg.classList.toggle('short', !!pg.firstChild && pg.firstChild.clientHeight < 150);
+      });
+      fitAll();
+    }
+  }
+  const names = [...document.querySelectorAll('.page .name')];
+  if (names.length) {
+    const min = Math.min(...names.map((n) => parseFloat(getComputedStyle(n).fontSize)));
+    names.forEach((n) => { n.style.fontSize = min + 'px'; });
+  }
 }
 function fillGrid(s) {
   const grid = document.getElementById('grid');

@@ -124,6 +124,24 @@ test('ikoner: hela Lucide 1.48.0 med alias, okänt namn ger info, ikoner i skale
   assert.equal(iconSvg('', 26), iconSvg('info', 26));
 });
 
+test('skylt: SIGN_PAGES som JSON eller rader, https, sekunder, reserv och tillåtna värdar', () => {
+  const { parseSignPages, nextIndex } = require(path.join(dir, 'signage.js'));
+  assert.deepEqual(parseSignPages('[{"url":"https://a.example.se/x","s":10},{"url":"http://nej.example.se/"},{"url":"https://b.example.se/"}]', 30),
+    [{ url: 'https://a.example.se/x', seconds: 10 }, { url: 'https://b.example.se/', seconds: 30 }]);
+  assert.deepEqual(parseSignPages('https://a.example.se/|20\\nhttps://b.example.se/?x=1|7\\nhttp://nej', 45),
+    [{ url: 'https://a.example.se/', seconds: 20 }, { url: 'https://b.example.se/?x=1', seconds: 7 }]);
+  assert.deepEqual(parseSignPages('https://a.example.se/|1', 30), [{ url: 'https://a.example.se/', seconds: 5 }], 'minst 5 s');
+  assert.deepEqual(parseSignPages('', 30, 'https://k.example.se/'), [{ url: 'https://k.example.se/', seconds: 30 }]);
+  assert.deepEqual(parseSignPages('', 30, 'http://k.example.se/'), []);
+  assert.equal(nextIndex(2, 3), 0);
+  assert.equal(nextIndex(0, 1), 0);
+  const env = { COMPUTER_TYPE: 'signage', SIGN_PAGES: '[{"url":"https://a.example.se/s","s":12}]', WHITE_LIST: 'kth.se' };
+  const st = buildSettings(env, '');
+  assert.equal(st.signage.pages.length, 1);
+  assert.ok(st.allowedHosts.includes('https://a.example.se/s'), 'sidans värd tillåts');
+  assert.deepEqual(buildSettings({ SIGN_PAGES: '[{"url":"https://a.example.se/"}]' }, '').signage.pages, [], 'bara på skyltar');
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

@@ -23,6 +23,7 @@ const SV = {
   offlineText: 'Sidan laddas av sig själv så snart skärmen är ansluten.',
   retry: 'Försök igen',
   startOver: 'Börja om',
+  signErrorText: 'Sidan laddas om av sig själv.',
 };
 const EN = {
   org: 'KTH Library',
@@ -47,6 +48,7 @@ const EN = {
   offlineText: 'The page loads by itself as soon as the screen is connected.',
   retry: 'Try again',
   startOver: 'Start over',
+  signErrorText: 'The page reloads by itself.',
 };
 
 /** Texterna på valt språk, färdiga att skicka till skalets sidor (funktioner ersatta av värden) */

@@ -142,11 +142,13 @@ function renderError(o, t, s, card) {
   icon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#004791" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
     (ICONS['wifi-off'] || '') + '</svg>';
   const btns = $('div', 'errbtns');
-  if (!o.offline) btns.append(bbtn('white', 'retry', 'retry', t.sv.retry, t.en.retry));
-  btns.append(bbtn('blue', 'home', 'home', s.startBi.sv, s.startBi.en));
+  if (!s.signage) { // en skylt har inga knappar: sidan laddas om av sig själv
+    if (!o.offline) btns.append(bbtn('white', 'retry', 'retry', t.sv.retry, t.en.retry));
+    btns.append(bbtn('blue', 'home', 'home', s.startBi.sv, s.startBi.en));
+  }
   card.append(icon,
     two('head', o.offline ? t.sv.offlineTitle : t.sv.errorTitle, o.offline ? t.en.offlineTitle : t.en.errorTitle),
-    two('body', o.offline ? t.sv.offlineText : t.sv.errorText, o.offline ? t.en.offlineText : t.en.errorText),
+    two('body', o.offline ? t.sv.offlineText : (s.signage ? t.sv.signErrorText : t.sv.errorText), o.offline ? t.en.offlineText : (s.signage ? t.en.signErrorText : t.en.errorText)),
     btns);
 }
 

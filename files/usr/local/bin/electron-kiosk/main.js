@@ -365,6 +365,7 @@ function idleTick() {
 // ---------- start ----------
 
 app.whenReady().then(() => {
+  if (settings.computerType === 'signage') { require('./signage-run')({ settings, policy, windowed: WINDOWED }); return; }
   Menu.setApplicationMenu(null);
   win = new BrowserWindow({
     kiosk: !WINDOWED, width: 1280, height: 800, backgroundColor: '#000061',

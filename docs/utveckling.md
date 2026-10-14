@@ -49,6 +49,7 @@ En inställning skapas i koden här, och admin får veta om den via katalogen.
    (`bool`, `int`, `string`, `csv`, `url`, `enum`), och vid behov `options`, `unit`, `separator`, `default`,
    `help`, `example`, `advanced` (tekniska inställningar som döljs som standard), `perComputer` (hör till den enskilda
    datorn, t ex namn och resurs-id, och står kvar när datorn byter profil; andra egna värden tas bort vid bytet).
+   `types` (valfri lista över datortyper, värden ur `COMPUTER_TYPE`) anger var nyckeln har någon betydelse; saknas den gäller nyckeln alla typer, och publicomtools döljer den för övriga.
    Ett val i `options` är `{ "value", "label" }` och kan ha `"preview"`: en sökväg i repot till en bild som publicomtools visar som miniatyr.
    En `csv`-nyckel med `options` väljs ur listan i den ordning valen görs (`SCREENSAVER_FILES`).
 3. `tools/check.sh` kontrollerar att varje nyckel i katalogen läses av koden.

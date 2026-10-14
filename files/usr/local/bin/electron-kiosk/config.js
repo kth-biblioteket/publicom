@@ -3,6 +3,7 @@
 // Ren logik utan Electron, så att den går att testa med node --test (tools/kiosk-test/).
 const fs = require('fs');
 const { ICONS } = require('./icons');
+const { parseSignPages } = require('./signage');
 
 // Samma regler som load_config i config_lib.sh: bara rader NYCKEL=värde, ett lager citattecken
 // tas bort, och inget i filen körs.
@@ -200,7 +201,16 @@ function buildSettings(env, hostsText) {
   if (homeMode === 'app') apps = apps.slice(0, MAX_APPS_TABS);
   const scale = parseInt(env.INITIAL_SCALE, 10);
   const sessionMin = intOr(env.SESSION_IDLE, 0);
+  // Skylt (COMPUTER_TYPE=signage): sidor som roterar, utan inmatning. Sidornas värdar tillåts automatiskt.
+  const signSeconds = parseInt(env.SIGN_SECONDS, 10);
+  const signage = {
+    pages: env.COMPUTER_TYPE === 'signage' ? parseSignPages(env.SIGN_PAGES, signSeconds, csv(env.WEBSITES)[0]) : [],
+    js: bool(env.SIGN_JS, true),
+    reloadMin: sessionMin, // en enda sida laddas om så här ofta (SESSION_IDLE), 0 = aldrig
+  };
   return {
+    computerType: env.COMPUTER_TYPE || '',
+    signage,
     apps,
     homeMode,
     perPage: perPage(env.LAUNCHER_PER_PAGE),
@@ -243,7 +253,7 @@ function buildSettings(env, hostsText) {
     warnSec: intOr(env.IDLE_WARNING, 60),
     printing: bool(env.PRINTER, false),
     downloads: bool(env.DOWNLOADS, false), // som sökdatorer: blockerat om inget annat sägs
-    allowedHosts: csv(env.WHITE_LIST).concat(String(hostsText || '').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'))),
+    allowedHosts: csv(env.WHITE_LIST).concat(signage.pages.map((p) => p.url)).concat(String(hostsText || '').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'))),
   };
 }
 

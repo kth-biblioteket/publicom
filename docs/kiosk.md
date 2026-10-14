@@ -152,3 +152,27 @@ till `/run/publicom-guest/app-usage` (en rad per byte, filen skrivs om atomiskt 
 besök slutar, klipper tiden till besökets start och slut (slut = sista aktiviteten), summerar per tjänst och lägger `apps` på besöket. Hem-fliken i appläget
 räknas som första tjänsten; tid på förstasidan räknas inte. Bara tjänstens vanliga adress (inte den engelska) och namn sparas, aldrig sidor eller andra
 adresser. Eftersom gästen skriver filen och trackern läser den som root öppnas den utan att följa länkar och utan att blockera, och måste vara en vanlig fil som ägs av `guest` utan fler hårda länkar och högst 256 kB; annars skickas besöket utan `apps`. Besök utan uppgifter får inget `apps`. Gäst- och sökdatorer ändras inte.
+
+## Skylt med kioskskalet
+
+Skyltar (`COMPUTER_TYPE=signage`) kan köras av samma skal som kioskerna. Det väljs med `SIGN_SHELL=true` (grupp *Skylt*); utan det startar
+skylten Chromium som förut, med den första av Startsidorna. Med skalet:
+
+- **Rotation:** `SIGN_PAGES` listar sidorna som visas i tur och ordning, var och en med en https-adress och antal sekunder
+  (`SIGN_SECONDS`, standard 30, 5–3600, gäller när inget anges). Skrivs som JSON, `[{"url":"https://…","s":30}]`, eller en rad per sida,
+  `adress|sekunder`. Tomt visar första Startsidan. Sidornas värdar tillåts automatiskt; delresurser (bilder, skript, typsnitt) hämtas bara från tillåtna
+  webbplatser (`WHITE_LIST`), som för övrigt på skyltar.
+- **Bara visa:** all inmatning ignoreras (inga klick, ingen scrollning, inget tangentbord) och länkar följs inte. Omdirigeringar till tillåtna värdar följs.
+  `SIGN_JS` (standard på) styr JavaScript.
+- **Felsida:** går en sida inte att ladda (nätverksfel eller http-svar 400 eller högre) visas en felsida utan knappar, och sidan laddas om av sig själv var 30:e
+  sekund. Rotationen går vidare till nästa sida i vanlig tid.
+- **Storlek:** sidorna ritas för skärmens verkliga storlek (`INITIAL_SCALE` gäller), inte för 1280 eller 800 pixlar som kioskens egna sidor.
+- En enda sida laddas om med `SESSION_IDLE` minuters mellanrum (som den gamla skylten). Skyltar räknar inga besök.
+
+Kioskens egna inställningar (förstasida, tjänster, navigering, fotrad, attract loop) gäller inte skyltar. Meddelanderad och klocka på skylten finns inte än.
+
+## Vilka inställningar gäller vilken datortyp
+
+Varje nyckel i `config/catalog.json` kan ha `types`: en lista över datortyperna (värdena i `COMPUTER_TYPE`) där den har någon betydelse. Saknas `types` gäller nyckeln alla.
+Publicomtools döljer nycklar som inte gäller profilens datortyp (med ett val att visa alla). Grupprumsdatorer är sökdatorer. `tools/check.sh` kontrollerar att
+bara kända datortyper används och att gruppen *Skylt* bara gäller skylt.

@@ -9,11 +9,14 @@ const { WebContentsView, session } = require('electron');
 const NO_POINTER = 'html, body, * { pointer-events: none !important; }';
 
 class SandboxedPage {
-  /** opts: name (partitionens namn), policy (UrlPolicy), js, touch, onChange (anropas när ok ändras) */
+  /** opts: name (partitionens namn), policy (UrlPolicy), js, touch, onChange (anropas när ok ändras),
+   *  allowRedirects: omdirigeringar till tillåtna värdar följs (skylten), annars nekas alla */
   constructor(opts) {
     this.name = opts.name;
     this.policy = opts.policy;
     this.touch = !!opts.touch;
+    this.allowRedirects = !!opts.allowRedirects;
+    this.noScroll = !!opts.noScroll;
     this.onChange = opts.onChange || (() => {});
     this.url = '';
     this.ok = false;
@@ -34,21 +37,22 @@ class SandboxedPage {
     const wc = this.view.webContents;
     wc.setWindowOpenHandler(() => ({ action: 'deny' }));
     wc.on('will-navigate', (e) => e.preventDefault());
-    wc.on('will-redirect', (e) => e.preventDefault());
+    wc.on('will-redirect', (e, url) => { if (!this.allowRedirects || !this.policy.allows(url || e.url)) e.preventDefault(); });
     wc.on('will-frame-navigate', (e) => { if (e.isMainFrame) e.preventDefault(); });
     wc.on('before-input-event', (e) => e.preventDefault());
     wc.setVisualZoomLevelLimits(1, 1);
     const apply = () => {
       if (wc.isDestroyed()) return;
       wc.setZoomFactor(this.zoom);
-      if (!this.touch) wc.insertCSS(NO_POINTER).catch(() => {});
+      if (!this.touch) wc.insertCSS(NO_POINTER + (this.noScroll ? ' html, body { overflow: hidden !important; }' : '')).catch(() => {});
     };
     wc.on('dom-ready', apply);
     wc.on('did-navigate', (_e, _url, code) => { this.status = code || 0; apply(); });
     wc.on('did-fail-load', (_e, code, _d, _u, isMain) => { if (isMain && code !== -3) this.set(false, true); });
     wc.on('did-finish-load', () => {
       apply();
-      this.set(!this.failed && this.url !== '' && wc.getURL() !== 'about:blank' && !(this.status >= 400), this.failed);
+      const bad = this.status >= 400; // http-svar 400 eller högre räknas som att sidan inte gick att ladda
+      this.set(!this.failed && !bad && this.url !== '' && wc.getURL() !== 'about:blank', this.failed || (bad && this.url !== ''));
     });
   }
 
@@ -60,7 +64,7 @@ class SandboxedPage {
   }
 
   set(ok, failed) {
-    const changed = ok !== this.ok;
+    const changed = ok !== this.ok || failed !== this.failed;
     this.ok = ok; this.failed = failed;
     if (changed) this.onChange(ok);
   }

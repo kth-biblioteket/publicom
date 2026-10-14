@@ -55,6 +55,8 @@
 0644 root:root   /usr/local/bin/electron-kiosk/qrcode.js
 0644 root:root   /usr/local/bin/electron-kiosk/sandboxed-page.js
 0644 root:root   /usr/local/bin/electron-kiosk/shield.html
+0644 root:root   /usr/local/bin/electron-kiosk/signage.js
+0644 root:root   /usr/local/bin/electron-kiosk/signage-run.js
 0644 root:root   /usr/local/bin/electron-kiosk/strings.js
 0644 root:root   /usr/local/bin/electron-kiosk/usage.js
 0644 root:root   /usr/local/bin/electron-kiosk/ui-preload.js

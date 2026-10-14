@@ -60,6 +60,13 @@ else
     fail "config/catalog.json: ogiltig JSON eller fel format"
 fi
 
+echo "== Datortyper per nyckel i katalogen (types)"
+TYPES_OK=$(jq -r '[.keys[] | select(.key=="COMPUTER_TYPE") | .options[].value] | join(" ")' config/catalog.json)
+bad_types=$(jq -r --arg ok "$TYPES_OK" '($ok | split(" ")) as $valid | .keys[] | select(.types != null) | . as $k | ($k.types[] | select(. as $t | ($valid | index($t)) == null) | "\($k.key): okänd datortyp \(.)")' config/catalog.json)
+if [ -z "$bad_types" ]; then ok "types innehåller bara datortyper från COMPUTER_TYPE ($TYPES_OK)"; else while IFS= read -r l; do fail "$l"; done <<< "$bad_types"; fi
+skylt_keys=$(jq -r '.keys[] | select(.group=="skylt" and ((.types // []) != ["signage"])) | .key' config/catalog.json)
+[ -z "$skylt_keys" ] && ok "alla nycklar i gruppen skylt gäller bara skylt" || fail "gruppen skylt: $skylt_keys ska ha types [\"signage\"]"
+
 echo "== Bildval i katalogen (skärmsläckare och bakgrunder)"
 # Admin väljer bland bilderna som står som val i config/catalog.json. Varje bild i repot ska vara ett val och tvärtom,
 # så att listan i admin aldrig visar en bild som inte finns eller saknar en som finns.

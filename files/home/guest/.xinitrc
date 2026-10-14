@@ -219,6 +219,21 @@ if [ "$COMPUTER_TYPE" = "kiosk" ]; then
       launch_kiosk
       sleep 1
   done
+elif [ "$COMPUTER_TYPE" = "signage" ] && [ "$SIGN_SHELL" = "true" ]; then
+  # Skylt med kioskskalet (SIGN_SHELL=true): sidorna i SIGN_PAGES roterar i helskärm, utan inmatning (electron-kiosk, signage-run.js)
+  log_message "Starting session for signage screen (kiosk shell)."
+  xmodmap /home/guest/.Xmodmap &
+  xbindkeys &
+  xset s off
+  xset -dpms
+  xset s noblank
+  set_background
+  hide_mouse_cursor
+  openbox --config-file /home/guest/.config/openbox/rc-signage.xml &
+  while true; do
+      launch_kiosk
+      sleep 1
+  done
 elif [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage" ]; then
   # Öppen gästdator(utan login)
   if [ "$ALMA_LOGIN" != "true" ]; then

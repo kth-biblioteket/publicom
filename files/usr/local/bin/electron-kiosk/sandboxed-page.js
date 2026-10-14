@@ -32,7 +32,11 @@ class SandboxedPage {
     ses.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
     ses.setPermissionCheckHandler(() => false);
     ses.on('will-download', (e, item) => item.cancel());
-    ses.webRequest.onBeforeRequest((details, cb) => cb({ cancel: !this.allowsRequest(details.url) }));
+    ses.webRequest.onBeforeRequest((details, cb) => {
+      const ok = this.allowsRequest(details.url);
+      if (!ok && process.env.KIOSK_LOG_BLOCKED) console.log('[blockerad]', this.name, details.resourceType, details.url.slice(0, 160));
+      cb({ cancel: !ok });
+    });
 
     const wc = this.view.webContents;
     wc.setWindowOpenHandler(() => ({ action: 'deny' }));

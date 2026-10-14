@@ -3,7 +3,7 @@
 // Ren logik utan Electron, så att den går att testa med node --test (tools/kiosk-test/).
 const fs = require('fs');
 const { ICONS } = require('./icons');
-const { parseSignPages } = require('./signage');
+const { parseSignPages, parseSchedule } = require('./signage');
 
 // Samma regler som load_config i config_lib.sh: bara rader NYCKEL=värde, ett lager citattecken
 // tas bort, och inget i filen körs.
@@ -205,6 +205,7 @@ function buildSettings(env, hostsText) {
   const signSeconds = parseInt(env.SIGN_SECONDS, 10);
   const signage = {
     pages: env.COMPUTER_TYPE === 'signage' ? parseSignPages(env.SIGN_PAGES, signSeconds, csv(env.WEBSITES)[0]) : [],
+    schedule: env.COMPUTER_TYPE === 'signage' ? parseSchedule(env.SIGN_SCHEDULE, signSeconds) : null, // null: bara SIGN_PAGES
     js: bool(env.SIGN_JS, true),
     reloadMin: sessionMin, // en enda sida laddas om så här ofta (SESSION_IDLE), 0 = aldrig
   };
@@ -253,7 +254,8 @@ function buildSettings(env, hostsText) {
     warnSec: intOr(env.IDLE_WARNING, 60),
     printing: bool(env.PRINTER, false),
     downloads: bool(env.DOWNLOADS, false), // som sökdatorer: blockerat om inget annat sägs
-    allowedHosts: csv(env.WHITE_LIST).concat(signage.pages.map((p) => p.url)).concat(String(hostsText || '').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'))),
+    allowedHosts: csv(env.WHITE_LIST).concat(signage.pages.map((p) => p.url))
+      .concat(signage.schedule ? [].concat(...Object.values(signage.schedule.lists)).map((p) => p.url) : []).concat(String(hostsText || '').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'))),
   };
 }
 

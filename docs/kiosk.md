@@ -153,25 +153,29 @@ besök slutar, klipper tiden till besökets start och slut (slut = sista aktivit
 räknas som första tjänsten; tid på förstasidan räknas inte. Bara tjänstens vanliga adress (inte den engelska) och namn sparas, aldrig sidor eller andra
 adresser. Eftersom gästen skriver filen och trackern läser den som root öppnas den utan att följa länkar och utan att blockera, och måste vara en vanlig fil som ägs av `guest` utan fler hårda länkar och högst 256 kB; annars skickas besöket utan `apps`. Besök utan uppgifter får inget `apps`. Gäst- och sökdatorer ändras inte.
 
-## Skylt med kioskskalet
+## Skylt
 
-Skyltar (`COMPUTER_TYPE=signage`) kan köras av samma skal som kioskerna. Det väljs med `SIGN_SHELL=true` (grupp *Skylt*); utan det startar
-skylten Chromium som förut, med den första av Startsidorna. Med skalet:
+Skyltar (`COMPUTER_TYPE=signage`) körs av kioskskalet (utan inmatning). Sidorna visas i tur och ordning i helskärm:
 
-- **Rotation:** `SIGN_PAGES` listar sidorna som visas i tur och ordning, var och en med en https-adress och antal sekunder
-  (`SIGN_SECONDS`, standard 30, 5–3600, gäller när inget anges). Skrivs som JSON, `[{"url":"https://…","s":30}]`, eller en rad per sida,
-  `adress|sekunder`. Tomt visar första Startsidan. Sidornas värdar tillåts automatiskt; delresurser (bilder, skript, typsnitt) hämtas bara från tillåtna
-  webbplatser (`WHITE_LIST`), som för övrigt på skyltar.
+- **Spellistor:** `SIGN_PAGES` är standardlistan, en JSON-lista `[{"url":"https://…","s":30}]` (eller en rad per sida, `adress|sekunder`). `s` är sekunder; saknas
+  den gäller `SIGN_SECONDS` (standard 30, 5–3600). Tom standardlista visar första Startsidan. Sidornas värdar tillåts automatiskt.
+- **Schema (`SIGN_SCHEDULE`):** väljer spellista efter tid: `{"lists":{"Dag":[…]},"slots":[{"list":"Dag","days":[1,2,3,4,5],"from":"08:00","to":"19:00"},{"list":"Bokrea","dates":["2026-10-20","2026-10-31"]}],"off":false}`.
+  Veckodagar 1–7 (måndag–söndag), `from` ingår och `to` ingår inte (`24:00` är midnatt), `dates` är första och sista dag (båda ingår), och ett saknat fält gäller alltid. En rad med
+  okänd lista eller `from` senare än `to` hoppas över. Av raderna som gäller just nu vinner den första med `dates`, annars den första utan. Gäller ingen rad (eller är listan tom)
+  används `SIGN_PAGES`, och är `off` satt och ingen rad gäller blir skärmen svart. Enhetens lokala tid; schemat kontrolleras minst varje minut och vid byte av lista börjar skylten direkt på listans första sida.
+  Saknas schemat eller går det inte att läsa används bara `SIGN_PAGES`.
 - **Förladdning:** med flera sidor laddas nästa sida i en egen vy bakom den som visas, 10 sekunder före bytet (kortare om sidan visas kort tid), så att dess
   skript hinner rita klart. Bytet sker först när den nya sidan är laddad och haft 1,5 sekund på sig (högst 10 sekunders väntan), och den gamla vyn släpps efteråt.
 - **Bara visa:** all inmatning ignoreras (inga klick, ingen scrollning, inget tangentbord) och länkar följs inte. Omdirigeringar till tillåtna värdar följs.
-  `SIGN_JS` (standard på) styr JavaScript.
+  `SIGN_JS` (standard på) styr JavaScript. Sidor kan vara uppladdade bilder, filmer och pdf-sidor som admin lagt hos publicomtools (vanliga adresser); okända fält i en sidpost ignoreras.
+  Delresurser (bilder, skript, typsnitt) hämtas bara från tillåtna webbplatser (`WHITE_LIST`).
 - **Felsida:** går en sida inte att ladda (nätverksfel eller http-svar 400 eller högre) visas en felsida utan knappar, och sidan laddas om av sig själv var 30:e
   sekund. Rotationen går vidare till nästa sida i vanlig tid.
 - **Storlek:** sidorna ritas för skärmens verkliga storlek (`INITIAL_SCALE` gäller), inte för 1280 eller 800 pixlar som kioskens egna sidor.
 - En enda sida laddas om med `SESSION_IDLE` minuters mellanrum (som den gamla skylten). Skyltar räknar inga besök.
+- Skylten körs alltid av kioskskalet (ingen Chromium-reserv längre). Felsökning: `KIOSK_LOG_BLOCKED=1` loggar blockerade begäranden.
 
-Kioskens egna inställningar (förstasida, tjänster, navigering, fotrad, attract loop) gäller inte skyltar. Meddelanderad och klocka på skylten finns inte än.
+Kioskens egna inställningar (förstasida, tjänster, navigering, fotrad, attract loop) gäller inte skyltar.
 
 ## Vilka inställningar gäller vilken datortyp
 

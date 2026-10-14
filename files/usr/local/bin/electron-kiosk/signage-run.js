@@ -1,14 +1,15 @@
 'use strict';
-// Skylt (COMPUTER_TYPE=signage med SIGN_SHELL=true): sidorna i SIGN_PAGES visas i tur och ordning i helskärm, utan någon
-// inmatning. En sida som inte går att ladda visas som felsida (utan knappar) och laddas om av sig själv; rotationen går vidare.
+// Skylt (COMPUTER_TYPE=signage): sidorna i den spellista som gäller nu (SIGN_SCHEDULE, annars SIGN_PAGES) visas i tur och ordning i helskärm,
+// utan någon inmatning. En sida som inte går att ladda visas som felsida (utan knappar) och laddas om av sig själv; rotationen går vidare.
 // Sidorna ritas för skärmens verkliga storlek (INITIAL_SCALE gäller), inte för 1280/800 som kioskens egna sidor.
 const path = require('path');
 const { BrowserWindow, WebContentsView, Menu, ipcMain, net } = require('electron');
 const { SandboxedPage } = require('./sandboxed-page');
 const { bothStrings } = require('./strings');
-const { nextIndex } = require('./signage');
+const { nextIndex, activeList } = require('./signage');
 
 const RETRY_MS = 30 * 1000;
+const SCHEDULE_CHECK_MS = 20 * 1000; // schemat kontrolleras minst varje minut
 const PRELOAD_S = 10;       // nästa sida börjar laddas så här många sekunder före bytet (kortare om sidan visas kortare tid)
 const SETTLE_MS = 1500;     // tid efter att sidan laddats för att dess skript ska hinna rita klart
 const MAX_WAIT_MS = 10000;  // väntar högst så här länge på en sida som inte är färdig vid bytet
@@ -23,6 +24,8 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   win.removeMenu();
 
   const sign = settings.signage;
+  let pages = sign.pages; // spellistan som gäller nu
+  let listKey = null;     // vilken lista som visas: schemats namn, '#standard' (SIGN_PAGES) eller '#av' (svart)
   let index = 0;
   let rotateTimer = null;
   let retryTimer = null;
@@ -78,7 +81,7 @@ module.exports = function startSignage({ settings, policy, windowed }) {
     overlay = failed ? { type: 'error', offline: !net.isOnline() } : null;
     layout(); push();
     clearTimeout(retryTimer);
-    if (failed) retryTimer = setTimeout(() => page.current.load(sign.pages[index].url), RETRY_MS);
+    if (failed) retryTimer = setTimeout(() => page.current.load(pages[index].url), RETRY_MS);
   }
 
   /** Lägger den aktiva vyn överst, med felsidan ovanför */
@@ -104,30 +107,60 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   /** Planerar förladdning och byte för sidan som visas nu */
   function scheduleNext() {
     clearTimeout(rotateTimer);
-    if (sign.pages.length < 2) return;
-    const p = sign.pages[index];
-    const next = nextIndex(index, sign.pages.length);
+    if (pages.length < 2) return;
+    const p = pages[index];
+    const next = nextIndex(index, pages.length);
     const lead = Math.min(PRELOAD_S, Math.max(1, p.seconds - 2));
     rotateTimer = setTimeout(() => {
-      views[1 - active].load(sign.pages[next].url);
+      views[1 - active].load(pages[next].url);
       rotateTimer = setTimeout(() => swapTo(next, 0), lead * 1000);
     }, (p.seconds - lead) * 1000);
   }
 
   function show(i) {
     index = i;
-    views[active].load(sign.pages[i].url);
+    views[active].load(pages[i].url);
     scheduleNext();
   }
 
   win.on('resize', layout);
-  if (!sign.pages.length) {
-    // Inget att visa: felsidan (utan knappar) står kvar tills inställningarna ändrats
-    overlay = { type: 'error', offline: false };
-    layout(); overlayView.webContents.on('did-finish-load', push);
-    return;
+
+  /** Börjar visa en spellista från första sidan (null = svart skärm) */
+  function applyList(list, key) {
+    clearTimeout(rotateTimer); clearTimeout(retryTimer);
+    listKey = key;
+    pages = list || [];
+    for (const v of views) { if (v !== views[active]) v.unload(); }
+    if (!list) { // svart skärm: schemat säger att skylten ska vara avstängd just nu
+      views[active].unload();
+      overlay = null;
+      for (const v of views) v.view.setVisible(false);
+      layout(); push();
+      return;
+    }
+    for (const v of views) v.view.setVisible(true);
+    if (!pages.length) { // inget att visa: felsidan (utan knappar) står kvar tills inställningarna ändrats
+      views[active].unload();
+      overlay = { type: 'error', offline: false };
+      layout(); push();
+      return;
+    }
+    overlay = null;
+    layout();
+    show(0);
   }
-  show(0);
+
+  /** Vilken lista ska visas just nu? Byte av lista börjar direkt på listans första sida. */
+  function evaluate() {
+    const now = new Date();
+    const r = activeList(sign.schedule, now);
+    const key = r.pages ? r.name : (r.off ? '#av' : '#standard');
+    if (key === listKey) return;
+    applyList(r.pages ? r.pages : (r.off ? null : sign.pages), key);
+  }
+
+  evaluate();
+  setInterval(evaluate, SCHEDULE_CHECK_MS);
   // En enda sida laddas om med SESSION_IDLE minuters mellanrum (som den gamla skylten)
-  if (sign.pages.length === 1 && sign.reloadMin > 0) setInterval(() => page.current.load(sign.pages[0].url), sign.reloadMin * 60 * 1000);
+  if (sign.reloadMin > 0) setInterval(() => { if (pages.length === 1) page.current.load(pages[0].url); }, sign.reloadMin * 60 * 1000);
 };

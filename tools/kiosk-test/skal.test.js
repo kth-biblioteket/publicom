@@ -142,6 +142,44 @@ test('skylt: SIGN_PAGES som JSON eller rader, https, sekunder, reserv och tillå
   assert.deepEqual(buildSettings({ SIGN_PAGES: '[{"url":"https://a.example.se/"}]' }, '').signage.pages, [], 'bara på skyltar');
 });
 
+test('skylt: schema (SIGN_SCHEDULE): lista efter veckodag, tid och datum, datum vinner, off och reserv', () => {
+  const { parseSchedule, activeList } = require(path.join(dir, 'signage.js'));
+  const raw = JSON.stringify({
+    lists: { Dag: [{ url: 'https://a.example.se/d', s: 20 }], Kväll: [{ url: 'https://a.example.se/k' }], Bokrea: [{ url: 'https://a.example.se/b', s: 9 }], Tom: [] },
+    slots: [
+      { list: 'Dag', days: [1, 2, 3, 4, 5], from: '08:00', to: '19:00' },
+      { list: 'Kväll', days: [1, 2, 3, 4, 5], from: '19:00', to: '24:00' },
+      { list: 'Bokrea', dates: ['2026-10-20', '2026-10-31'] },
+      { list: 'Finns inte', from: '00:00' },
+      { list: 'Dag', from: '20:00', to: '10:00' },
+      { list: 'Tom', days: [7] },
+    ],
+    off: true,
+  });
+  const sc = parseSchedule(raw, 30);
+  assert.equal(sc.slots.length, 4, 'okänd lista och från > till hoppas över');
+  const at = (y, m, d, h, mi) => new Date(y, m - 1, d, h, mi);
+  // 2026-10-14 är en onsdag, 2026-10-17 en lördag, 2026-10-18 en söndag
+  assert.equal(activeList(sc, at(2026, 10, 14, 8, 0)).name, 'Dag', 'from ingår');
+  assert.equal(activeList(sc, at(2026, 10, 14, 18, 59)).name, 'Dag');
+  assert.equal(activeList(sc, at(2026, 10, 14, 19, 0)).name, 'Kväll', 'to ingår inte');
+  assert.equal(activeList(sc, at(2026, 10, 14, 23, 59)).name, 'Kväll', '24:00 är midnatt');
+  assert.equal(activeList(sc, at(2026, 10, 20, 12, 0)).name, 'Bokrea', 'datum vinner över veckodag och tid');
+  assert.equal(activeList(sc, at(2026, 10, 31, 23, 0)).name, 'Bokrea', 'sista datumet ingår');
+  assert.equal(activeList(sc, at(2026, 11, 1, 12, 0)).pages, null, 'söndag med tom lista: ingen lista (reserv)');
+  const none = activeList(sc, at(2026, 10, 17, 12, 0));
+  assert.deepEqual([none.pages, none.off], [null, true], 'ingen rad gäller och off: svart skärm');
+  assert.equal(activeList(sc, at(2026, 10, 14, 7, 0)).off, true);
+  assert.equal(activeList(sc, at(2026, 10, 14, 8, 0)).pages[0].seconds, 20);
+  assert.equal(activeList(sc, at(2026, 10, 14, 19, 0)).pages[0].seconds, 30, 's saknas: Tid per sida');
+  assert.equal(parseSchedule('inte json', 30), null);
+  assert.equal(parseSchedule('[]', 30), null);
+  assert.deepEqual(activeList(null, new Date()), { name: '', pages: null, off: false });
+  assert.equal(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_SCHEDULE: raw }, '').signage.schedule.slots.length, 4);
+  assert.equal(buildSettings({ SIGN_SCHEDULE: raw }, '').signage.schedule, null, 'bara på skyltar');
+  assert.ok(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_SCHEDULE: raw }, '').allowedHosts.includes('https://a.example.se/k'), 'listornas värdar tillåts');
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

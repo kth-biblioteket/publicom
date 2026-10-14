@@ -47,7 +47,7 @@ En inställning skapas i koden här, och admin får veta om den via katalogen.
 1. Skriv koden som läser nyckeln (läs den alltid via `load_config`, aldrig `source`). Bestäm vad som gäller när den inte är satt.
 2. Lägg till nyckeln i `config/catalog.json` **i samma commit**: `key`, svenskt `label`, `group`, `type`
    (`bool`, `int`, `string`, `csv`, `url`, `enum`), och vid behov `options`, `unit`, `separator`, `default`,
-   `help`, `example`, `advanced` (tekniska inställningar som döljs som standard), `perComputer` (hör till den enskilda
+   `help`, `example`, `advanced` (tekniska inställningar som döljs som standard), `computerOnly` (får bara sättas på en enskild dator, aldrig i en profil eller i grundinställningarna: `COMPUTER_NAME`, `RESOURCE_ID`; skiljer sig från `perComputer`, som bara betyder att värdet behålls när datorn byter profil), `perComputer` (hör till den enskilda
    datorn, t ex namn och resurs-id, och står kvar när datorn byter profil; andra egna värden tas bort vid bytet).
    `types` (valfri lista över datortyper, värden ur `COMPUTER_TYPE`) anger var nyckeln har någon betydelse; saknas den gäller nyckeln alla typer, och publicomtools döljer den för övriga.
    Ett val i `options` är `{ "value", "label" }` och kan ha `"preview"`: en sökväg i repot till en bild som publicomtools visar som miniatyr.

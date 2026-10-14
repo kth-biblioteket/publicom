@@ -14,7 +14,7 @@
   ],
   "keys": [
     { "key": "COMPUTER_NAME", "label": "Visningsnamn", "group": "dator", "type": "string",
-      "perComputer": true,
+      "perComputer": true, "computerOnly": true,
       "help": "Namnet som visas i panelen på datorn. I admin kan datorn ha ett eget namn i listan." },
     { "key": "COMPUTER_TYPE", "label": "Datortyp", "group": "dator", "type": "enum",
       "options": [
@@ -25,7 +25,7 @@
       ],
       "help": "Styr vad datorn startar. Grupprumsdatorer är sökdatorer med bokningssidor som startsidor." },
     { "key": "RESOURCE_ID", "label": "Resurs i bokningssystemet", "group": "dator", "types": ["guestcomputer", "searchcomputer"], "type": "string",
-      "perComputer": true,
+      "perComputer": true, "computerOnly": true,
       "help": "Datorns id i bokningssystemet. Behövs för gästdatorer med drop in-bokning." },
 
     { "key": "SCREEN_ROTATION", "label": "Skärmens riktning", "group": "skarm", "type": "enum",

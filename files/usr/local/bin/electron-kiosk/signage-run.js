@@ -34,7 +34,7 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   // Två vyer: den ena visas medan nästa sida laddas och ritas färdigt bakom den, så bytet sker utan väntan.
   // Båda är synliga (inte dolda, då stryps skripten) och ligger över varandra; den aktiva ligger överst.
   const mk = (name) => new SandboxedPage({
-    name, policy, js: sign.js, touch: false, noScroll: true, allowRedirects: true,
+    name, policy, js: sign.js, touch: false, noScroll: true, allowRedirects: true, anyHttps: sign.resources === 'all',
     onChange: () => settle(),
   });
   const views = [mk('sign-a'), mk('sign-b')];

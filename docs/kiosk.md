@@ -168,7 +168,8 @@ Skyltar (`COMPUTER_TYPE=signage`) körs av kioskskalet (utan inmatning). Sidorna
   skript hinner rita klart. Bytet sker först när den nya sidan är laddad och haft 1,5 sekund på sig (högst 10 sekunders väntan), och den gamla vyn släpps efteråt.
 - **Bara visa:** all inmatning ignoreras (inga klick, ingen scrollning, inget tangentbord) och länkar följs inte. Omdirigeringar till tillåtna värdar följs.
   `SIGN_JS` (standard på) styr JavaScript. Sidor kan vara uppladdade bilder, filmer och pdf-sidor som admin lagt hos publicomtools (vanliga adresser); okända fält i en sidpost ignoreras.
-  Delresurser (bilder, skript, typsnitt) hämtas bara från tillåtna webbplatser (`WHITE_LIST`).
+  `SIGN_RESOURCES` (standard `all`) styr varifrån delresurser (skript, stilmallar, typsnitt, bilder, anrop, film) får hämtas: `all` från vilken https-adress som helst, `allowed` bara från tillåtna
+  webbplatser (`WHITE_LIST`, sidornas värdar). Själva sidan och omdirigeringar av den följer alltid tillåtna värdar, och navigering, nya fönster, nedladdningar och behörigheter nekas.
 - **Felsida:** går en sida inte att ladda (nätverksfel eller http-svar 400 eller högre) visas en felsida utan knappar, och sidan laddas om av sig själv var 30:e
   sekund. Rotationen går vidare till nästa sida i vanlig tid.
 - **Storlek:** sidorna ritas för skärmens verkliga storlek (`INITIAL_SCALE` gäller), inte för 1280 eller 800 pixlar som kioskens egna sidor.

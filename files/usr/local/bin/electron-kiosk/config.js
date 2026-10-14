@@ -207,6 +207,7 @@ function buildSettings(env, hostsText) {
     pages: env.COMPUTER_TYPE === 'signage' ? parseSignPages(env.SIGN_PAGES, signSeconds, csv(env.WEBSITES)[0]) : [],
     schedule: env.COMPUTER_TYPE === 'signage' ? parseSchedule(env.SIGN_SCHEDULE, signSeconds) : null, // null: bara SIGN_PAGES
     js: bool(env.SIGN_JS, true),
+    resources: env.SIGN_RESOURCES === 'allowed' ? 'allowed' : 'all', // all: delresurser från vilken https-adress som helst
     reloadMin: sessionMin, // en enda sida laddas om så här ofta (SESSION_IDLE), 0 = aldrig
   };
   return {

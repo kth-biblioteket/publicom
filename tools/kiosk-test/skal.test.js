@@ -180,6 +180,21 @@ test('skylt: schema (SIGN_SCHEDULE): lista efter veckodag, tid och datum, datum 
   assert.ok(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_SCHEDULE: raw }, '').allowedHosts.includes('https://a.example.se/k'), 'listornas värdar tillåts');
 });
 
+test('skylt: SIGN_RESOURCES, delresurser från vilken https-adress som helst, huvudramen följer policyn', () => {
+  const { UrlPolicy, requestAllowed } = require(path.join(dir, 'policy.js'));
+  const pol = new UrlPolicy([], ['a.example.se']);
+  assert.equal(requestAllowed(pol, 'https://cdn.annat.se/x.js', 'script', true), true, 'all: delresurs från annan https-värd');
+  assert.equal(requestAllowed(pol, 'https://cdn.annat.se/x.js', 'script', false), false, 'allowed: bara tillåtna värdar');
+  assert.equal(requestAllowed(pol, 'http://cdn.annat.se/x.js', 'script', true), false, 'http nekas alltid');
+  assert.equal(requestAllowed(pol, 'https://annat.se/', 'mainFrame', true), false, 'huvudramen följer policyn');
+  assert.equal(requestAllowed(pol, 'https://a.example.se/', 'mainFrame', true), true);
+  assert.equal(requestAllowed(pol, 'data:image/png;base64,AA', 'image', false), true);
+  assert.equal(requestAllowed(pol, 'blob:https://a.example.se/x', 'media', false), true);
+  assert.equal(buildSettings({ COMPUTER_TYPE: 'signage' }, '').signage.resources, 'all');
+  assert.equal(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_RESOURCES: 'allowed' }, '').signage.resources, 'allowed');
+  assert.equal(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_RESOURCES: 'x' }, '').signage.resources, 'all');
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

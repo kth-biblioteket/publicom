@@ -50,4 +50,16 @@ class UrlPolicy {
   }
 }
 
-module.exports = { UrlPolicy, normalize, hostOf };
+/**
+ * Får en begäran från en isolerad vy (skylt, fotrad, attract) göras? Själva sidan (mainFrame) följer alltid policyn.
+ * Delresurser (skript, stilmallar, typsnitt, bilder, anrop, film) får hämtas från vilken https-adress som helst när anyHttps är satt
+ * (SIGN_RESOURCES=all), annars bara från tillåtna värdar. data: och blob: (sidans egna) är alltid tillåtna.
+ */
+function requestAllowed(policy, url, resourceType, anyHttps) {
+  const u = String(url);
+  if (u.startsWith('data:') || u.startsWith('blob:')) return true;
+  if (resourceType === 'mainFrame' || !anyHttps) return policy.allows(u);
+  return policy.allows(u) || u.startsWith('https://');
+}
+
+module.exports = { UrlPolicy, normalize, hostOf, requestAllowed };

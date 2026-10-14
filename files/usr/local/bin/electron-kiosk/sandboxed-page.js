@@ -5,18 +5,21 @@
 // hämtas bara från tillåtna värdar (https). JavaScript är av om inte js är satt, och tryck nekas om inte touch är satt.
 // Film utan ljud autospelar, film med ljud gör det inte (autoplayPolicy user-gesture-required).
 const { WebContentsView, session } = require('electron');
+const { requestAllowed } = require('./policy');
 
 const NO_POINTER = 'html, body, * { pointer-events: none !important; }';
 
 class SandboxedPage {
   /** opts: name (partitionens namn), policy (UrlPolicy), js, touch, onChange (anropas när ok ändras),
-   *  allowRedirects: omdirigeringar till tillåtna värdar följs (skylten), annars nekas alla */
+   *  allowRedirects: omdirigeringar till tillåtna värdar följs (skylten), annars nekas alla,
+   *  anyHttps: delresurser får hämtas från vilken https-adress som helst (SIGN_RESOURCES=all på skylten) */
   constructor(opts) {
     this.name = opts.name;
     this.policy = opts.policy;
     this.touch = !!opts.touch;
     this.allowRedirects = !!opts.allowRedirects;
     this.noScroll = !!opts.noScroll;
+    this.anyHttps = !!opts.anyHttps;
     this.onChange = opts.onChange || (() => {});
     this.url = '';
     this.ok = false;
@@ -33,7 +36,7 @@ class SandboxedPage {
     ses.setPermissionCheckHandler(() => false);
     ses.on('will-download', (e, item) => item.cancel());
     ses.webRequest.onBeforeRequest((details, cb) => {
-      const ok = this.allowsRequest(details.url);
+      const ok = this.allowsRequest(details.url, details.resourceType);
       if (!ok && process.env.KIOSK_LOG_BLOCKED) console.log('[blockerad]', this.name, details.resourceType, details.url.slice(0, 160));
       cb({ cancel: !ok });
     });
@@ -60,11 +63,9 @@ class SandboxedPage {
     });
   }
 
-  /** https mot tillåtna värdar; data: och blob: (sidans egna) är tillåtna, allt annat nekas */
-  allowsRequest(url) {
-    const u = String(url);
-    if (u.startsWith('data:') || u.startsWith('blob:')) return true;
-    return this.policy.allows(u);
+  /** https mot tillåtna värdar (delresurser från vilken https-adress som helst med anyHttps); data: och blob: är tillåtna, allt annat nekas */
+  allowsRequest(url, resourceType) {
+    return requestAllowed(this.policy, url, resourceType, this.anyHttps);
   }
 
   set(ok, failed) {

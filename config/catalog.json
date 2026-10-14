@@ -274,6 +274,9 @@
       "help": "Hur länge en sida visas när den inte har egna sekunder (5–3600)." },
     { "key": "SIGN_JS", "label": "Sidorna får köra JavaScript", "group": "skylt", "types": ["signage"], "type": "bool", "default": "true",
       "help": "På som standard, eftersom skyltsidor oftast behöver skript." },
+    { "key": "SIGN_RESOURCES", "label": "Sidorna får hämta från", "group": "skylt", "types": ["signage"], "type": "enum", "default": "all",
+      "options": [{ "value": "all", "label": "Alla https-adresser" }, { "value": "allowed", "label": "Bara Tillåtna webbplatser" }],
+      "help": "Varifrån sidornas skript, typsnitt, bilder och anrop får hämtas. Alla https-adresser: sidorna fungerar utan att man listar deras beroenden. Bara Tillåtna webbplatser: som förut. Själva sidorna är alltid de i spellistorna, och sidorna kan inte navigera vidare." },
     { "key": "ELECTRON_DEV_TOOLS", "label": "Utvecklarverktyg", "group": "teknik", "type": "bool", "default": "false", "advanced": true,
       "perComputer": true,
       "help": "Utvecklarverktyg i inloggningsappen. Bara för testdatorer." }

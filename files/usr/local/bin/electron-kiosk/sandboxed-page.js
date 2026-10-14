@@ -69,6 +69,7 @@ class SandboxedPage {
 
   set(ok, failed) {
     const changed = ok !== this.ok || failed !== this.failed;
+    if (ok && !this.ok) this.okAt = Date.now();
     this.ok = ok; this.failed = failed;
     if (changed) this.onChange(ok);
   }

@@ -162,6 +162,8 @@ skylten Chromium som förut, med den första av Startsidorna. Med skalet:
   (`SIGN_SECONDS`, standard 30, 5–3600, gäller när inget anges). Skrivs som JSON, `[{"url":"https://…","s":30}]`, eller en rad per sida,
   `adress|sekunder`. Tomt visar första Startsidan. Sidornas värdar tillåts automatiskt; delresurser (bilder, skript, typsnitt) hämtas bara från tillåtna
   webbplatser (`WHITE_LIST`), som för övrigt på skyltar.
+- **Förladdning:** med flera sidor laddas nästa sida i en egen vy bakom den som visas, 10 sekunder före bytet (kortare om sidan visas kort tid), så att dess
+  skript hinner rita klart. Bytet sker först när den nya sidan är laddad och haft 1,5 sekund på sig (högst 10 sekunders väntan), och den gamla vyn släpps efteråt.
 - **Bara visa:** all inmatning ignoreras (inga klick, ingen scrollning, inget tangentbord) och länkar följs inte. Omdirigeringar till tillåtna värdar följs.
   `SIGN_JS` (standard på) styr JavaScript.
 - **Felsida:** går en sida inte att ladda (nätverksfel eller http-svar 400 eller högre) visas en felsida utan knappar, och sidan laddas om av sig själv var 30:e

@@ -23,6 +23,12 @@ MIN_INTERVAL=$((5 * 60))
 
 log() { echo "$*"; logger -t publicom-reload "$*"; }
 
+# COMPUTER_TYPE (skyltar används aldrig: ingen sitter vid en skylt, och en film som spelas kan hålla X:s inaktivitetsräknare nere)
+COMPUTER_TYPE=""
+# shellcheck disable=SC1091
+source /usr/local/bin/config_lib.sh
+load_config /usr/local/bin/config/.config 2>/dev/null || true
+
 mkdir -p "$STATE_DIR"
 
 # Skydd mot upprepning: lyckas det inte fortsätter publicomtools att be om det vid varje
@@ -43,6 +49,8 @@ function idle_ms() {
 }
 
 function in_use() {
+    # En skylt har ingen besökare vid skärmen: hämta och starta om direkt (skyddet mot upprepning ovan gäller fortfarande)
+    [ "$COMPUTER_TYPE" == "signage" ] && return 1
     logged_in && return 0
     local idle
     idle=$(idle_ms)

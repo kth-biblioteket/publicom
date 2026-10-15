@@ -55,10 +55,13 @@ class SandboxedPage {
     };
     wc.on('dom-ready', apply);
     wc.on('did-navigate', (_e, _url, code) => { this.status = code || 0; apply(); });
-    wc.on('did-fail-load', (_e, code, _d, _u, isMain) => { if (isMain && code !== -3) this.set(false, true); });
+    wc.on('did-fail-load', (_e, code, desc, failedUrl, isMain) => {
+      if (isMain && code !== -3) { console.log(`[${this.name}] sidan kunde inte laddas: fel ${code} ${desc} ${String(failedUrl).slice(0, 200)}`); this.set(false, true); }
+    });
     wc.on('did-finish-load', () => {
       apply();
       const bad = this.status >= 400; // http-svar 400 eller högre räknas som att sidan inte gick att ladda
+      if (bad && this.url !== '') console.log(`[${this.name}] sidan svarade http ${this.status}: ${this.url.slice(0, 200)}`);
       this.set(!this.failed && !bad && this.url !== '' && wc.getURL() !== 'about:blank', this.failed || (bad && this.url !== ''));
     });
   }
@@ -86,7 +89,7 @@ class SandboxedPage {
     this.url = url || '';
     this.status = 0;
     this.failed = false;
-    if (!this.url || !this.policy.allows(this.url)) { this.set(false, true); return; }
+    if (!this.url || !this.policy.allows(this.url)) { console.log(`[${this.name}] adressen tillåts inte eller saknas: ${String(this.url).slice(0, 200)}`); this.set(false, true); return; }
     this.view.webContents.loadURL(this.url).catch(() => { this.set(false, true); });
   }
 

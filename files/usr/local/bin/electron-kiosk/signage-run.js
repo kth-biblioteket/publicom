@@ -81,7 +81,10 @@ module.exports = function startSignage({ settings, policy, windowed }) {
     overlay = failed ? { type: 'error', offline: !net.isOnline() } : null;
     layout(); push();
     clearTimeout(retryTimer);
-    if (failed) retryTimer = setTimeout(() => page.current.load(pages[index].url), RETRY_MS);
+    if (failed) {
+      console.log(`[skylt] felsida visas (${overlay.offline ? 'ingen nätverksanslutning' : 'sidan gick inte att ladda'}); försöker igen om ${RETRY_MS / 1000} s: ${pages[index] ? pages[index].url.slice(0, 200) : ''}`);
+      retryTimer = setTimeout(() => page.current.load(pages[index].url), RETRY_MS);
+    }
   }
 
   /** Lägger den aktiva vyn överst, med felsidan ovanför */
@@ -162,6 +165,7 @@ module.exports = function startSignage({ settings, policy, windowed }) {
     const r = activeList(sign.schedule, now);
     const key = r.pages ? r.name : (r.off ? '#av' : '#standard');
     if (key === listKey) return;
+    console.log(`[skylt] ${now.toTimeString().slice(0, 8)} lista: ${key === '#av' ? 'svart skärm' : key === '#standard' ? 'standardlistan' : key}`);
     applyList(r.pages ? r.pages : (r.off ? null : sign.pages), key);
   }
 

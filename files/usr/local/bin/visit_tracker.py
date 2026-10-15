@@ -37,6 +37,10 @@ VISITS_FILE = "/var/lib/publicom/visits.jsonl"
 # Skrivs av logout_timer.sh (timeout) och logout_and_cancel.sh (logout) innan X avslutas
 REASON_FILE = "/tmp/publicom-end-reason"
 MAX_QUEUED = 500
+# Tiden för senaste riktiga inmatning (kärnans enheter, inte X:s räknare som film, skärmsläckare och VNC nollställer): epoch-sekunder i en fil.
+# reload_config.sh läser den i /run/publicom, kioskskalet (guest) i /run/publicom-guest
+LAST_INPUT_FILES = ("/run/publicom/last-input", "/run/publicom-guest/last-input")
+LAST_INPUT_EVERY = 2  # skrivs högst så här ofta (sekunder)
 # Skrivs av kiosken (guest) vid varje byte av tjänst: JSON-rader {t, url, name}, tomma url/name = förstasidan.
 # Katalogen skapas av tmpfiles.d (ägare guest, 0700)
 APP_USAGE_FILE = "/run/publicom-guest/app-usage"
@@ -173,6 +177,24 @@ def app_usage(events, start, end):
     return apps[:MAX_APPS_PER_VISIT]
 
 
+def write_last_input(now, paths=LAST_INPUT_FILES):
+    """Skriver tiden för senaste riktiga inmatning (hel sekund) till filerna som finns i en katalog som finns; fel ignoreras."""
+    for path in paths:
+        folder = os.path.dirname(path)
+        if folder == "/run/publicom":
+            os.makedirs(folder, exist_ok=True)  # reload_config.sh läser här (katalogen skapas annars bara av inloggningen)
+        if not os.path.isdir(folder):
+            continue
+        tmp = path + ".tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                f.write(f"{int(now)}\n")
+            os.chmod(tmp, 0o644)
+            os.replace(tmp, path)
+        except OSError:
+            pass
+
+
 def queue_visit(start, end, reason, apps=None):
     os.makedirs(os.path.dirname(VISITS_FILE), exist_ok=True)
     with open(VISITS_FILE + ".lock", "w") as lock:
@@ -217,10 +239,12 @@ def main():
         idle_minutes = 5
     idle_limit = idle_minutes * 60 if idle_minutes > 0 else 300
 
+    write_last_input(time.time())  # utgångspunkt: tiden då räknaren startade (annars saknas filen tills någon rör något)
     devices = open_devices({})
     log(f"Följer {len(devices)} indataenheter, besök slutar efter {idle_limit} s utan aktivitet")
     rescanned = time.monotonic()
 
+    last_input_written = 0.0
     started = None  # tid (epoch) för första aktiviteten i besöket
     last_input = None  # tid för senaste aktiviteten
     active_ticks = set()  # 5-sekundersintervall med aktivitet under besöket
@@ -264,6 +288,9 @@ def main():
                     human = True
 
         if human:
+            if now - last_input_written >= LAST_INPUT_EVERY:
+                write_last_input(now)
+                last_input_written = now
             if started is None:
                 started = now
             last_input = now

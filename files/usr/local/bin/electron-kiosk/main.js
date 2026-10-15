@@ -10,6 +10,7 @@ const { idleState } = require('./idle');
 const { InfoFeed } = require('./info');
 const { SandboxedPage } = require('./sandboxed-page');
 const { UsageLog } = require('./usage');
+const { inputIdleSeconds } = require('./inputidle');
 const { stringsFor, bothStrings, startLabels, pick, startLabelFor } = require('./strings');
 
 const argv = process.argv.slice(2);
@@ -21,6 +22,7 @@ const settings = loadSettings(
 const policy = new UrlPolicy(settings.apps, settings.allowedHosts);
 const info = new InfoFeed(settings, policy);
 const usage = new UsageLog(option('--usage-file', '/run/publicom-guest/app-usage'));
+const INPUT_FILE = option('--input-file', '/run/publicom-guest/last-input'); // senaste riktiga inmatning (visit_tracker.py)
 
 const DESIGN_W = { landscape: 1280, portrait: 800 };    // skalets sidor är ritade för 1280 px (liggande) och 800 px (stående) och skalas med bredden, som i PubLiKiosk
 const BAR_H = { land: 88, stacked: 116 };               // navigeringsramen, i designpixlar: liggande, och stående eller fler än fem knappar (ikonen ovanför texten)
@@ -340,7 +342,9 @@ function refreshInfo() {
 
 function idleTick() {
   if (!win) return;
-  const idle = powerMonitor.getSystemIdleTime();
+  // Riktig inmatning (kärnans enheter) i första hand: en film i fotraden eller attract-sidan nollställer annars X:s räknare
+  const real = inputIdleSeconds(INPUT_FILE);
+  const idle = real !== null ? real : powerMonitor.getSystemIdleTime();
   // Attract loop: förstasidan orörd i ATTRACT_AFTER sekunder. Trycket som tar bort den hanteras av shield.html.
   if (attractPage && settings.attract.afterSec > 0) {
     if (S.view === 'home' && !S.overlay) {

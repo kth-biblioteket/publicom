@@ -195,6 +195,20 @@ test('skylt: SIGN_RESOURCES, delresurser från vilken https-adress som helst, hu
   assert.equal(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_RESOURCES: 'x' }, '').signage.resources, 'all');
 });
 
+test('inputidle: sekunder sedan senaste riktiga inmatning ur filen, null om den saknas eller är orimlig', () => {
+  const fs = require('fs'); const os = require('os');
+  const { inputIdleSeconds, parse } = require(path.join(dir, 'inputidle.js'));
+  assert.equal(parse('1000\n', 1042), 42);
+  assert.equal(parse('1000', 1000), 0);
+  assert.equal(parse('abc', 1000), null);
+  assert.equal(parse('0', 1000), null);
+  assert.equal(parse('5000', 1000), null, 'orimlig framtid ignoreras');
+  const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'inp-')), 'last-input');
+  assert.equal(inputIdleSeconds(f, 5000), null, 'saknas: X:s räknare används');
+  fs.writeFileSync(f, '4970\n');
+  assert.equal(inputIdleSeconds(f, 5000 * 1000), 30);
+});
+
 test('parseApps: bokstavlig \\n och komma fungerar när värdet står på en rad i .config', () => {
   assert.equal(parseApps('A|https://a.example.se/\\nB|https://b.example.se/').length, 2);
   assert.equal(parseApps('A|https://a.example.se/,B|https://b.example.se/').length, 2);

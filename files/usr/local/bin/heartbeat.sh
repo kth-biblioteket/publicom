@@ -44,6 +44,12 @@ config_version=$(head -c 64 /var/lib/publicom/config-version 2>/dev/null | tr -d
 # Intervallet som heartbeat.timer faktiskt har (init.sh skriver det när datorn hämtat inställningarna),
 # inte bara det som står i config. Utan override gäller 5 minuter från heartbeat.timer.
 interval=$(grep -oE '^OnUnitActiveSec=[0-9]+min' /etc/systemd/system/heartbeat.timer.d/interval.conf 2>/dev/null | tail -n1 | tr -dc '0-9')
+# En hämtning eller omstart som väntar på att datorn blir ledig (reload_config.sh skriver filen var 30:e sekund medan den väntar).
+# Bara en färsk fil räknas, så att en kvarglömd inte rapporteras.
+pending="null"
+if [ -s /run/publicom/pending-action ] && [ -n "$(find /run/publicom/pending-action -mmin -10 2>/dev/null)" ]; then
+    pending=$(jq -c 'if type == "object" then . else null end' /run/publicom/pending-action 2>/dev/null || echo null)
+fi
 # Besöken som väntar. Bara de som finns nu skickas och tas bort efter svaret; besök som avslutas
 # under tiden ligger kvar till nästa rapport.
 visits_sent=0
@@ -75,6 +81,7 @@ payload=$(jq -n \
     --arg configVersion "$config_version" \
     --argjson intervalMinutes "${interval:-5}" \
     --argjson visits "${visits:-null}" \
+    --argjson pending "${pending:-null}" \
     '{
         clientVersion: $clientVersion,
         host: $host,
@@ -96,7 +103,8 @@ payload=$(jq -n \
         diskFreePercent: (if $diskUsed == "" then null else 100 - ($diskUsed | tonumber) end),
         configVersion: $configVersion,
         intervalMinutes: $intervalMinutes,
-        visits: $visits
+        visits: $visits,
+        pendingAction: $pending
     } | with_entries(select(.value != null and .value != ""))')
 
 if [ -z "$payload" ]; then

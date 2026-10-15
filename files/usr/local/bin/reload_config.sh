@@ -35,6 +35,9 @@ mkdir -p "$STATE_DIR"
 # heartbeat. Gör det då högst var 5:e minut (omstart: en gång per halvtimme).
 if [ -f "$STAMP" ] && [ $(( $(date +%s) - $(stat -c %Y "$STAMP") )) -lt "$MIN_INTERVAL" ]; then
     log "Gjorde $MODE för mindre än $((MIN_INTERVAL / 60)) min sedan, väntar"
+    # Statusrapporten visar att begäran väntar på skyddet (filen gäller bara en stund: heartbeat.sh ignorerar en gammal)
+    mkdir -p /run/publicom
+    jq -n --arg mode "$MODE" --arg since "$(date +%Y-%m-%dT%H:%M:%S%:z)" '{mode: $mode, since: $since, reason: "interval"}' > /run/publicom/pending-action 2>/dev/null
     exit 0
 fi
 
@@ -43,21 +46,50 @@ function logged_in() {
     [ -s /tmp/current_booking_id.txt ] || [ -s /run/publicom/session.json ]
 }
 
-# Millisekunder sedan senaste mus- eller tangentbordsaktivitet i gästsessionen, eller tomt
+# Millisekunder sedan senaste riktiga mus-, tangentbords- eller pekaktivitet, eller tomt. Tiden kommer från visit_tracker.py,
+# som läser kärnans inmatningsenheter: en film, skärmsläckaren eller en VNC-klient nollställer inte den, men X:s räknare (xprintidle) gör det.
+# Går besöksräknaren inte används xprintidle.
 function idle_ms() {
+    if systemctl is-active --quiet visit-tracker.service; then
+        local ts
+        ts=$(cat /run/publicom/last-input 2>/dev/null)
+        if [[ "$ts" =~ ^[0-9]+$ ]]; then
+            echo $(( ($(date +%s) - ts) * 1000 ))
+            return
+        fi
+    fi
     sudo -u guest DISPLAY=:0 XAUTHORITY=/home/guest/.Xauthority xprintidle 2>/dev/null
 }
+
+# Vad som väntar och varför, för statusrapporten (heartbeat.sh läser filen)
+PENDING_FILE="/run/publicom/pending-action"
+function write_pending() {
+    local reason="$1" idle="$2"
+    mkdir -p /run/publicom
+    jq -n --arg mode "$MODE" --arg since "$(date -d "@$WAIT_START" +%Y-%m-%dT%H:%M:%S%:z)" --arg reason "$reason" --arg idle "${idle:-}" \
+        '{mode: $mode, since: $since, reason: $reason, idleSeconds: ($idle | tonumber? // null)} | with_entries(select(.value != null))' \
+        > "$PENDING_FILE.tmp" 2>/dev/null && mv -f "$PENDING_FILE.tmp" "$PENDING_FILE"
+}
+trap 'rm -f "$PENDING_FILE" "$PENDING_FILE.tmp"' EXIT
 
 function in_use() {
     # En skylt har ingen besökare vid skärmen: hämta och starta om direkt (skyddet mot upprepning ovan gäller fortfarande)
     [ "$COMPUTER_TYPE" == "signage" ] && return 1
-    logged_in && return 0
+    if logged_in; then
+        write_pending "logged_in" ""
+        return 0
+    fi
     local idle
     idle=$(idle_ms)
     # Ingen X-session (t ex gästsessionen står still) räknas som ledig
-    [ -n "$idle" ] && [ "$idle" -lt "$IDLE_MS" ]
+    if [ -n "$idle" ] && [ "$idle" -lt "$IDLE_MS" ]; then
+        write_pending "in_use" "$((idle / 1000))"
+        return 0
+    fi
+    return 1
 }
 
+WAIT_START=$(date +%s)
 waited=0
 while in_use; do
     if [ "$waited" -ge "$GIVE_UP_AFTER" ]; then

@@ -68,6 +68,14 @@ class AppUsage(unittest.TestCase):
             open(big, "w").write(row * (vt.APP_USAGE_MAX_BYTES // len(row) + 10))
             self.assertEqual(vt.read_app_events(big, me), [], "för stor")
 
+    def test_senaste_inmatning_skrivs_bara_till_kataloger_som_finns(self):
+        with tempfile.TemporaryDirectory() as d:
+            ok = os.path.join(d, "last-input")
+            saknas = os.path.join(d, "ingen-katalog", "last-input")
+            vt.write_last_input(1234.9, (ok, saknas))
+            self.assertEqual(open(ok).read().strip(), "1234")
+            self.assertFalse(os.path.exists(saknas))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -96,6 +96,12 @@ sudo chmod 700 /usr/local/bin/secrets
 ```
 
 - `PUBLICOM_DEVICE_TOKEN` krävs: med den hämtar datorn sina inställningar och skickar status. Samma värde som `PUBLICOM_DEVICE_TOKEN` i publicomtools.
+  **Den finns inte i admin.** Det är en hemlighet som delas av alla Linux-datorer och som ligger i serverns miljö, så den visas aldrig i gränssnittet. Hämta den så här:
+  - **Från en dator som redan fungerar:** `sudo grep '^PUBLICOM_DEVICE_TOKEN=' /usr/local/bin/secrets/.secrets`
+  - **Från servern:** i `publicomtools.env` (eller `.env`) i katalogen där publicomtools körs (där `docker-compose.yml` ligger).
+  - **Saknas den helt** (ny server): skapa en med `openssl rand -hex 32` och lägg samma värde på servern och i datorns `.secrets`. Byts den på servern måste alla
+    datorer få det nya värdet i sin `.secrets`.
+  Håll den hemlig: den som har den kan hämta inställningar och rapportera status för alla Linux-datorer (Android-surfplattor har egna tokens). Lägg den inte i git och skicka den inte i chatt eller e-post.
 - `VNC_PASSWORD` krävs av `install.sh`.
 - `GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 - `BOOKING_API_KEY` behövs bara på gästdatorer med inloggningsskärmen som program (Electron), och som reserv för webbinloggningen.

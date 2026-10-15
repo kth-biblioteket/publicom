@@ -52,7 +52,7 @@ Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes för 22.04, 
 
 ### Namn på en dator
 
-Värdnamnet är datorns **identitet** i publicomtools (`PUBLICOM_HOST`, annars `hostname`) och ska aldrig behöva ändras. Allt beskrivande (plats, roll,
+Värdnamnet är datorns **identitet** i publicomtools (`PUBLICOM_HOST`, annars `hostname`) och ska aldrig behöva ändras (det går inte att byta i admin). Allt beskrivande (plats, roll,
 vad den används till) sätts i admin som *Visningsnamn* (`COMPUTER_NAME`), eftersom det ändras över tid när en dator flyttas eller byter profil.
 
 - **Standard: `publicom01`, `publicom02`, …** Löpnummer med två siffror och inledande nolla (färre än 100 datorer), så att sorteringen blir rätt.
@@ -60,7 +60,13 @@ vad den används till) sätts i admin som *Visningsnamn* (`COMPUTER_NAME`), efte
 - Löpnumret är ett inventarienummer: skriv det på en etikett på datorn och i inventarielistan, så att man vet vilken som är vilken när man står vid den.
 - Nästa lediga nummer är det högsta i admin plus ett. Återanvänd aldrig ett nummer för en annan dator.
 
-Sätt namnet vid installationen. För att byta värdnamn på en dator som redan är installerad:
+Sätt namnet vid installationen, så att det blir rätt från början. **Värdnamnet går inte att byta i admin:** det är postens nyckel, och statusrapporter,
+besök och tjänststatistik hänger på den. Admin kan bara ändra *label*, ett namn i admin-listan (och *Visningsnamn* i datorns panel), men inte värdnamnet.
+
+- **Befintliga datorer** (t.ex. `gc3`) behåller sitt värdnamn. Ge dem ett beskrivande namn med *label* och *Visningsnamn* i admin. Standarden gäller nya datorer.
+- **Byter du ändå värdnamn** på en dator som är installerad: datorn rapporterar då under det nya namnet och dyker upp som en **ny post** i admin, utan
+  historik och utan de inställningar som ligger på den gamla posten (profilen sätter du om). Den gamla posten blir tyst och ligger kvar som arkiv.
+  Gör det därför bara för en testdator eller en dator vars historik inte behövs.
 
 ```bash
 sudo hostnamectl set-hostname publicom01
@@ -68,11 +74,8 @@ grep -n "<gamla namnet>" /etc/hosts          # ändra raden om den finns
 sudo reboot
 ```
 
-Byt tre saker tillsammans, annars blir datorn en ny post eller nås inte längre:
-1. **DNS och DHCP** (KTH:s IT): posten för det gamla namnet (t.ex. `gc3.lib.kth.se`) ska peka på det nya, annars fungerar inte `ssh kthb@<dator>`.
-2. **Admin**: posten för datorn i publicomtools. Ett nytt värdnamn utan att posten byter namn syns som en ny dator, och den gamla blir tyst (inga statusrapporter).
-   Byt namn på posten i admin så att historik, profil och inställningar följer med, innan datorn startas om med det nya namnet.
-3. **Datorn**: värdnamnet enligt ovan. Datorn hämtar sedan `PUBLICOM_HOST` från publicomtools vid nästa inställningshämtning.
+Samtidigt behöver **DNS och DHCP** (KTH:s IT) ändras: posten för det gamla namnet (t.ex. `gc3.lib.kth.se`) ska peka på det nya, annars fungerar inte
+`ssh kthb@<dator>`. Datorn hämtar sedan `PUBLICOM_HOST` från publicomtools vid nästa inställningshämtning.
 
 ## 4. Hemligheter
 

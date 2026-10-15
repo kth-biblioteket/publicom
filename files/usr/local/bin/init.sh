@@ -40,7 +40,13 @@ function safe_download() {
     # Device-token för config från publicomtools (endpointen kräver det). Git-råfiler
     # ignorerar headern, så det är ofarligt för datorer som fortfarande hämtar från GitHub.
     [ -n "$token" ] && auth=(-H "Authorization: Bearer $token")
-    if ! curl -fsSL --max-time 30 "${auth[@]}" -o "$tmp" "$url"; then
+    # Tre försök: nätverk och DNS kan vara ostadiga en stund efter uppstart (länken uppe men namnuppslagning inte klar)
+    local attempt ok=1
+    for attempt in 1 2 3; do
+        curl -fsSL --max-time 30 "${auth[@]}" -o "$tmp" "$url" && { ok=0; break; }
+        [ "$attempt" -lt 3 ] && sleep 10
+    done
+    if [ "$ok" -ne 0 ]; then
         echo "Error downloading $url, keeping existing $dest"
         rm -f "$tmp"
         return 1
@@ -59,6 +65,22 @@ function safe_download() {
     mv -f "$tmp" "$dest"
     echo "Successfully downloaded $url"
 }
+
+# Vänta (högst 2 minuter) tills servern går att slå upp. network-online.target räcker inte alltid: länken kan vara uppe och ha en adress
+# medan DNS inte svarar ännu, och då hämtades ingen ny konfiguration och tjänsterna föll. Misslyckas det går init.sh vidare och försöker ändå.
+function wait_for_dns() {
+    local url="$1" host i
+    host=$(echo "$url" | sed -E 's#^[a-z]+://([^/:?]+).*#\1#')
+    [ -n "$host" ] && [ "$host" != "$url" ] || return 0
+    for i in $(seq 1 60); do
+        getent hosts "$host" > /dev/null 2>&1 && return 0
+        [ "$i" -eq 1 ] && echo "Väntar på att $host kan slås upp (nätverk/DNS)"
+        sleep 2
+    done
+    echo "Varning: $host kunde inte slås upp efter 2 minuter, försöker ändå"
+    return 1
+}
+wait_for_dns "$REMOTE_CONFIG_URL"
 
 # Hämta configfil (GitHub-råfil eller publicomtools device-endpoint) och spara lokalt.
 # Skicka device-token om den finns — krävs av publicomtools, ignoreras av GitHub.
@@ -144,6 +166,15 @@ rm -rf "$SCREENSAVER_TMP"
 POLICY_DEST=/var/snap/chromium/current/policies/managed/policies.json
 POLICY_LOCAL_DIR=/usr/local/share/publicom/policies
 mkdir -p "$(dirname "$POLICY_DEST")"
+# En dator utan POLICY_FILE i inställningarna (t.ex. en ny dator vars grundinställningar inte har det) får grundpolicyn för sin typ,
+# så att den inte startar utan policy: gästdatorer policies_guest.json, övriga (sökdator, skylt, kiosk) policies_search.json
+if [ -z "$POLICY_FILE" ]; then
+    case "$COMPUTER_TYPE" in
+        guestcomputer) POLICY_FILE="policies_guest.json" ;;
+        *)             POLICY_FILE="policies_search.json" ;;
+    esac
+    echo "POLICY_FILE saknas i inställningarna, använder $POLICY_FILE för $COMPUTER_TYPE"
+fi
 if [[ ! "$POLICY_FILE" =~ ^policies_[a-z0-9_-]+\.json$ ]]; then
     echo "Error: ogiltigt POLICY_FILE '$POLICY_FILE', befintlig policy behålls"
 elif [ -f "$POLICY_LOCAL_DIR/$POLICY_FILE" ] && jq empty "$POLICY_LOCAL_DIR/$POLICY_FILE"; then

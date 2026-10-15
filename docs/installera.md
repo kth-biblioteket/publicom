@@ -21,6 +21,25 @@ Datorn måste finnas i admin innan den installeras, annars får den inga instäl
   små bokstäver, siffror och `-`), profilen och gärna ett namn för listan. Ställ sedan in det som skiljer datorn
   från profilen. Den visas som *Väntar på installation* tills den har hämtat sina inställningar.
 
+**Det som måste vara ifyllt i admin innan installationen**
+
+Datorn hämtar *allt* härifrån vid start. Saknas något fungerar den delvis eller inte alls, och det syns först efteråt. Öppna datorn under *Teknik → Det datorn får vid start*
+och kontrollera att raderna nedan finns, antingen från profilen eller från grundinställningarna (*Alla datorer*). Annars lägger du till dem där, så att nästa dator får dem automatiskt:
+
+| Inställning | Varför | Om den saknas |
+|---|---|---|
+| `PUBLICOM_PROFILE`, `COMPUTER_TYPE` | Vilken sorts dator (gästdator, sökdator, skylt, kiosk) | Fel läge vid start |
+| `PUBLICOM_BRANCH` (normalt `stable`) | Gren som kod och skript hämtas från | Ingen kodhämtning vid start |
+| `REMOTE_CONFIG_URL` | Adressen datorn hämtar sina inställningar från | Datorn behåller gamla inställningar |
+| `HEARTBEAT_URL` | Dit statusrapporten skickas | **Datorn rapporterar aldrig** och visas som tyst i admin |
+| `PUBLICOMTOOLS_URL` | Adress till publicomtools (webbinloggning, EZproxy-regler) | Webbinloggning och webbplatslistan fungerar inte |
+| `POLICY_FILE` | Webbläsarens regler (`policies_guest.json` eller `policies_search.json`) | Datorn väljer grundpolicyn för sin typ, men sätt den uttryckligen |
+| `SSH_ALLOW_FROM` | Vilka som får nå SSH | Brandväggen blir för sträng eller för öppen |
+| Typspecifika: *Resurs i bokningssystemet*, *Inloggningsskärm* (gästdator), *Adresser* (skylt), *Tjänster* (kiosk) | Det datorn ska visa | Tom eller fel startsida |
+
+Lägg dessutom in i admin: **datorn med rätt värdnamn** (annars 404 vid första hämtningen) och **dess profil**. En helt ny dator ärver allt från profilen och grundinställningarna,
+så det är där de gemensamma värdena ska ligga, inte på varje dator.
+
 **Att ha med sig**
 
 - [ ] USB-minne med **Ubuntu Server 24.04.x amd64** från ubuntu.com. Välj uttryckligen 24.04, inte
@@ -35,7 +54,7 @@ skyddet: med tillgång till BIOS kan man starta från ett USB-minne och kringgå
 
 - [ ] **Administratörslösenord** (Supervisor/Setup password) satt och antecknat på säker plats
 - [ ] **Start endast från den inbyggda disken**, övriga enheter borttagna ur startordningen
-- [ ] **Start från USB avstängt** (tillåt det bara under installationen, stäng av efteråt)
+- [ ] **Start från USB avstängt** (men **slå på det under installationen**, annars startar inte installationsminnet; stäng av det efteråt)
 - [ ] **Start från nätverk avstängt** (PXE / Network boot)
 - [ ] **Startmeny vid påslag avstängd eller lösenordsskyddad** (Boot menu, ofta F12)
 - [ ] **Secure Boot på**
@@ -49,6 +68,16 @@ skyddet: med tillgång till BIOS kan man starta från ett USB-minne och kringgå
 - [ ] SSH fungerar från KTH-nätet: `ssh kthb@<dator>`
 
 Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes för 22.04, fungerar inte på 24.04).
+
+**Installera i UEFI-läge, aldrig Legacy/CSM.** Installeras datorn i Legacy och du sedan byter till UEFI startar den inte, och då måste den installeras om. Därför:
+
+- Ha UEFI på (och Secure Boot på) *innan* du startar installationen, och gör USB-minnet UEFI-startbart (balenaEtcher, eller Rufus med GPT och UEFI).
+- Välj USB-minnets **UEFI-post** i startmenyn (F12), inte posten utan "UEFI".
+- Finns en gammal post som **Windows Boot Manager** kvar tar den över startordningen. Ta bort den efter installationen (`sudo efibootmgr`, sedan `sudo efibootmgr -b <nr> -B`), så att bara `ubuntu` finns kvar.
+- Kontroll efteråt: `ls /sys/firmware/efi && echo UEFI` ska skriva UEFI.
+
+**Nätverket under installationen.** Hittar installeraren ingen adress är det oftast kabeln eller switchporten: prova en annan kabel och port, och titta med `ip -br link`. Man kan fortsätta utan
+nätverk och ordna det efteråt. `half duplex` i `ethtool <nätverkskort>` är ett varningstecken (dålig kabel eller port).
 
 ### Namn på en dator
 
@@ -149,12 +178,32 @@ Efter omstarten, på datorn:
 - [ ] `lpstat -p -d`: KTH-Print finns och är standard (om utskrift används)
 - [ ] `less ~/install.log` eller `grep -iE "error|fail" ~/install.log`
 
-I admin:
+- [ ] `systemctl is-failed init.service allowlist_from_ezproxy.service`: båda ska svara `inactive` eller `active`, inte `failed`
+- [ ] **En omstart till** ska ge samma resultat **utan** att du gör något för hand. Behöver något köras manuellt efteråt är något fel i inställningarna (se felsökningen nedan)
+
+I admin (senast fem minuter efter första starten):
 
 - [ ] Datorn är **OK** i datoröversikten och har hört av sig de senaste minuterna
+- [ ] *Kraschade tjänster* är tom, *Inställningsversion* stämmer med admin och *Kod* visar rätt gren
 - [ ] Chippet **Gamla configfiler** är borta (datorn hämtar sina inställningar från publicomtools)
 - [ ] Under *Teknik* stämmer *Det datorn får vid start* med det du förväntar dig
 
 Sist: stäng av start från USB i BIOS igen.
 
 Den fullständiga checklistan för att prova en ny version på riktig hårdvara finns i [Test på riktig dator](hardvarutest.md).
+
+## Felsökning
+
+| Symptom | Sannolik orsak | Kontroll och åtgärd |
+|---|---|---|
+| Hämtningen av inställningar ger 404 | Datorn finns inte i admin, eller värdnamnet stämmer inte | `hostname` mot admin. Lägg till datorn (steg 1) |
+| 401 | Fel `PUBLICOM_DEVICE_TOKEN` | Jämför `.secrets` med servern (steg 4) |
+| Datorn rapporterar aldrig | `HEARTBEAT_URL` saknas i inställningarna | *Det datorn får vid start* i admin, lägg till den i grundinställningarna |
+| `init.service` faller, "Could not resolve host" | DNS inte uppe vid start | `getent hosts apps.lib.kth.se`, kabel och port. `init.sh` väntar och provar tre gånger |
+| Fel eller ingen policy | `POLICY_FILE` saknas eller `init.service` föll | `journalctl -u init.service -b` |
+| Skärmen är inte roterad | Inställningen kom efter att sessionen startade | Ny session: omstart, *Hämta nya inställningar nu* eller `sudo pkill -U guest` |
+| "Hämta nya inställningar nu" händer inget | Datorn används och väntar (skylt väntar aldrig) | Statusrapportens *Väntar* visar varför; väntar tills den varit ledig i 2 minuter |
+| Datorn startar inte efter installationen | Installerad i Legacy, eller Windows Boot Manager först | Avsnittet om UEFI ovan |
+
+**Vad kräver ny session?** Skärmens riktning och andra X-inställningar tas bara med av en ny gästsession (omstart, *Hämta nya inställningar nu* eller `pkill -U guest`).
+Spellistor, schema och sidor i skylten läses av skalet och behöver ingen ny session.

@@ -1,6 +1,6 @@
 # Installera en dator
 
-Gäller både en helt ny dator och ominstallation av en dator i den gamla flottan. Alla datorer kör
+Gäller en ny dator och ominstallation av en befintlig. Alla datorer kör
 **Ubuntu Server 24.04 LTS**. Byt Ubuntu-version genom att installera om, aldrig med `do-release-upgrade`.
 
 Det tar ungefär en timme, mest väntan. Installationen kan göras över SSH, på plats eller på distans,
@@ -12,12 +12,7 @@ när Ubuntu väl är installerat.
 
 Datorn måste finnas i admin innan den installeras, annars får den inga inställningar.
 
-- **En dator i den gamla flottan** (gc1, gc2, kc1, kc2, pcad, pcangdomen, scbh, scng, scsg) finns redan,
-  med profil och egna inställningar inlästa från de gamla configfilerna. Gå igenom dem under
-  *Datorer → datorn → Inställningar* innan du installerar. Kontrollera särskilt profilen,
-  *Resurs i bokningssystemet* (gästdatorer) och *Inloggningsskärm*. Granskningen varnar för
-  vissa felaktiga kombinationer.
-- **En helt ny dator** (nytt värdnamn): *Datorer → Lägg till dator*. Ange värdnamnet (samma som i Ubuntu:
+Lägg till datorn: *Datorer → Lägg till dator*. Ange värdnamnet (samma som i Ubuntu:
   små bokstäver, siffror och `-`), profilen och gärna ett namn för listan. Ställ sedan in det som skiljer datorn
   från profilen. Den visas som *Väntar på installation* tills den har hämtat sina inställningar.
 
@@ -44,7 +39,7 @@ så det är där de gemensamma värdena ska ligga, inte på varje dator.
 
 - [ ] USB-minne med **Ubuntu Server 24.04.x amd64** från ubuntu.com. Välj uttryckligen 24.04, inte
       "senaste LTS". Server, inte Desktop. amd64, inte arm64.
-- [ ] Värdena till `.secrets` (se steg 4). För en dator i den gamla flottan: samma värden som i dess nuvarande `.secrets`.
+- [ ] Värdena till `.secrets` (se steg 4).
 - [ ] BIOS-lösenordet.
 
 ## 2. BIOS/UEFI
@@ -185,7 +180,6 @@ I admin (senast fem minuter efter första starten):
 
 - [ ] Datorn är **OK** i datoröversikten och har hört av sig de senaste minuterna
 - [ ] *Kraschade tjänster* är tom, *Inställningsversion* stämmer med admin och *Kod* visar rätt gren
-- [ ] Chippet **Gamla configfiler** är borta (datorn hämtar sina inställningar från publicomtools)
 - [ ] Under *Teknik* stämmer *Det datorn får vid start* med det du förväntar dig
 
 Sist: stäng av start från USB i BIOS igen.

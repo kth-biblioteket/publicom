@@ -5,7 +5,7 @@
 // hämtas bara från tillåtna värdar (https). JavaScript är av om inte js är satt, och tryck nekas om inte touch är satt.
 // Film utan ljud autospelar, film med ljud gör det inte (autoplayPolicy user-gesture-required).
 const { WebContentsView, session } = require('electron');
-const { requestAllowed, PDF_VIEWER } = require('./policy');
+const { requestAllowed } = require('./policy');
 
 // Laddningsfel som beror på nätverket (inte på sidan): namnet kan inte slås upp, ingen anslutning, nätverket byttes, adressen nås inte, tidsgräns
 const NET_ERRORS = new Set([-105, -106, -21, -109, -118, -7, -100, -101, -102, -104, -112]);
@@ -47,9 +47,9 @@ class SandboxedPage {
 
     const wc = this.view.webContents;
     wc.setWindowOpenHandler(() => ({ action: 'deny' }));
-    wc.on('will-navigate', (e, url) => { if (!String(url || e.url).startsWith(PDF_VIEWER)) e.preventDefault(); });
+    wc.on('will-navigate', (e) => e.preventDefault());
     wc.on('will-redirect', (e, url) => { if (!this.allowRedirects || !this.policy.allows(url || e.url)) e.preventDefault(); });
-    wc.on('will-frame-navigate', (e) => { if (e.isMainFrame && !String(e.url).startsWith(PDF_VIEWER)) e.preventDefault(); }); // pdf-visaren (Chromium) får ritas
+    wc.on('will-frame-navigate', (e) => { if (e.isMainFrame) e.preventDefault(); });
     wc.on('before-input-event', (e) => e.preventDefault());
     wc.setVisualZoomLevelLimits(1, 1);
     const apply = () => {

@@ -110,7 +110,8 @@ uptime, om gästsessionen körs, kraschade tjänster, ledigt diskutrymme och om 
 klartext under *Att göra*.
 
 - Adressen är *Adress för statusrapporter* (`HEARTBEAT_URL`), token är `PUBLICOM_DEVICE_TOKEN`. Utan token skickas ingenting.
-- Datorn identifieras med `PUBLICOM_HOST` (värdnamnet i admin), som publicomtools skickar med i inställningarna.
+- Datorn identifieras med `PUBLICOM_HOST` (värdnamnet i admin), som publicomtools skickar med i inställningarna. Värdnamnen följer standarden
+  `publicom01`, `publicom02`, … (se [Installera](installera.md#namn-på-en-dator)); det beskrivande namnet är *Visningsnamn* i admin.
 - Intervallet skrivs av `init.sh` till `/etc/systemd/system/heartbeat.timer.d/interval.conf` när datorn hämtar
   inställningarna, så det räcker med *Hämta nya inställningar nu*. Admin visar *Ingen kontakt* efter tre missade rapporter.
 - Kontrollera: `journalctl -u heartbeat.service -n 5`. Skicka direkt: `sudo systemctl start heartbeat.service`.

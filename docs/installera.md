@@ -44,11 +44,35 @@ skyddet: med tillgång till BIOS kan man starta från ett USB-minne och kringgå
 
 ## 3. Installera Ubuntu
 
-- [ ] Ubuntu Server 24.04 med användaren `kthb` och **OpenSSH**. Värdnamnet ska vara datorns namn i admin.
+- [ ] Ubuntu Server 24.04 med användaren `kthb` och **OpenSSH**. Värdnamnet ska vara datorns namn i admin, enligt [namnstandarden](#namn-på-en-dator) nedan (`publicom01`, `publicom02`, …).
 - [ ] Eventuellt wifi: `sudo nmcli dev wifi connect "KTH-IoT" password "<lösenord>"`
 - [ ] SSH fungerar från KTH-nätet: `ssh kthb@<dator>`
 
 Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes för 22.04, fungerar inte på 24.04).
+
+### Namn på en dator
+
+Värdnamnet är datorns **identitet** i publicomtools (`PUBLICOM_HOST`, annars `hostname`) och ska aldrig behöva ändras. Allt beskrivande (plats, roll,
+vad den används till) sätts i admin som *Visningsnamn* (`COMPUTER_NAME`), eftersom det ändras över tid när en dator flyttas eller byter profil.
+
+- **Standard: `publicom01`, `publicom02`, …** Löpnummer med två siffror och inledande nolla (färre än 100 datorer), så att sorteringen blir rätt.
+- Bara gemener, siffror och bindestreck (det DNS och `hostname` tillåter). Ingen typ eller plats i värdnamnet (inte `publicom-skylt3` eller `publicom-entre`).
+- Löpnumret är ett inventarienummer: skriv det på en etikett på datorn och i inventarielistan, så att man vet vilken som är vilken när man står vid den.
+- Nästa lediga nummer är det högsta i admin plus ett. Återanvänd aldrig ett nummer för en annan dator.
+
+Sätt namnet vid installationen. För att byta värdnamn på en dator som redan är installerad:
+
+```bash
+sudo hostnamectl set-hostname publicom01
+grep -n "<gamla namnet>" /etc/hosts          # ändra raden om den finns
+sudo reboot
+```
+
+Byt tre saker tillsammans, annars blir datorn en ny post eller nås inte längre:
+1. **DNS och DHCP** (KTH:s IT): posten för det gamla namnet (t.ex. `gc3.lib.kth.se`) ska peka på det nya, annars fungerar inte `ssh kthb@<dator>`.
+2. **Admin**: posten för datorn i publicomtools. Ett nytt värdnamn utan att posten byter namn syns som en ny dator, och den gamla blir tyst (inga statusrapporter).
+   Byt namn på posten i admin så att historik, profil och inställningar följer med, innan datorn startas om med det nya namnet.
+3. **Datorn**: värdnamnet enligt ovan. Datorn hämtar sedan `PUBLICOM_HOST` från publicomtools vid nästa inställningshämtning.
 
 ## 4. Hemligheter
 

@@ -7,6 +7,9 @@
 const { WebContentsView, session } = require('electron');
 const { requestAllowed, PDF_VIEWER } = require('./policy');
 
+// Laddningsfel som beror på nätverket (inte på sidan): namnet kan inte slås upp, ingen anslutning, nätverket byttes, adressen nås inte, tidsgräns
+const NET_ERRORS = new Set([-105, -106, -21, -109, -118, -7, -100, -101, -102, -104, -112]);
+
 const NO_POINTER = 'html, body, * { pointer-events: none !important; }';
 
 class SandboxedPage {
@@ -26,6 +29,7 @@ class SandboxedPage {
     this.zoom = 1;
     this.status = 0;
     this.failed = false;
+    this.netError = false; // senaste misslyckandet berodde på nätverket (DNS, ingen anslutning)
     const partition = 'kiosk-' + this.name; // utan persist: allt ligger i minnet
     this.view = new WebContentsView({ webPreferences: {
       sandbox: true, contextIsolation: true, nodeIntegration: false, devTools: false, webSecurity: true,
@@ -56,7 +60,9 @@ class SandboxedPage {
     wc.on('dom-ready', apply);
     wc.on('did-navigate', (_e, _url, code) => { this.status = code || 0; apply(); });
     wc.on('did-fail-load', (_e, code, desc, failedUrl, isMain) => {
-      if (isMain && code !== -3) { console.log(`[${this.name}] sidan kunde inte laddas: fel ${code} ${desc} ${String(failedUrl).slice(0, 200)}`); this.set(false, true); }
+      if (isMain && code !== -3) {
+        this.netError = NET_ERRORS.has(code);
+        console.log(`[${this.name}] sidan kunde inte laddas: fel ${code} ${desc} ${String(failedUrl).slice(0, 200)}`); this.set(false, true); }
     });
     wc.on('did-finish-load', () => {
       apply();
@@ -89,6 +95,7 @@ class SandboxedPage {
     this.url = url || '';
     this.status = 0;
     this.failed = false;
+    this.netError = false;
     if (!this.url || !this.policy.allows(this.url)) { console.log(`[${this.name}] adressen tillåts inte eller saknas: ${String(this.url).slice(0, 200)}`); this.set(false, true); return; }
     this.view.webContents.loadURL(this.url).catch(() => { this.set(false, true); });
   }

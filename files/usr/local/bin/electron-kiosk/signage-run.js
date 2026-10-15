@@ -9,6 +9,7 @@ const { bothStrings } = require('./strings');
 const { nextIndex, activeList } = require('./signage');
 
 const RETRY_MS = 30 * 1000;
+const RETRY_NET_MS = 10 * 1000;     // vid nätverksfel (DNS, ingen anslutning) försöker den oftare
 const SKIP_MS = 10 * 1000;           // en sida som inte gick att ladda lämnas efter så här lång tid i stället för att stå kvar sin hela tid
 const SCHEDULE_CHECK_MS = 20 * 1000; // schemat kontrolleras minst varje minut
 const PRELOAD_S = 10;       // nästa sida börjar laddas så här många sekunder före bytet (kortare om sidan visas kortare tid)
@@ -80,12 +81,13 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   function settle() {
     const cur = page.current;
     const failed = cur.failed && !cur.ok;
-    overlay = failed ? { type: 'error', offline: !net.isOnline() } : null;
+    const netProblem = failed && (!net.isOnline() || cur.netError); // länken kan vara uppe fast DNS inte fungerar
+    overlay = failed ? { type: 'error', offline: netProblem } : null;
     layout(); push();
     clearTimeout(retryTimer); clearTimeout(skipTimer);
     if (failed) {
-      console.log(`[skylt] felsida visas (${overlay.offline ? 'ingen nätverksanslutning' : 'sidan gick inte att ladda'}); försöker igen om ${RETRY_MS / 1000} s: ${pages[index] ? pages[index].url.slice(0, 200) : ''}`);
-      retryTimer = setTimeout(() => page.current.load(pages[index].url), RETRY_MS);
+      console.log(`[skylt] felsida visas (${overlay.offline ? 'nätverksfel (DNS eller ingen anslutning)' : 'sidan gick inte att ladda'}); försöker igen om ${(netProblem ? RETRY_NET_MS : RETRY_MS) / 1000} s: ${pages[index] ? pages[index].url.slice(0, 200) : ''}`);
+      retryTimer = setTimeout(() => page.current.load(pages[index].url), netProblem ? RETRY_NET_MS : RETRY_MS);
       // Finns det fler sidor går rotationen vidare till nästa efter en kort stund (felsidan står inte kvar sidans hela tid)
       if (pages.length > 1) {
         skipTimer = setTimeout(() => {

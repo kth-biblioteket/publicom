@@ -26,8 +26,8 @@ och kontrollera att raderna nedan finns, antingen från profilen eller från gru
 | `PUBLICOM_PROFILE`, `COMPUTER_TYPE` | Vilken sorts dator (gästdator, sökdator, skylt, kiosk) | Fel läge vid start |
 | `PUBLICOM_BRANCH` (normalt `stable`) | Gren som kod och skript hämtas från | Datorn använder `stable` |
 | `REMOTE_CONFIG_URL` | Adressen datorn hämtar sina inställningar från | Datorn behåller gamla inställningar |
-| `HEARTBEAT_URL` | Dit statusrapporten skickas | **Datorn rapporterar aldrig** och visas som tyst i admin |
-| `PUBLICOMTOOLS_URL` | Adress till publicomtools (webbinloggning, EZproxy-regler) | Webbinloggning och webbplatslistan fungerar inte |
+| `HEARTBEAT_URL` | Dit statusrapporten skickas | Produktionsservern (`apps.lib.kth.se`). En testdator måste ha sin egen adress |
+| `PUBLICOMTOOLS_URL` | Adress till publicomtools (webbinloggning, EZproxy-regler) | Produktionsservern (`apps.lib.kth.se`). En testdator måste ha sin egen adress |
 | `POLICY_FILE` | Webbläsarens regler (`policies_guest.json` eller `policies_search.json`) | Datorn väljer grundpolicyn för sin typ, men sätt den uttryckligen |
 | `SCREENSAVER`, `SCREENSAVER_IDLE`, `SCREENSAVER_FILES` (gäst- och sökdator) | Skärmsläckaren | **Av som standard**: ingen skärmsläckare |
 | `SESSION_IDLE` (öppen gästdator), minuter | Återställer sessionen efter inaktivitet | **0 = av som standard**: inget återställs efter användning |

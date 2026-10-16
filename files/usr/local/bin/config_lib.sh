@@ -31,6 +31,13 @@ load_config() {
         esac
         printf -v "$key" '%s' "$val"
     done < "$file"
+    # Standardvärden för inställningar som en ny dator inte får ha saknade: servern skriver inte katalogens
+    # standardvärden i .config. Gäller bara inställningsfilen, inte .secrets.
+    if [ "$(basename "$file")" = ".config" ]; then
+        : "${PUBLICOMTOOLS_URL:=https://apps.lib.kth.se/publicomtools}"
+        : "${HEARTBEAT_URL:=$PUBLICOMTOOLS_URL/api/heartbeat}"
+    fi
+    return 0
 }
 
 # Minuter mellan statusrapporterna till publicomtools (HEARTBEAT_INTERVAL), 1–60.

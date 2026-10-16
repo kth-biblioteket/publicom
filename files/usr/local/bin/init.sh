@@ -90,8 +90,10 @@ safe_download "$REMOTE_CONFIG_URL" /usr/local/bin/config/.config env "${PUBLICOM
 unset PUBLICOM_BRANCH HEARTBEAT_INTERVAL
 load_config "$ENV_FILE"
 
-# Branch som filerna hämtas från (äldre configfiler saknar PUBLICOM_BRANCH)
-RAW_BASE="https://raw.githubusercontent.com/kth-biblioteket/publicom/${PUBLICOM_BRANCH:-main}"
+# Branch som filerna hämtas från. publicomtools skriver inte standardvärden i configfilen, så utan PUBLICOM_BRANCH
+# gäller stable (som i deploy.sh och install.sh). Förut föll den tillbaka på main och hämtade ingen kod alls.
+PUBLICOM_BRANCH="${PUBLICOM_BRANCH:-stable}"
+RAW_BASE="https://raw.githubusercontent.com/kth-biblioteket/publicom/${PUBLICOM_BRANCH}"
 
 # Uppdatera skript och konfigurationsfiler enligt files.manifest.
 # Ändringar gäller från och med den här uppstarten eftersom guest.service startar efter init.service.

@@ -24,7 +24,7 @@ och kontrollera att raderna nedan finns, antingen från profilen eller från gru
 | Inställning | Varför | Om den saknas |
 |---|---|---|
 | `PUBLICOM_PROFILE`, `COMPUTER_TYPE` | Vilken sorts dator (gästdator, sökdator, skylt, kiosk) | Fel läge vid start |
-| `PUBLICOM_BRANCH` (normalt `stable`) | Gren som kod och skript hämtas från | Ingen kodhämtning vid start |
+| `PUBLICOM_BRANCH` (normalt `stable`) | Gren som kod och skript hämtas från | Datorn använder `stable` |
 | `REMOTE_CONFIG_URL` | Adressen datorn hämtar sina inställningar från | Datorn behåller gamla inställningar |
 | `HEARTBEAT_URL` | Dit statusrapporten skickas | **Datorn rapporterar aldrig** och visas som tyst i admin |
 | `PUBLICOMTOOLS_URL` | Adress till publicomtools (webbinloggning, EZproxy-regler) | Webbinloggning och webbplatslistan fungerar inte |

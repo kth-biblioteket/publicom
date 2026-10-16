@@ -29,6 +29,8 @@ och kontrollera att raderna nedan finns, antingen från profilen eller från gru
 | `HEARTBEAT_URL` | Dit statusrapporten skickas | **Datorn rapporterar aldrig** och visas som tyst i admin |
 | `PUBLICOMTOOLS_URL` | Adress till publicomtools (webbinloggning, EZproxy-regler) | Webbinloggning och webbplatslistan fungerar inte |
 | `POLICY_FILE` | Webbläsarens regler (`policies_guest.json` eller `policies_search.json`) | Datorn väljer grundpolicyn för sin typ, men sätt den uttryckligen |
+| `SCREENSAVER`, `SCREENSAVER_IDLE`, `SCREENSAVER_FILES` (gäst- och sökdator) | Skärmsläckaren | **Av som standard**: ingen skärmsläckare |
+| `SESSION_IDLE` (öppen gästdator), minuter | Återställer sessionen efter inaktivitet | **0 = av som standard**: inget återställs efter användning |
 | `SSH_ALLOW_FROM` | Vilka som får nå SSH | Brandväggen blir för sträng eller för öppen |
 | Typspecifika: *Resurs i bokningssystemet*, *Inloggningsskärm* (gästdator), *Adresser* (skylt), *Tjänster* (kiosk) | Det datorn ska visa | Tom eller fel startsida |
 

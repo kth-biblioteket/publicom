@@ -6,7 +6,7 @@ const path = require('path');
 const { BrowserWindow, WebContentsView, Menu, ipcMain, net } = require('electron');
 const { SandboxedPage } = require('./sandboxed-page');
 const { bothStrings } = require('./strings');
-const { nextIndex, activeList } = require('./signage');
+const { nextIndex, activeList, standardPages } = require('./signage');
 
 const RETRY_MS = 30 * 1000;
 const RETRY_NET_MS = 10 * 1000;     // vid nätverksfel (DNS, ingen anslutning) försöker den oftare
@@ -27,7 +27,7 @@ module.exports = function startSignage({ settings, policy, windowed }) {
 
   const sign = settings.signage;
   let pages = sign.pages; // spellistan som gäller nu
-  let listKey = null;     // vilken lista som visas: schemats namn, '#standard' (SIGN_PAGES) eller '#av' (svart)
+  let listKey = null;     // vilken lista som visas: schemats namn, '#standard' (SIGN_PAGES) eller '#av' (svart), och vilka sidor som gäller i dag
   let index = 0;
   let rotateTimer = null;
   let retryTimer = null;
@@ -173,10 +173,13 @@ module.exports = function startSignage({ settings, policy, windowed }) {
   function evaluate() {
     const now = new Date();
     const r = activeList(sign.schedule, now);
-    const key = r.pages ? r.name : (r.off ? '#av' : '#standard');
+    const name = r.pages ? r.name : (r.off ? '#av' : '#standard');
+    const list = r.pages ? r.pages : (r.off ? null : standardPages(sign.pages, sign.fallback, now));
+    // Sidor med datum går ut och börjar gälla vid midnatt: listan byts om vilka sidor som gäller ändrats
+    const key = name + '|' + (list ? list.map((p) => p.url).join(' ') : '');
     if (key === listKey) return;
-    console.log(`[skylt] ${now.toTimeString().slice(0, 8)} lista: ${key === '#av' ? 'svart skärm' : key === '#standard' ? 'standardlistan' : key}`);
-    applyList(r.pages ? r.pages : (r.off ? null : sign.pages), key);
+    console.log(`[skylt] ${now.toTimeString().slice(0, 8)} lista: ${name === '#av' ? 'svart skärm' : name === '#standard' ? 'standardlistan' : name}`);
+    applyList(list, key);
   }
 
   evaluate();

@@ -180,6 +180,55 @@ test('skylt: schema (SIGN_SCHEDULE): lista efter veckodag, tid och datum, datum 
   assert.ok(buildSettings({ COMPUTER_TYPE: 'signage', SIGN_SCHEDULE: raw }, '').allowedHosts.includes('https://a.example.se/k'), 'listornas värdar tillåts');
 });
 
+test('skylt: datum på sidor (start/end) och perioder för spellistor', () => {
+  const { parseSignPages, parseSchedule, activeList, standardPages } = require(path.join(dir, 'signage.js'));
+  const at = (y, m, d, h = 12, mi = 0) => new Date(y, m - 1, d, h, mi);
+  // Sidor: dagen före, första, sista, dagen efter; saknade fält = ingen gräns; ogiltigt datum ignoreras
+  const pages = parseSignPages('[{"url":"https://a.example.se/x","start":"2026-10-20","end":"2026-10-31"},{"url":"https://a.example.se/y","start":"2026-10-20"},{"url":"https://a.example.se/z","end":"nonsens"}]', 30, '');
+  const urls = (list) => list.map((p) => p.url.slice(-1)).join('');
+  const std = (now) => urls(standardPages(pages, [], now));
+  assert.equal(std(at(2026, 10, 19, 23, 59)), 'z', 'dagen före: bara z');
+  assert.equal(std(at(2026, 10, 20, 0, 0)), 'xyz', 'första dagen ingår (midnatt)');
+  assert.equal(std(at(2026, 10, 31, 23, 59)), 'xyz', 'sista dagen ingår');
+  assert.equal(std(at(2026, 11, 1, 0, 0)), 'yz', 'dagen efter: x har gått ut');
+  // Standardlistan där alla sidor gått ut: reservsidan
+  const only = parseSignPages('[{"url":"https://a.example.se/x","end":"2026-10-31"}]', 30, '');
+  const fb = parseSignPages('', 30, 'https://a.example.se/start');
+  assert.equal(standardPages(only, fb, at(2026, 11, 1))[0].url, 'https://a.example.se/start');
+  assert.deepEqual(standardPages(only, [], at(2026, 11, 1)), []);
+  // Spellista med period över årsskiftet, och sidor med datum i en lista
+  const sc = parseSchedule(JSON.stringify({
+    lists: {
+      Dag: [{ url: 'https://a.example.se/d' }],
+      Jul: [{ url: 'https://a.example.se/j' }],
+      Kort: [{ url: 'https://a.example.se/k', start: '2026-10-20', end: '2026-10-31' }],
+    },
+    periods: { Jul: ['2026-12-01', '2027-01-06'], Trasig: ['2026-12-01'], Bak: ['2027-01-06', '2026-12-01'] },
+    slots: [
+      { list: 'Jul', from: '08:00', to: '20:00', dates: ['2026-12-01', '2027-01-06'] },
+      { list: 'Jul', days: [1, 2, 3, 4, 5, 6, 7] },
+      { list: 'Kort', days: [3] },
+      { list: 'Dag' },
+    ],
+  }), 30);
+  assert.deepEqual(Object.keys(sc.periods), ['Jul'], 'ogiltiga perioder ignoreras');
+  assert.equal(activeList(sc, at(2026, 11, 30)).name, 'Dag', 'dagen före perioden: raden hoppas över, nästa matchande får chansen');
+  assert.equal(activeList(sc, at(2026, 12, 1)).name, 'Jul', 'första dagen');
+  assert.equal(activeList(sc, at(2026, 12, 31, 23, 59)).name, 'Jul', 'före årsskiftet');
+  assert.equal(activeList(sc, at(2027, 1, 1, 0, 0)).name, 'Jul', 'efter årsskiftet');
+  assert.equal(activeList(sc, at(2027, 1, 6, 23, 59)).name, 'Jul', 'sista dagen');
+  assert.equal(activeList(sc, at(2027, 1, 7, 0, 0)).name, 'Dag', 'dagen efter');
+  // Lista där alla sidor gått ut: som en tom lista (ingen lista, så standardlistan eller svart skärm)
+  const sc2 = parseSchedule(JSON.stringify({ lists: { Kort: [{ url: 'https://a.example.se/k', start: '2026-10-20', end: '2026-10-31' }] }, slots: [{ list: 'Kort' }], off: true }), 30);
+  assert.equal(activeList(sc2, at(2026, 10, 19)).pages, null, 'dagen före: inga sidor gäller');
+  assert.equal(activeList(sc2, at(2026, 10, 19)).off, false, 'raden gällde, så off gäller inte (som en tom lista)');
+  assert.equal(activeList(sc2, at(2026, 10, 20)).name, 'Kort');
+  assert.equal(activeList(sc2, at(2026, 10, 31)).name, 'Kort');
+  assert.equal(activeList(sc2, at(2026, 11, 1)).pages, null, 'dagen efter');
+  // Äldre schema utan periods fungerar som förut
+  assert.deepEqual(parseSchedule('{"lists":{},"slots":[]}', 30).periods, {});
+});
+
 test('skylt: SIGN_RESOURCES, delresurser från vilken https-adress som helst, huvudramen följer policyn', () => {
   const { UrlPolicy, requestAllowed } = require(path.join(dir, 'policy.js'));
   const pol = new UrlPolicy([], ['a.example.se']);

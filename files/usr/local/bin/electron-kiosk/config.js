@@ -205,6 +205,7 @@ function buildSettings(env, hostsText) {
   const signSeconds = parseInt(env.SIGN_SECONDS, 10);
   const signage = {
     pages: env.COMPUTER_TYPE === 'signage' ? parseSignPages(env.SIGN_PAGES, signSeconds, csv(env.WEBSITES)[0]) : [],
+    fallback: env.COMPUTER_TYPE === 'signage' ? parseSignPages('', signSeconds, csv(env.WEBSITES)[0]) : [], // första Startsidan när inga sidor gäller
     schedule: env.COMPUTER_TYPE === 'signage' ? parseSchedule(env.SIGN_SCHEDULE, signSeconds) : null, // null: bara SIGN_PAGES
     js: bool(env.SIGN_JS, true),
     resources: env.SIGN_RESOURCES === 'allowed' ? 'allowed' : 'all', // all: delresurser från vilken https-adress som helst

@@ -164,6 +164,11 @@ Skyltar (`COMPUTER_TYPE=signage`) körs av kioskskalet (utan inmatning). Sidorna
   okänd lista eller `from` senare än `to` hoppas över. Av raderna som gäller just nu vinner den första med `dates`, annars den första utan. Gäller ingen rad (eller är listan tom)
   används `SIGN_PAGES`, och är `off` satt och ingen rad gäller blir skärmen svart. Enhetens lokala tid; schemat kontrolleras minst varje minut och vid byte av lista börjar skylten direkt på listans första sida.
   Saknas schemat eller går det inte att läsa används bara `SIGN_PAGES`.
+- **Datum på sidor och spellistor:** en sidpost (i `SIGN_PAGES` och i `lists`) kan ha `start` och/or `end` (`YYYY-MM-DD`, båda inklusive, saknas ett finns ingen gräns), t.ex.
+  `{"url":"https://…","s":15,"start":"2026-10-20","end":"2026-10-31"}`. En sida visas bara de dagar den gäller, övriga hoppas över i rotationen. `SIGN_SCHEDULE` kan ha `"periods": {"Jul": ["2026-12-01","2027-01-06"]}`
+  (inklusive, får gå över årsskiftet); en lista utan period gäller alltid. En rad vars lista har en period som inte gäller i dag hoppas över som en okänd lista (nästa matchande rad får chansen, rader med `dates` går fortfarande före).
+  Har den valda listan inga sidor som gäller i dag blir det som en tom lista: `SIGN_PAGES`, eller svart skärm med `off`. Standardlistan filtreras likadant; finns ingen sida kvar visas första Startsidan.
+  Dagen är enhetens (Europe/Stockholm) och kontrolleras minst varje minut, så midnatt är en gräns. Äldre versioner ignorerar fälten och visar allt.
 - **Förladdning:** med flera sidor laddas nästa sida i en egen vy bakom den som visas, 10 sekunder före bytet (kortare om sidan visas kort tid), så att dess
   skript hinner rita klart. Bytet sker först när den nya sidan är laddad och haft 1,5 sekund på sig (högst 10 sekunders väntan), och den gamla vyn släpps efteråt.
 - **Bara visa:** all inmatning ignoreras (inga klick, ingen scrollning, inget tangentbord) och länkar följs inte. Omdirigeringar till tillåtna värdar följs.

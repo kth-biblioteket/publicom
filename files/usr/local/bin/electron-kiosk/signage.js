@@ -6,6 +6,9 @@ const MIN_S = 5;
 const MAX_S = 3600;
 const MAX_PAGES = 36;
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const isDate = (v) => typeof v === 'string' && ISO_DATE.test(v);
+
 function clamp(s, def) {
   const n = parseInt(s, 10);
   return Number.isFinite(n) ? Math.max(MIN_S, Math.min(MAX_S, n)) : def;
@@ -19,22 +22,27 @@ function httpsUrl(v) {
 }
 
 /**
- * SIGN_PAGES: en JSON-lista [{"url":"https://…","s":30}] eller en rad per sida "https://adress|sekunder" (rader skiljs av
+ * SIGN_PAGES: en JSON-lista [{"url":"https://…","s":30,"start":"2026-10-20","end":"2026-10-31"}] (start och end valfria, inklusive) eller en rad per sida "https://adress|sekunder" (rader skiljs av
  * radbrytning eller den bokstavliga \n, som i .config). Ogiltiga poster (inte https) hoppas över. Utan sekunder gäller
  * defaultSeconds. Utan sidor (eller utan giltiga) används fallbackUrl (första Startsidan) om den är en https-adress.
  */
 function parseSignPages(raw, defaultSeconds, fallbackUrl) {
   const def = clamp(defaultSeconds, 30);
   const out = [];
-  const add = (url, s) => {
+  const add = (url, s, start, end) => {
     const u = httpsUrl(url);
-    if (u && out.length < MAX_PAGES) out.push({ url: u, seconds: clamp(s, def) });
+    if (!u || out.length >= MAX_PAGES) return;
+    const page = { url: u, seconds: clamp(s, def) };
+    // start och end (YYYY-MM-DD, båda inklusive) är valfria; ett ogiltigt datum ignoreras (ingen gräns)
+    if (isDate(start)) page.start = start;
+    if (isDate(end)) page.end = end;
+    out.push(page);
   };
   const text = String(raw || '').trim();
   if (text.startsWith('[')) {
     try {
       const list = JSON.parse(text);
-      if (Array.isArray(list)) for (const o of list) if (o && typeof o === 'object') add(o.url, o.s);
+      if (Array.isArray(list)) for (const o of list) if (o && typeof o === 'object') add(o.url, o.s, o.start, o.end);
     } catch (e) { /* tolkas som rader */ }
   }
   if (!out.length && text && !text.startsWith('[')) {
@@ -85,6 +93,11 @@ function parseSchedule(raw, defaultSeconds) {
   for (const [name, pages] of Object.entries(o.lists && typeof o.lists === 'object' ? o.lists : {})) {
     lists[name] = parseSignPages(JSON.stringify(Array.isArray(pages) ? pages : []), defaultSeconds, '');
   }
+  // periods: {"Jul": ["2026-12-01","2027-01-06"]}, inklusive och får gå över årsskiftet. En lista utan period gäller alltid.
+  const periods = {};
+  for (const [name, r] of Object.entries(o.periods && typeof o.periods === 'object' && !Array.isArray(o.periods) ? o.periods : {})) {
+    if (Array.isArray(r) && r.length === 2 && isDate(r[0]) && isDate(r[1]) && r[0] <= r[1]) periods[name] = [r[0], r[1]];
+  }
   const slots = [];
   for (const sl of Array.isArray(o.slots) ? o.slots : []) {
     if (!sl || typeof sl !== 'object' || !Object.prototype.hasOwnProperty.call(lists, sl.list)) continue;
@@ -106,16 +119,39 @@ function parseSchedule(raw, defaultSeconds) {
     }
     slots.push(slot);
   }
-  return { lists, slots, off: o.off === true };
+  return { lists, periods, slots, off: o.off === true };
 }
 
 const pad2 = (n) => String(n).padStart(2, '0');
+
+/** Enhetens dag som YYYY-MM-DD (datorns tidszon, Europe/Stockholm) */
+const dateOf = (now) => `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+
+/** Gäller sidan i dag? start och end inklusive, ett saknat fält = ingen gräns */
+function pageOn(page, now) {
+  const d = dateOf(now);
+  return !(page.start && d < page.start) && !(page.end && d > page.end);
+}
+
+/** Gäller listans period i dag? En lista utan period gäller alltid */
+function listOn(schedule, name, now) {
+  const r = schedule.periods && schedule.periods[name];
+  if (!r) return true;
+  const d = dateOf(now);
+  return d >= r[0] && d <= r[1];
+}
+
+/** Standardlistan i dag: de sidor som gäller, annars reservsidan (första Startsidan) som för en tom lista */
+function standardPages(pages, fallback, now) {
+  const on = pages.filter((p) => pageOn(p, now));
+  return on.length ? on : fallback;
+}
 
 /** Gäller raden nu? Veckodag 1-7 (mån-sön), från (inklusive) till till (exklusive), datum inklusive båda ändarna; ett saknat fält = alltid */
 function slotMatches(slot, now) {
   const day = ((now.getDay() + 6) % 7) + 1;
   const min = now.getHours() * 60 + now.getMinutes();
-  const date = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const date = dateOf(now);
   if (slot.days && !slot.days.includes(day)) return false;
   if (slot.from !== undefined && min < slot.from) return false;
   if (slot.to !== undefined && min >= slot.to) return false;
@@ -130,11 +166,12 @@ function slotMatches(slot, now) {
  */
 function activeList(schedule, now) {
   if (!schedule) return { name: '', pages: null, off: false };
-  const matching = schedule.slots.filter((s) => slotMatches(s, now));
+  // En rad vars spellista har en period som inte gäller i dag hoppas över, som en okänd lista
+  const matching = schedule.slots.filter((s) => slotMatches(s, now) && listOn(schedule, s.list, now));
   const slot = matching.find((s) => s.dates) || matching[0];
   if (!slot) return { name: '', pages: null, off: schedule.off };
-  const pages = schedule.lists[slot.list];
+  const pages = schedule.lists[slot.list].filter((p) => pageOn(p, now));
   return pages && pages.length ? { name: slot.list, pages, off: false } : { name: '', pages: null, off: false };
 }
 
-module.exports = { parseSignPages, parseSchedule, activeList, slotMatches, nextIndex, MIN_S, MAX_S, MAX_PAGES };
+module.exports = { parseSignPages, parseSchedule, activeList, slotMatches, pageOn, listOn, standardPages, nextIndex, MIN_S, MAX_S, MAX_PAGES };

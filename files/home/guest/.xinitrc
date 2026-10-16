@@ -15,6 +15,20 @@ function log_message() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
 }
 
+# Startar skärmsläckaren och skriver varje start (BLANK) och slut (UNBLANK) i journalen (journalctl -t publicom-idle),
+# så att man kan räkna hur ofta den gått
+function start_screensaver() {
+  xscreensaver -no-splash &
+  (
+    sleep 5
+    xscreensaver-command -watch 2>/dev/null | while read -r event _; do
+      case "$event" in
+        BLANK|UNBLANK) logger -t publicom-idle "Skärmsläckare: $event" ;;
+      esac
+    done
+  ) &
+}
+
 ## Starta electron-appen för login
 function prompt_for_code() {
   form_input=$(/usr/local/bin/electron-login/node_modules/.bin/electron /usr/local/bin/electron-login/main.js)
@@ -236,7 +250,7 @@ elif [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage"
       xbindkeys &
       # Starta screensaver
       if [ "$SCREENSAVER" == "true" ]; then
-        xscreensaver -no-splash &
+        start_screensaver
       else
         # Se till att skärmen inte blir blank
         xset s off
@@ -270,7 +284,7 @@ elif [ "$COMPUTER_TYPE" != "searchcomputer" ] && [ "$COMPUTER_TYPE" != "signage"
     if [ "$current_user" == "guest" ]; then
       # Starta skärmsläckare om det är aktiverat
       if [ "$SCREENSAVER" == "true" ]; then
-        xscreensaver -no-splash &
+        start_screensaver
       else
         # Se till att skärmen inte blir blank
         xset s off
@@ -373,7 +387,7 @@ else
   xbindkeys &
   # Starta screensaver
   if [ "$SCREENSAVER" == "true" ]; then
-    xscreensaver -no-splash &
+    start_screensaver
   else
     # Se till att skärmen inte blir blank
     xset s off

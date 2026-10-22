@@ -184,6 +184,24 @@ module.exports = function startSignage({ settings, policy, windowed }) {
 
   evaluate();
   setInterval(evaluate, SCHEDULE_CHECK_MS);
-  // En enda sida laddas om med SESSION_IDLE minuters mellanrum (som den gamla skylten)
-  if (sign.reloadMin > 0) setInterval(() => { if (pages.length === 1) page.current.load(pages[0].url); }, sign.reloadMin * 60 * 1000);
+  // En ensam sida (listan som visas just nu har en enda sida) laddas om med SIGN_RELOAD minuters mellanrum, mjukt:
+  // den nya laddningen ritas färdigt i den dolda vyn och byts in när den är klar. Går den inte att ladda, eller tar det
+  // för lång tid, behålls sidan som visas. En Sida som bild får på så sätt en ny bild.
+  function softReload(waited = 0) {
+    if (pages.length !== 1 || overlay) return;
+    const standby = views[1 - active];
+    if (waited === 0) standby.load(pages[0].url);
+    const ready = standby.ok && Date.now() - standby.okAt >= SETTLE_MS;
+    if (ready) {
+      const old = views[active];
+      active = 1 - active;
+      raise(); settle();
+      setTimeout(() => { if (views[active] !== old) old.unload(); }, 1000);
+    } else if (standby.failed || waited >= MAX_WAIT_MS) {
+      standby.unload();
+    } else {
+      setTimeout(() => softReload(waited + 500), 500);
+    }
+  }
+  if (sign.reloadMin > 0) setInterval(() => softReload(), sign.reloadMin * 60 * 1000);
 };

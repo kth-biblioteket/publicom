@@ -229,6 +229,17 @@ test('skylt: datum på sidor (start/end) och perioder för spellistor', () => {
   assert.deepEqual(parseSchedule('{"lists":{},"slots":[]}', 30).periods, {});
 });
 
+test('skylt: SIGN_RELOAD, omladdning av en ensam sida (standard 10 minuter, 0 = aldrig, 0–1440)', () => {
+  const rel = (v) => buildSettings(Object.assign({ COMPUTER_TYPE: 'signage' }, v === undefined ? {} : { SIGN_RELOAD: v }), '').signage.reloadMin;
+  assert.equal(rel(), 10, 'saknas: 10');
+  assert.equal(rel('0'), 0);
+  assert.equal(rel('30'), 30);
+  assert.equal(rel('5000'), 1440);
+  assert.equal(rel('-3'), 10, 'negativt: standard');
+  assert.equal(rel('x'), 10, 'ogiltigt: standard');
+  assert.equal(buildSettings({ COMPUTER_TYPE: 'signage', SESSION_IDLE: '3' }, '').signage.reloadMin, 10, 'SESSION_IDLE styr inte längre');
+});
+
 test('skylt: SIGN_RESOURCES, delresurser från vilken https-adress som helst, huvudramen följer policyn', () => {
   const { UrlPolicy, requestAllowed } = require(path.join(dir, 'policy.js'));
   const pol = new UrlPolicy([], ['a.example.se']);

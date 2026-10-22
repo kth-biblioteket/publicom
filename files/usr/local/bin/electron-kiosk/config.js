@@ -209,7 +209,7 @@ function buildSettings(env, hostsText) {
     schedule: env.COMPUTER_TYPE === 'signage' ? parseSchedule(env.SIGN_SCHEDULE, signSeconds) : null, // null: bara SIGN_PAGES
     js: bool(env.SIGN_JS, true),
     resources: env.SIGN_RESOURCES === 'allowed' ? 'allowed' : 'all', // all: delresurser från vilken https-adress som helst
-    reloadMin: sessionMin, // en enda sida laddas om så här ofta (SESSION_IDLE), 0 = aldrig
+    reloadMin: Math.max(0, Math.min(1440, intOr(env.SIGN_RELOAD, 10))), // en ensam sida laddas om så här ofta (SIGN_RELOAD), 0 = aldrig
   };
   return {
     computerType: env.COMPUTER_TYPE || '',

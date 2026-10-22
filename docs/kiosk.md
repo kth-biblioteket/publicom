@@ -178,7 +178,7 @@ Skyltar (`COMPUTER_TYPE=signage`) körs av kioskskalet (utan inmatning). Sidorna
 - **Felsida:** går en sida inte att ladda (nätverksfel eller http-svar 400 eller högre) visas en felsida utan knappar, och sidan laddas om av sig själv var 30:e
   sekund. Rotationen går vidare till nästa sida i vanlig tid.
 - **Storlek:** sidorna ritas för skärmens verkliga storlek (`INITIAL_SCALE` gäller), inte för 1280 eller 800 pixlar som kioskens egna sidor.
-- En enda sida laddas om med `SESSION_IDLE` minuters mellanrum (som den gamla skylten). Skyltar räknar inga besök.
+- **Ensam sida:** har listan som visas just nu en enda sida (även när datumfiltret lämnar en) laddas den om var `SIGN_RELOAD`:e minut (standard 10, 0 = aldrig, 0–1440). Omladdningen är mjuk: sidan laddas i den dolda vyn och byts in när den är klar, och misslyckas den behålls sidan som visas. En Sida som bild får då en ny bild (publicomtools tar en ny bild först när sidan hämtas, så ladda om minst lika ofta som bildens intervall). `SESSION_IDLE` styr inte längre skylten. Skyltar räknar inga besök.
 - Skylten körs alltid av kioskskalet (ingen Chromium-reserv längre). Felsökning: `KIOSK_LOG_BLOCKED=1` loggar blockerade begäranden.
 
 Kioskens egna inställningar (förstasida, tjänster, navigering, fotrad, attract loop) gäller inte skyltar.

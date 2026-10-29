@@ -159,6 +159,7 @@ Nästa vanliga omstart är oförändrad.
 | Inställning i admin har inte slagit igenom | Har datorn startat om? *Väntar på omstart* i admin. `journalctl -b -u init.service` |
 | Webbläsaren tillåter/spärrar fel | `chrome://policy`, `journalctl -b -u allowlist_from_ezproxy` |
 | Skärmsläckaren visar fel bilder | `ls /usr/local/bin/screensaver/`, *Bilder i skärmsläckaren* i admin |
+| Skärmsläckaren startar inte, eller avbryts av en stöt mot bordet | Inaktiv tid nollställs av alla inmatningshändelser. Se vilken enhet som skickar dem: `sudo -u guest env DISPLAY=:0 timeout 20 xinput test-xi2 --root \| grep -E "EVENT type\|device:"`. Enheter som ingen använder (`WMI`, `Video Bus`, `Power Button`, `Sleep Button`, `Lid Switch`) stängs av vid start (`disable_noise_devices` i `.xinitrc`, syns i `/tmp/guest_login.log`). En optisk mus kan ge brus och stängs inte av |
 | Ny kod har inte kommit ut | `cat /var/lib/publicom/deployed`, `PUBLICOM_BRANCH` i admin, `journalctl -b -u init.service \| grep -i deploy` |
 | Datorn syns inte i admin | `journalctl -u heartbeat.service -n 5`, `PUBLICOM_DEVICE_TOKEN` i `.secrets` |
 | Gästsessionen startar inte | `systemctl status guest.service`, `systemctl --failed`, underhållsläge |

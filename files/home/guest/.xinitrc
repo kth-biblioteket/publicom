@@ -15,9 +15,22 @@ function log_message() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
 }
 
+# Stänger av inmatningsenheter som ingen besökare använder men som skickar händelser av sig själva (t.ex. Dell AIO WMI hotkeys,
+# som ger ett tangenttryck när bordet stöts till). Den inaktiva tiden nollställs av alla händelser, så skärmsläckaren
+# avbröts av en liten vibration. Samma namn ignorerar visit_tracker.py (IGNORED_DEVICES). Gäller tills X startas om.
+function disable_noise_devices() {
+  local id name
+  xinput list --short 2>/dev/null | grep -E "slave +keyboard" | grep -E "(WMI|Video Bus|Power Button|Sleep Button|Lid Switch)" |
+  sed -E 's/.*id=([0-9]+).*/\1/' | while read -r id; do
+    name=$(xinput list --name-only "$id" 2>/dev/null)
+    xinput disable "$id" && log_message "Stängde av inmatningsenhet $id ($name)"
+  done
+}
+
 # Startar skärmsläckaren och skriver varje start (BLANK) och slut (UNBLANK) i journalen (journalctl -t publicom-idle),
 # så att man kan räkna hur ofta den gått
 function start_screensaver() {
+  disable_noise_devices
   xscreensaver -no-splash &
   (
     sleep 5

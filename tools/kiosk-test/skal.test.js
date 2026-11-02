@@ -398,19 +398,35 @@ test('InfoFeed: Polopoly-block (LAUNCHER_POLOPOLY_ID) hämtas från kth.se och t
   const { parseAlert, htmlToText } = require(path.join(dir, 'info.js'));
   const page = '<html><body><article class="block teaser kthb-alert kthb-alert-warning" data-cid="1.111"><div class="lead"><p>&nbsp;Fel &amp; stängt <script>x()</script><span><a href="/x">Läs mer</a></span></p></div></article>' +
     '<article class="block kthb-alert kthb-alert-danger" data-cid="1.222"><p>Annat</p></article></body></html>';
-  assert.deepEqual(parseAlert(page, '1.222'), { text: 'Annat', style: 'alert' }, 'blocket med rätt id, inte det första');
-  assert.deepEqual(parseAlert(page, '1.111'), { text: 'Fel & stängt Läs mer', style: 'warning' }, 'taggar, skript och entiteter, länktexten ingår');
+  assert.deepEqual(parseAlert(page, '1.222'), { text: 'Annat', style: 'alert' }, 'danger är röd; blocket med rätt id, inte det första');
+  assert.deepEqual(parseAlert(page, '1.111'), { text: 'Fel & stängt', style: 'warning' }, 'taggar, skript och entiteter; länken tas bort med sin text');
   assert.equal(parseAlert(page, '1.999'), null, 'okänt id');
-  assert.equal(parseAlert(page).text, 'Fel & stängt Läs mer', 'utan id: första kthb-alert');
+  assert.equal(parseAlert(page).text, 'Fel & stängt', 'utan id: första kthb-alert');
+  assert.equal(parseAlert('<article class="kthb-alert kthb-alert-info" data-cid="1.1"><p>a</p></article>', '1.1').style, 'warning', 'KTH:s info är gul');
+  assert.equal(parseAlert('<article class="kthb-alert kthb-alert-success" data-cid="1.1"><p>a</p></article>', '1.1').style, 'success');
+  assert.equal(parseAlert('<article class="kthb-alert" data-cid="1.1"><p>a</p></article>', '1.1').style, null, 'ingen typ: inställningens färg');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_STYLE: 'success' }, '').message.style, 'success');
   assert.equal(htmlToText('<b>a</b>&#228;&#x2013;&unknown;'), 'a\u00e4\u2013&unknown;');
   const s = buildSettings({ LAUNCHER_POLOPOLY_ID: '1.222', LAUNCHER_MESSAGE_URL: 'https://x.example.se/m', LAUNCHER_MESSAGE_STYLE: 'info', COMPUTER_TYPE: 'kiosk' }, '');
   assert.equal(s.message.url, 'https://www.kth.se/1.222', 'Polopoly går före adressen');
   assert.ok(s.allowedHosts.includes('https://www.kth.se/'), 'www.kth.se tillåts automatiskt');
+  assert.equal(s.message.urlEn, 'https://www.kth.se/en/1.222', 'engelska adressen');
+  assert.equal(buildSettings({ LAUNCHER_MESSAGE_URL: 'https://x.example.se/m' }, '').message.urlEn, '', 'ingen engelsk adress utan Polopoly-id');
   assert.equal(buildSettings({ LAUNCHER_POLOPOLY_ID: 'abc' }, '').message.cid, '', 'ogiltigt id ignoreras');
   assert.equal(buildSettings({ LAUNCHER_POLOPOLY_ID: 'abc' }, '').allowedHosts.includes('https://www.kth.se/'), false);
   const feed = new InfoFeed(s, new UrlPolicy(s.apps, s.allowedHosts), async () => page);
   await feed.refresh();
   assert.deepEqual(feed.view(false).message, { text: 'Annat', style: 'alert', icon: 'info' }, 'blockets färg går före inställningen');
+  // English: engelska adressen ger engelsk text, annars (inget block där) den svenska
+  const pageEn = page.replace('Annat', 'Other');
+  const answers = { 'https://www.kth.se/1.222': page, 'https://www.kth.se/en/1.222': pageEn };
+  const feedEn = new InfoFeed(s, new UrlPolicy(s.apps, s.allowedHosts), async (u) => answers[u] || null);
+  await feedEn.refresh();
+  assert.equal(feedEn.view(true).message.text, 'Other', 'English: texten från /en/');
+  assert.equal(feedEn.view(false).message.text, 'Annat', 'svenska: texten från svenska adressen');
+  answers['https://www.kth.se/en/1.222'] = '<html><body>inget block</body></html>';
+  await feedEn.refresh();
+  assert.equal(feedEn.view(true).message.text, 'Annat', 'English utan block: den svenska texten');
   const feed2 = new InfoFeed(s, new UrlPolicy(s.apps, s.allowedHosts), async () => '<html><body>ingen</body></html>');
   await feed2.refresh();
   assert.equal(feed2.view(false).message, null, 'sida utan blocket (t.ex. avpublicerat): ingen rad, aldrig rå HTML');

@@ -220,14 +220,15 @@
       "help": "En https-adress på en tillåten webbplats som svarar med ren text. En tom text från adressen döljer raden, och får adressen inget svar används Meddelanderad." },
     { "key": "LAUNCHER_POLOPOLY_ID", "label": "Hämta meddelande från Polopoly (block-id)", "group": "kiosk", "types": ["kiosk"], "type": "string",
       "example": "1.1505584",
-      "help": "Id för ett textblock på kth.se (Polopoly), t.ex. 1.1505584. Skalet hämtar https://www.kth.se/<id> (www.kth.se tillåts automatiskt) och visar blockets text i Meddelanderaden, med färgen från blockets klass (kthb-alert-info, -warning eller -danger). Länkar visas som text och går inte att trycka på. Går före Meddelande från adress. Finns inget block eller blocket är avpublicerat döljs raden." },
+      "help": "Id för ett textblock på kth.se (Polopoly), t.ex. 1.1505584. Skalet hämtar https://www.kth.se/<id> (www.kth.se tillåts automatiskt), och https://www.kth.se/en/<id> när besökaren valt English (saknas blocket där visas den svenska texten), och visar blockets text i Meddelanderaden, med färgen från blockets klass, som på kth.se: kthb-alert-info är gul, -success grön och -danger röd. Länkar tas bort tillsammans med sin text. Går före Meddelande från adress. Finns inget block eller blocket är avpublicerat döljs raden." },
     { "key": "LAUNCHER_MESSAGE_STYLE", "label": "Meddelandets färg", "group": "kiosk", "types": ["kiosk"], "type": "enum", "default": "warning",
       "options": [
         { "value": "info", "label": "Blå (information)" },
         { "value": "warning", "label": "Gul (varning)" },
+        { "value": "success", "label": "Grön (klart)" },
         { "value": "alert", "label": "Röd (störning)" }
       ],
-      "help": "Meddelanderadens nivå, som syns på färgen: blå är information, gul varning och röd störning." },
+      "help": "Meddelanderadens nivå, som syns på färgen: blå är information, gul varning, grön klart och röd störning. Ett block från Polopoly har sin egen färg." },
     { "key": "LAUNCHER_MESSAGE_ICON", "label": "Meddelandets ikon", "group": "kiosk", "types": ["kiosk"], "type": "enum", "default": "info",
       "options": [
         { "value": "none", "label": "Ingen" },

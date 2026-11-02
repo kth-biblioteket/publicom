@@ -38,8 +38,8 @@ function htmlToText(html) {
 
 /**
  * Meddelandeblock från kth.se/biblioteket: <article class="… kthb-alert kthb-alert-info …">text och länk</article> någonstans på sidan.
- * Returnerar { text, style } (style info, warning eller alert, annars null) för det första blocket, eller null om sidan inte har något.
- * Länkens text ingår i texten; länken själv följs inte.
+ * Returnerar { text, style } (style warning = gul, success = grön eller alert = röd, annars null) för det första blocket, eller null om sidan inte har något.
+ * Länkar tas bort tillsammans med sin text.
  */
 function parseAlert(html, cid) {
   const src = String(html || '');
@@ -56,8 +56,11 @@ function parseAlert(html, cid) {
     if (end < 0) return null;
     const k = /\bkthb-alert-([a-z]+)\b/i.exec(classes);
     const kind = k ? k[1].toLowerCase() : '';
-    const style = kind === 'info' ? 'info' : kind === 'warning' || kind === 'warn' ? 'warning' : ['alert', 'danger', 'error'].includes(kind) ? 'alert' : null;
-    return { text: htmlToText(src.slice(open.index + open[0].length, end)), style };
+    // KTH:s färger: info är gul (blå finns inte), success grön och danger röd. Okänd typ: inställningens färg (null)
+    const style = ['info', 'warning', 'warn'].includes(kind) ? 'warning' : kind === 'success' ? 'success' : ['alert', 'danger', 'error'].includes(kind) ? 'alert' : null;
+    // Länkar (med sin text) tas bort: de går inte att trycka på i en kiosk, och en text som slutar på "Läs mer" vore missvisande
+    const body = src.slice(open.index + open[0].length, end).replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, ' ');
+    return { text: htmlToText(body), style };
   }
   return null;
 }
@@ -104,16 +107,15 @@ class InfoFeed {
   urls() {
     const list = [];
     for (const f of this.settings.fields) if (f.type === 'url' && !list.includes(f.value)) list.push(f.value);
-    const m = this.settings.message.url;
-    if (m && !list.includes(m)) list.push(m);
+    for (const m of [this.settings.message.url, this.settings.message.urlEn]) if (m && !list.includes(m)) list.push(m);
     return list;
   }
 
   /** Hämtar alla adresser som tillåts. Misslyckade hämtningar lämnar den senaste texten kvar. */
   async refresh() {
-    const msgUrl = this.settings.message.url;
+    const msgUrls = [this.settings.message.url, this.settings.message.urlEn].filter(Boolean);
     await Promise.all(this.urls().filter((u) => this.policy.allows(u)).map(async (u) => {
-      if (u === msgUrl) { // meddelandet kan vara ren text eller en webbsida med ett kthb-alert-block
+      if (msgUrls.includes(u)) { // meddelandet kan vara ren text eller en webbsida med ett kthb-alert-block
         const raw = await this.fetchFn(u, { page: true });
         if (raw === null) return;
         const html = /<(!doctype|html|article|body)\b/i.test(raw);
@@ -142,10 +144,16 @@ class InfoFeed {
     }));
     // Meddelandet: en text från adressen visas. Tom text därifrån döljer raden. Inget (färskt) svar ger den fasta texten.
     let text = english && s.message.textEn ? s.message.textEn : s.message.text;
-    const fromUrl = s.message.url ? this.fresh(s.message.url, null) : null;
+    // Från adressen: engelska adressen för English (om den inte gav någon text används den svenska), annars den svenska
+    let from = s.message.url ? this.cache.get(s.message.url) : null;
+    if (english && s.message.urlEn) {
+      const en = this.cache.get(s.message.urlEn);
+      if (en && this.now() - en.at <= STALE_MS && en.text) from = en;
+    }
+    const fromUrl = from && this.now() - from.at <= STALE_MS ? from.text : null;
     if (fromUrl !== null) text = fromUrl;
-    const c = s.message.url ? this.cache.get(s.message.url) : null;
-    const style = fromUrl !== null && c && c.style ? c.style : s.message.style; // blockets egen färg om sidan anger den
+    const c = fromUrl !== null ? from : null;
+    const style = c && c.style ? c.style : s.message.style; // blockets egen färg om sidan anger den
     return { fields, message: text ? { text, style, icon: s.message.icon } : null };
   }
 }

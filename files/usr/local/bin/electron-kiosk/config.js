@@ -233,8 +233,10 @@ function buildSettings(env, hostsText) {
       text: (env.LAUNCHER_MESSAGE || '').trim(), textEn: (env.LAUNCHER_MESSAGE_EN || '').trim(),
       // Block från Polopoly (kth.se): blockets id, t.ex. 1.1505584. Ger adressen https://www.kth.se/<id>, och www.kth.se tillåts automatiskt.
       cid: /^\d+\.\d+$/.test((env.LAUNCHER_POLOPOLY_ID || '').trim()) ? env.LAUNCHER_POLOPOLY_ID.trim() : '',
+      // Engelska adressen: https://www.kth.se/en/<id>, används när besökaren valt English (svenska raden om blocket saknas där)
+      urlEn: /^\d+\.\d+$/.test((env.LAUNCHER_POLOPOLY_ID || '').trim()) ? `https://www.kth.se/en/${env.LAUNCHER_POLOPOLY_ID.trim()}` : '',
       url: /^\d+\.\d+$/.test((env.LAUNCHER_POLOPOLY_ID || '').trim()) ? `https://www.kth.se/${env.LAUNCHER_POLOPOLY_ID.trim()}` : (env.LAUNCHER_MESSAGE_URL || '').trim(),
-      style: ['info', 'warning', 'alert'].includes(env.LAUNCHER_MESSAGE_STYLE) ? env.LAUNCHER_MESSAGE_STYLE : 'warning',
+      style: ['info', 'warning', 'success', 'alert'].includes(env.LAUNCHER_MESSAGE_STYLE) ? env.LAUNCHER_MESSAGE_STYLE : 'warning',
       // Ikonen före texten: none = ingen, annars en av ikonerna (standard info). Okänt namn ger info.
       icon: (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() === 'none' ? ''
         : (ICONS[(env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase()] ? (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() : 'info'),

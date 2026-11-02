@@ -231,7 +231,9 @@ function buildSettings(env, hostsText) {
       .map((line) => Field.parse(line)).filter(Boolean).slice(0, MAX_FIELDS),
     message: {
       text: (env.LAUNCHER_MESSAGE || '').trim(), textEn: (env.LAUNCHER_MESSAGE_EN || '').trim(),
-      url: (env.LAUNCHER_MESSAGE_URL || '').trim(),
+      // Block från Polopoly (kth.se): blockets id, t.ex. 1.1505584. Ger adressen https://www.kth.se/<id>, och www.kth.se tillåts automatiskt.
+      cid: /^\d+\.\d+$/.test((env.LAUNCHER_POLOPOLY_ID || '').trim()) ? env.LAUNCHER_POLOPOLY_ID.trim() : '',
+      url: /^\d+\.\d+$/.test((env.LAUNCHER_POLOPOLY_ID || '').trim()) ? `https://www.kth.se/${env.LAUNCHER_POLOPOLY_ID.trim()}` : (env.LAUNCHER_MESSAGE_URL || '').trim(),
       style: ['info', 'warning', 'alert'].includes(env.LAUNCHER_MESSAGE_STYLE) ? env.LAUNCHER_MESSAGE_STYLE : 'warning',
       // Ikonen före texten: none = ingen, annars en av ikonerna (standard info). Okänt namn ger info.
       icon: (env.LAUNCHER_MESSAGE_ICON || '').trim().toLowerCase() === 'none' ? ''
@@ -256,7 +258,7 @@ function buildSettings(env, hostsText) {
     warnSec: intOr(env.IDLE_WARNING, 60),
     printing: bool(env.PRINTER, false),
     downloads: bool(env.DOWNLOADS, false), // som sökdatorer: blockerat om inget annat sägs
-    allowedHosts: csv(env.WHITE_LIST).concat(signage.pages.map((p) => p.url))
+    allowedHosts: csv(env.WHITE_LIST).concat(/^\d+\.\d+$/.test((env.LAUNCHER_POLOPOLY_ID || '').trim()) ? ['https://www.kth.se/'] : []).concat(signage.pages.map((p) => p.url))
       .concat(signage.schedule ? [].concat(...Object.values(signage.schedule.lists)).map((p) => p.url) : []).concat(String(hostsText || '').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#'))),
   };
 }

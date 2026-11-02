@@ -394,6 +394,28 @@ test('clean: ren text, kontrolltecken bort, radbrytningar som blanksteg, högst 
   assert.equal(clean(null), '');
 });
 
+test('InfoFeed: Polopoly-block (LAUNCHER_POLOPOLY_ID) hämtas från kth.se och tolkas till text och färg', async () => {
+  const { parseAlert, htmlToText } = require(path.join(dir, 'info.js'));
+  const page = '<html><body><article class="block teaser kthb-alert kthb-alert-warning" data-cid="1.111"><div class="lead"><p>&nbsp;Fel &amp; stängt <script>x()</script><span><a href="/x">Läs mer</a></span></p></div></article>' +
+    '<article class="block kthb-alert kthb-alert-danger" data-cid="1.222"><p>Annat</p></article></body></html>';
+  assert.deepEqual(parseAlert(page, '1.222'), { text: 'Annat', style: 'alert' }, 'blocket med rätt id, inte det första');
+  assert.deepEqual(parseAlert(page, '1.111'), { text: 'Fel & stängt Läs mer', style: 'warning' }, 'taggar, skript och entiteter, länktexten ingår');
+  assert.equal(parseAlert(page, '1.999'), null, 'okänt id');
+  assert.equal(parseAlert(page).text, 'Fel & stängt Läs mer', 'utan id: första kthb-alert');
+  assert.equal(htmlToText('<b>a</b>&#228;&#x2013;&unknown;'), 'a\u00e4\u2013&unknown;');
+  const s = buildSettings({ LAUNCHER_POLOPOLY_ID: '1.222', LAUNCHER_MESSAGE_URL: 'https://x.example.se/m', LAUNCHER_MESSAGE_STYLE: 'info', COMPUTER_TYPE: 'kiosk' }, '');
+  assert.equal(s.message.url, 'https://www.kth.se/1.222', 'Polopoly går före adressen');
+  assert.ok(s.allowedHosts.includes('https://www.kth.se/'), 'www.kth.se tillåts automatiskt');
+  assert.equal(buildSettings({ LAUNCHER_POLOPOLY_ID: 'abc' }, '').message.cid, '', 'ogiltigt id ignoreras');
+  assert.equal(buildSettings({ LAUNCHER_POLOPOLY_ID: 'abc' }, '').allowedHosts.includes('https://www.kth.se/'), false);
+  const feed = new InfoFeed(s, new UrlPolicy(s.apps, s.allowedHosts), async () => page);
+  await feed.refresh();
+  assert.deepEqual(feed.view(false).message, { text: 'Annat', style: 'alert', icon: 'info' }, 'blockets färg går före inställningen');
+  const feed2 = new InfoFeed(s, new UrlPolicy(s.apps, s.allowedHosts), async () => '<html><body>ingen</body></html>');
+  await feed2.refresh();
+  assert.equal(feed2.view(false).message, null, 'sida utan blocket (t.ex. avpublicerat): ingen rad, aldrig rå HTML');
+});
+
 test('InfoFeed: hämtar bara tillåtna adresser, behåller senaste text och går ut efter en timme', async () => {
   const settings = buildSettings({
     APPS: 'T|https://a.example.se/',

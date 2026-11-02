@@ -7,6 +7,7 @@ const https = require('https');
 
 const STALE_MS = 60 * 60 * 1000;
 const MAX_BYTES = 2048;
+const MAX_PAGE_BYTES = 512 * 1024; // en hel webbsida (meddelande från kth.se) hämtas till den här storleken
 const MAX_LENGTH = 300;
 const TIMEOUT_MS = 5000;
 
@@ -16,23 +17,71 @@ function clean(raw) {
   return s.length > MAX_LENGTH ? s.slice(0, MAX_LENGTH) : s;
 }
 
+const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+
+/** Ren text ur HTML: skript, stilar och taggar bort, tecknen &nbsp; &amp; &#228; m.fl. tolkade, blanksteg hopdragna. Aldrig HTML ut. */
+function htmlToText(html) {
+  const text = String(html || '')
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<\/?(p|br|div|li|ul|ol|h[1-6]|tr|td|th|table|section|article|header|footer)\b[^>]*>/gi, ' ') // blocktaggar ger blanksteg
+    .replace(/<[^>]*>/g, '')                                                                                  // inline-taggar (b, span, a …) bara bort
+    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+      if (e[0] === '#') {
+        const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+        return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : ' ';
+      }
+      return Object.prototype.hasOwnProperty.call(ENTITIES, e.toLowerCase()) ? ENTITIES[e.toLowerCase()] : m;
+    });
+  return clean(text.replace(/[\u00a0\s]+/g, ' '));
+}
+
+/**
+ * Meddelandeblock från kth.se/biblioteket: <article class="… kthb-alert kthb-alert-info …">text och länk</article> någonstans på sidan.
+ * Returnerar { text, style } (style info, warning eller alert, annars null) för det första blocket, eller null om sidan inte har något.
+ * Länkens text ingår i texten; länken själv följs inte.
+ */
+function parseAlert(html, cid) {
+  const src = String(html || '');
+  const re = /<article\b([^>]*)>/gi;
+  let open;
+  while ((open = re.exec(src))) {
+    const attrs = open[1];
+    const c = /\bclass="([^"]*)"/i.exec(attrs);
+    const classes = c ? c[1] : '';
+    // Med cid: blocket med det id:t (vilken sorts block som helst). Utan: det första blocket med klassen kthb-alert.
+    const match = cid ? new RegExp('\\bdata-cid="' + cid.replace(/\./g, '\\.') + '"', 'i').test(attrs) : /\bkthb-alert\b/.test(classes);
+    if (!match) continue;
+    const end = src.toLowerCase().indexOf('</article>', open.index);
+    if (end < 0) return null;
+    const k = /\bkthb-alert-([a-z]+)\b/i.exec(classes);
+    const kind = k ? k[1].toLowerCase() : '';
+    const style = kind === 'info' ? 'info' : kind === 'warning' || kind === 'warn' ? 'warning' : ['alert', 'danger', 'error'].includes(kind) ? 'alert' : null;
+    return { text: htmlToText(src.slice(open.index + open[0].length, end)), style };
+  }
+  return null;
+}
+
 /** Hämtar en https-adress som text. Null vid fel, annan status än 200, omdirigering eller för långsamt svar. */
-function fetchText(address) {
+function fetchText(address, opts = {}) {
+  const limit = opts.page ? MAX_PAGE_BYTES : MAX_BYTES;
+  const accept = opts.page ? 'text/html, text/plain' : 'text/plain';
+  const finishText = (buf) => (opts.page ? buf.toString('utf8') : clean(buf.toString('utf8')));
   return new Promise((resolve) => {
     let done = false;
     const finish = (v) => { if (!done) { done = true; resolve(v); } };
     let req;
     try {
-      req = https.get(address, { timeout: TIMEOUT_MS, headers: { Accept: 'text/plain' } }, (res) => {
+      req = https.get(address, { timeout: TIMEOUT_MS, headers: { Accept: accept } }, (res) => {
         if (res.statusCode !== 200) { res.resume(); finish(null); return; }
         const chunks = [];
         let size = 0;
         res.on('data', (c) => {
           size += c.length;
           chunks.push(c);
-          if (size >= MAX_BYTES) { res.destroy(); finish(clean(Buffer.concat(chunks).subarray(0, MAX_BYTES).toString('utf8'))); }
+          if (size >= limit) { res.destroy(); finish(finishText(Buffer.concat(chunks).subarray(0, limit))); }
         });
-        res.on('end', () => finish(clean(Buffer.concat(chunks).toString('utf8'))));
+        res.on('end', () => finish(finishText(Buffer.concat(chunks))));
         res.on('error', () => finish(null));
         res.on('aborted', () => finish(null));
       });
@@ -62,7 +111,17 @@ class InfoFeed {
 
   /** Hämtar alla adresser som tillåts. Misslyckade hämtningar lämnar den senaste texten kvar. */
   async refresh() {
+    const msgUrl = this.settings.message.url;
     await Promise.all(this.urls().filter((u) => this.policy.allows(u)).map(async (u) => {
+      if (u === msgUrl) { // meddelandet kan vara ren text eller en webbsida med ett kthb-alert-block
+        const raw = await this.fetchFn(u, { page: true });
+        if (raw === null) return;
+        const html = /<(!doctype|html|article|body)\b/i.test(raw);
+        const a = html ? parseAlert(raw, this.settings.message.cid) : null;
+        // En webbsida utan block (t.ex. avpublicerat) visas aldrig som text: ingen rad
+        this.cache.set(u, { text: html ? (a ? a.text : '') : clean(raw), style: a && a.style, at: this.now() });
+        return;
+      }
       const text = await this.fetchFn(u);
       if (text !== null) this.cache.set(u, { text, at: this.now() });
     }));
@@ -85,8 +144,10 @@ class InfoFeed {
     let text = english && s.message.textEn ? s.message.textEn : s.message.text;
     const fromUrl = s.message.url ? this.fresh(s.message.url, null) : null;
     if (fromUrl !== null) text = fromUrl;
-    return { fields, message: text ? { text, style: s.message.style, icon: s.message.icon } : null };
+    const c = s.message.url ? this.cache.get(s.message.url) : null;
+    const style = fromUrl !== null && c && c.style ? c.style : s.message.style; // blockets egen färg om sidan anger den
+    return { fields, message: text ? { text, style, icon: s.message.icon } : null };
   }
 }
 
-module.exports = { InfoFeed, fetchText, clean, STALE_MS, MAX_LENGTH };
+module.exports = { InfoFeed, fetchText, clean, htmlToText, parseAlert, STALE_MS, MAX_LENGTH };

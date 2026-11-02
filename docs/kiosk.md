@@ -61,6 +61,7 @@ som i Android-appen PubLiKiosk, så att publicomtools redigerare delas.
   adress som inte är https) ignoreras. Finns något fält döljs textraden `LAUNCHER_FOOTER`.
 - `LAUNCHER_MESSAGE`, `LAUNCHER_MESSAGE_EN`: raden ovanför fälten. `LAUNCHER_MESSAGE_URL`: en https-adress som ger texten. Tom
   text från adressen döljer raden, inget svar ger den fasta texten. `LAUNCHER_MESSAGE_STYLE`: `info` (blå), `warning` (gul, standard) eller `alert` (röd).
+- `LAUNCHER_POLOPOLY_ID`: id för ett textblock på kth.se (Polopoly), t.ex. `1.1505584`. Skalet hämtar `https://www.kth.se/<id>` (tillåts automatiskt), väljer ut blocket på dess `data-cid` och visar blockets text i meddelanderaden. Färgen kommer från blockets klass (`kthb-alert-info`, `-warning`, `-danger`), annars `LAUNCHER_MESSAGE_STYLE`. Länkar visas som text och går inte att trycka på. Går före `LAUNCHER_MESSAGE_URL`. Hittas inget block (eller är det avpublicerat) döljs raden, aldrig rå HTML.
 - `LAUNCHER_MESSAGE_ICON`: ikonen före texten i meddelanderaden: `none` (ingen) eller samma ikoner som `START_ICON` (standard `info`).
   Färgen visar graden, så ikonen kan vara densamma.
 - `LAUNCHER_REFRESH`: minuter mellan hämtningarna (1–60, standard 1), bara medan förstasidan visas.

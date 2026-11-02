@@ -401,7 +401,7 @@ test('InfoFeed: Polopoly-block (LAUNCHER_POLOPOLY_ID) hämtas från kth.se och t
   assert.deepEqual(parseAlert(page, '1.222'), { text: 'Annat', style: 'alert' }, 'danger är röd; blocket med rätt id, inte det första');
   assert.deepEqual(parseAlert(page, '1.111'), { text: 'Fel & stängt', style: 'warning' }, 'taggar, skript och entiteter; länken tas bort med sin text');
   assert.equal(parseAlert(page, '1.999'), null, 'okänt id');
-  assert.equal(parseAlert(page).text, 'Fel & stängt', 'utan id: första kthb-alert');
+  assert.equal(parseAlert(page), null, 'utan id hittas inget (LAUNCHER_MESSAGE_URL tolkar aldrig HTML)');
   assert.equal(parseAlert('<article class="kthb-alert kthb-alert-info" data-cid="1.1"><p>a</p></article>', '1.1').style, 'warning', 'KTH:s info är gul');
   assert.equal(parseAlert('<article class="kthb-alert kthb-alert-success" data-cid="1.1"><p>a</p></article>', '1.1').style, 'success');
   assert.equal(parseAlert('<article class="kthb-alert" data-cid="1.1"><p>a</p></article>', '1.1').style, null, 'ingen typ: inställningens färg');
@@ -427,6 +427,11 @@ test('InfoFeed: Polopoly-block (LAUNCHER_POLOPOLY_ID) hämtas från kth.se och t
   answers['https://www.kth.se/en/1.222'] = '<html><body>inget block</body></html>';
   await feedEn.refresh();
   assert.equal(feedEn.view(true).message.text, 'Annat', 'English utan block: den svenska texten');
+  // LAUNCHER_MESSAGE_URL utan Polopoly-id är som förut: svaret visas som text, oavsett vad det innehåller
+  const plain = buildSettings({ LAUNCHER_MESSAGE_URL: 'https://x.example.se/m', WHITE_LIST: 'x.example.se' }, '');
+  const feedP = new InfoFeed(plain, new UrlPolicy(plain.apps, plain.allowedHosts), async () => 'Stängt i dag');
+  await feedP.refresh();
+  assert.equal(feedP.view(false).message.text, 'Stängt i dag', 'ren text som förut');
   const feed2 = new InfoFeed(s, new UrlPolicy(s.apps, s.allowedHosts), async () => '<html><body>ingen</body></html>');
   await feed2.refresh();
   assert.equal(feed2.view(false).message, null, 'sida utan blocket (t.ex. avpublicerat): ingen rad, aldrig rå HTML');

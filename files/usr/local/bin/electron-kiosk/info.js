@@ -37,11 +37,12 @@ function htmlToText(html) {
 }
 
 /**
- * Meddelandeblock från kth.se/biblioteket: <article class="… kthb-alert kthb-alert-info …">text och länk</article> någonstans på sidan.
- * Returnerar { text, style } (style warning = gul, success = grön eller alert = röd, annars null) för det första blocket, eller null om sidan inte har något.
- * Länkar tas bort tillsammans med sin text.
+ * Textblock från Polopoly (kth.se): <article class="… kthb-alert-info …" data-cid="1.1505584">text och länk</article> någonstans på sidan,
+ * hittat på sitt data-cid. Returnerar { text, style } (style warning = gul, success = grön eller alert = röd, annars null),
+ * eller null om cid saknas eller sidan inte har blocket. Länkar tas bort tillsammans med sin text.
  */
 function parseAlert(html, cid) {
+  if (!cid) return null;
   const src = String(html || '');
   const re = /<article\b([^>]*)>/gi;
   let open;
@@ -49,8 +50,8 @@ function parseAlert(html, cid) {
     const attrs = open[1];
     const c = /\bclass="([^"]*)"/i.exec(attrs);
     const classes = c ? c[1] : '';
-    // Med cid: blocket med det id:t (vilken sorts block som helst). Utan: det första blocket med klassen kthb-alert.
-    const match = cid ? new RegExp('\\bdata-cid="' + cid.replace(/\./g, '\\.') + '"', 'i').test(attrs) : /\bkthb-alert\b/.test(classes);
+    // Blocket med det id:t, vilken sorts block som helst; klassen kthb-alert-… ger bara färgen
+    const match = new RegExp('\\bdata-cid="' + cid.replace(/\./g, '\\.') + '"', 'i').test(attrs);
     if (!match) continue;
     const end = src.toLowerCase().indexOf('</article>', open.index);
     if (end < 0) return null;
@@ -113,15 +114,16 @@ class InfoFeed {
 
   /** Hämtar alla adresser som tillåts. Misslyckade hämtningar lämnar den senaste texten kvar. */
   async refresh() {
-    const msgUrls = [this.settings.message.url, this.settings.message.urlEn].filter(Boolean);
+    // Bara med ett Polopoly-id hämtas meddelandet som webbsida; LAUNCHER_MESSAGE_URL är som förut ren text
+    const cid = this.settings.message.cid;
+    const msgUrls = cid ? [this.settings.message.url, this.settings.message.urlEn].filter(Boolean) : [];
     await Promise.all(this.urls().filter((u) => this.policy.allows(u)).map(async (u) => {
-      if (msgUrls.includes(u)) { // meddelandet kan vara ren text eller en webbsida med ett kthb-alert-block
+      if (msgUrls.includes(u)) { // Polopoly-blocket på kth.se (LAUNCHER_POLOPOLY_ID)
         const raw = await this.fetchFn(u, { page: true });
         if (raw === null) return;
-        const html = /<(!doctype|html|article|body)\b/i.test(raw);
-        const a = html ? parseAlert(raw, this.settings.message.cid) : null;
-        // En webbsida utan block (t.ex. avpublicerat) visas aldrig som text: ingen rad
-        this.cache.set(u, { text: html ? (a ? a.text : '') : clean(raw), style: a && a.style, at: this.now() });
+        const a = parseAlert(raw, cid);
+        // Ingen sida eller inget block (t.ex. avpublicerat): ingen rad, aldrig rå HTML
+        this.cache.set(u, { text: a ? a.text : '', style: a && a.style, at: this.now() });
         return;
       }
       const text = await this.fetchFn(u);

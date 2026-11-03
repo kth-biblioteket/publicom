@@ -188,7 +188,9 @@ systemctl disable getty@tty1
 apt install -y nodejs
 NEEDRESTART_MODE=a apt install -y npm
 npm install -g n
-n stable
+# Bestämd Node-version, inte stable: Node 26 packade tyst inte upp Electron (install.js slutade utan fel och utan path.txt).
+# Samma huvudversion som körs på de befintliga datorerna (24). Byt medvetet, och prova en ren installation.
+n 24
 npm install -g npm@latest
 hash -r
 

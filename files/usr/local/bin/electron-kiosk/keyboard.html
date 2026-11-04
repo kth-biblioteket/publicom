@@ -53,7 +53,7 @@ const enter = (t) => key(t, 'action', 2, () => send({ kind: 'enter' }));
 const space = (t, flex) => key(t, 'space', flex, () => send({ kind: 'text', text: ' ' }));
 
 function build() {
-  const sv = S.lang === 'sv', t = T[S.lang], sym = S.layer === 'sym';
+  const sv = S.lang === 'sv', t = T[S.lang], sym2 = S.layer === 'sym2', sym = S.layer === 'sym' || sym2; // sym: siffror och tecken, sym2: fler tecken (#+=)
   if (S.type === 'number') {
     const n = (c) => key(c, '', 1, () => send({ kind: 'text', text: c }));
     return { pad: true, rows: [
@@ -65,10 +65,14 @@ function build() {
   const toggle = key(sym ? 'ABC' : '123', 'special', 2, () => { S.layer = sym ? 'abc' : 'sym'; later(); });
   const lang = key(sv ? 'SV' : 'EN', 'special', 1.5, () => { S.lang = sv ? 'en' : 'sv'; later(); }, { sub: sv ? 'EN' : 'SV' });
   const rows = [];
-  if (sym) {
+  if (sym2) {
+    rows.push([sp(.5)].concat(chars('[]{}#%^*+='), [sp(.5)]));
+    rows.push([sp(.5)].concat(chars('_\\|~<>€$£•'), [sp(.5)]));
+    rows.push([key('123', 'special', 2, () => { S.layer = 'sym'; later(); })].concat(chars('.,?!\'"`'), [back()]));
+  } else if (sym) {
     rows.push([sp(.5)].concat(chars('1234567890'), [sp(.5)]));
     rows.push([sp(1)].concat(chars('-/:;()&@"'), [sp(1)]));
-    rows.push([sp(2)].concat(chars(".,?!'#%"), [back()]));
+    rows.push([key('#+=', 'special', 2, () => { S.layer = 'sym2'; later(); })].concat(chars(".,?!'#%"), [back()]));
   } else {
     if (email) rows.push([sp(.5)].concat(chars('1234567890'), [sp(.5)]));
     rows.push(sv ? chars('qwertyuiopå') : [sp(.5)].concat(chars('qwertyuiop'), [sp(.5)]));

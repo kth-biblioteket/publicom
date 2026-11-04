@@ -246,6 +246,7 @@ function buildSettings(env, hostsText) {
     // Fotrad som webbsida (ersätter informationsfälten) och attract loop (helskärmssida när förstasidan står orörd)
     htmlFooter: {
       url: httpsUrl(env.LAUNCHER_HTML_URL),
+      urlEn: httpsUrl(env.LAUNCHER_HTML_URL_EN), // engelsk fotrad (när besökaren valt English); saknas den visas den vanliga
       height: Math.max(40, Math.min(400, intOr(env.LAUNCHER_HTML_HEIGHT, 100))),
       js: bool(env.LAUNCHER_HTML_JS, false), touch: bool(env.LAUNCHER_HTML_TOUCH, false),
     },

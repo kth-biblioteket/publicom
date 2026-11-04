@@ -90,6 +90,7 @@ function uiState() {
 }
 
 function pushState() {
+  syncFooterLang();
   const s = uiState();
   for (const v of uiViews()) if (!v.webContents.isDestroyed()) v.webContents.send('ui:state', s);
 }
@@ -259,9 +260,22 @@ function goHome(keepLang) {
 
 // ---------- webbsidor på förstasidan: fotrad och attract loop ----------
 
+/** Fotradens adress: den engelska när besökaren valt English och en sådan finns, annars den vanliga */
+function footerUrl() {
+  const f = settings.htmlFooter;
+  return S.lang === 'en' && f.urlEn ? f.urlEn : f.url;
+}
+/** Byter besökaren språk laddas fotraden om, om språken har olika adresser (bara när den laddats förut) */
+let footerLoaded = '';
+function syncFooterLang() {
+  if (!footerPage || !footerLoaded || footerLoaded === footerUrl()) return;
+  footerLoaded = footerUrl();
+  footerPage.load(footerLoaded);
+}
+
 /** Laddar fotraden och attract-sidan när förstasidan visas */
 function startHomePages() {
-  if (footerPage) footerPage.load(settings.htmlFooter.url);
+  if (footerPage) { footerLoaded = footerUrl(); footerPage.load(footerLoaded); }
   if (attractPage && settings.attract.afterSec > 0) attractPage.load(settings.attract.url);
 }
 
@@ -446,7 +460,7 @@ app.whenReady().then(() => {
   setInterval(idleTick, 1000);
   setInterval(refreshInfo, settings.refreshMin * 60 * 1000);
   // Webbsidorna laddas om medan förstasidan visas (attract-sidan inte medan den syns)
-  if (footerPage) setInterval(() => { if (S.view === 'home') footerPage.load(settings.htmlFooter.url); }, settings.refreshMin * 60 * 1000);
+  if (footerPage) setInterval(() => { if (S.view === 'home') { footerLoaded = footerUrl(); footerPage.load(footerLoaded); } }, settings.refreshMin * 60 * 1000);
   if (attractPage) setInterval(() => { if (S.view === 'home' && !A.showing) attractPage.load(settings.attract.url); }, settings.attract.refreshMin * 60 * 1000);
 });
 

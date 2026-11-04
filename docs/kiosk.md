@@ -140,6 +140,7 @@ värdar (`APPS`, `WHITE_LIST`); sidans egen värd måste alltså finnas där. Fi
   förstasidan. Meddelanderaden ligger kvar ovanför. Går sidan inte att ladda (nätfel eller http-svar 400 eller högre) visas
   fälten som förut. Sidan ritas för 1280 pixlar bred (liggande) eller 800 (stående) och skalas efter fönstrets bredd, som övriga sidor.
   Tryck på fotraden gör inget om inte `LAUNCHER_HTML_TOUCH` är på. Sidan laddas om var `LAUNCHER_REFRESH`:e minut.
+  `LAUNCHER_HTML_URL_EN`: egen adress när besökaren valt English (samma tillåtna värdar). Sidan byts direkt när språket byts; saknas adressen visas den vanliga.
 - **Attract loop** (`ATTRACT_URL`, `ATTRACT_AFTER` sekunder, standard 120, 0 = av, `ATTRACT_REFRESH` minuter, standard 10,
   `ATTRACT_JS`): när förstasidan står orörd så länge visas sidan i helskärm över den (aldrig i en tjänst, inte i appläget).
   Första trycket tar bort den, går inte vidare till något under och är ingen annan åtgärd; skalets inaktivitetsklocka startar bara om.

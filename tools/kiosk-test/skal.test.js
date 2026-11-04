@@ -79,11 +79,11 @@ test('buildSettings: LAUNCHER_PER_PAGE är ett jämnt tal 2-12 (4 som standard),
 
 test('buildSettings: fotrad som webbsida och attract loop, https krävs och gränserna hålls', () => {
   const d = buildSettings({}, '');
-  assert.deepEqual(d.htmlFooter, { url: '', height: 100, js: false, touch: false });
+  assert.deepEqual(d.htmlFooter, { url: '', urlEn: '', height: 100, js: false, touch: false });
   assert.deepEqual(d.attract, { url: '', afterSec: 120, refreshMin: 10, js: false });
-  const e = buildSettings({ LAUNCHER_HTML_URL: 'https://a.kth.se/f', LAUNCHER_HTML_HEIGHT: '9999', LAUNCHER_HTML_JS: 'true', LAUNCHER_HTML_TOUCH: 'true',
+  const e = buildSettings({ LAUNCHER_HTML_URL: 'https://a.kth.se/f', LAUNCHER_HTML_URL_EN: 'https://a.kth.se/f/en', LAUNCHER_HTML_HEIGHT: '9999', LAUNCHER_HTML_JS: 'true', LAUNCHER_HTML_TOUCH: 'true',
     ATTRACT_URL: 'https://a.kth.se/l', ATTRACT_AFTER: '0', ATTRACT_REFRESH: '5000', ATTRACT_JS: 'true' }, '');
-  assert.deepEqual(e.htmlFooter, { url: 'https://a.kth.se/f', height: 400, js: true, touch: true });
+  assert.deepEqual(e.htmlFooter, { url: 'https://a.kth.se/f', urlEn: 'https://a.kth.se/f/en', height: 400, js: true, touch: true });
   assert.deepEqual(e.attract, { url: 'https://a.kth.se/l', afterSec: 0, refreshMin: 1440, js: true });
   assert.equal(buildSettings({ LAUNCHER_HTML_URL: 'http://a.kth.se/f', ATTRACT_URL: 'javascript:alert(1)' }, '').htmlFooter.url, '', 'bara https');
   assert.equal(buildSettings({ ATTRACT_URL: 'http://a.kth.se/l' }, '').attract.url, '');

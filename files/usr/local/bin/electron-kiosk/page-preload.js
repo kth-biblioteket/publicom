@@ -7,6 +7,10 @@ if (!ipcRenderer.sendSync('page:cfg').printing) webFrame.executeJavaScript('wind
 
 function fieldType(el) {
   if (!el || el.nodeType !== 1) return null;
+  // Fält som inte går att skriva i (readonly, disabled) eller som ber om inget tangentbord (inputmode="none") visar inget tangentbord.
+  // Typiskt datumväljare som är ett readonly-textfält med en kalender (jQuery UI datepicker).
+  if ((el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && (el.readOnly || el.disabled)) return null;
+  if ((el.getAttribute && (el.getAttribute('inputmode') || '').toLowerCase()) === 'none') return null;
   if (el.tagName === 'TEXTAREA') return 'text';
   if (el.tagName === 'INPUT') {
     const t = (el.type || 'text').toLowerCase();

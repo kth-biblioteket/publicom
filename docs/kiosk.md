@@ -18,7 +18,7 @@ Electron från `electron-login`, så ingen egen installation behövs. Det bestå
 - **Skärmtangentbord** som visas när ett textfält får fokus och fälls ner med *Fäll ner*, vid sökning och vid
   Startsida. Layouter för svenska och engelska (å, ä, ö), siffror och symboler, samt egna layouter för e-post- och sifferfält.
   Knappen längst ner till höger heter *Sök* bara i sökfält (`type="search"`, `role="searchbox"` eller `enterkeyhint`),
-  annars *Retur*. Ett fokus som sidan själv sätter när den laddas visar inte tangentbordet.
+  annars *Retur*. Ett fokus som sidan själv sätter när den laddas visar inte tangentbordet. Fält som är `readonly` eller `disabled`, eller har `inputmode="none"`, visar inte heller tangentbordet (t.ex. en datumväljare som är ett skrivskyddat textfält med en kalender).
 
 **Inaktivitet** hanteras av skalet: efter `SESSION_IDLE` minuter utan aktivitet (minus `IDLE_WARNING` sekunder) visas
 varningen, sedan rensas sessionen (cookies, cache, historik), språket återställs och förstasidan visas. Varken `xautolock` eller

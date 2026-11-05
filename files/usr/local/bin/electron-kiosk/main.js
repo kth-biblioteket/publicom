@@ -311,9 +311,10 @@ function showKeyboard(m) {
   S.kbOpen = true; S.kbType = type; S.kbEnter = enter;
   layout();
   if (changed) kbView.webContents.send('layout', { type, enter });
-  // Håll fältet synligt ovanför tangentbordet
+  // Håll fältet synligt ovanför tangentbordet. Sidan flyttas bara så mycket som behövs ('nearest'): ett fält som redan syns ligger kvar
+  // under fingret. Med block 'center' hoppade sidan flera hundra pixlar när man tryckte i ett fält mitt på sidan.
   pageView.webContents.executeJavaScript(
-    'document.activeElement && document.activeElement.scrollIntoView && document.activeElement.scrollIntoView({block:"center"})'
+    'document.activeElement && document.activeElement.scrollIntoView && document.activeElement.scrollIntoView({block:"nearest"})'
   ).catch(() => {});
 }
 

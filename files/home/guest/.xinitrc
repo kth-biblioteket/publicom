@@ -126,18 +126,32 @@ load_config "$ENV_FILE"
 # Pekskärmen följer med när skärmen vrids: xrandr vrider bara bilden, så en tryckning hamnar annars på fel ställe.
 # Matrisen sätts på enheter som har absoluta koordinater (pekskärmar och ritplattor har "libinput Calibration Matrix", en mus har inte).
 function rotate_touch() {
-  local m id name
+  local m id name cur want
   case "$1" in
     left)     m="0 -1 1 1 0 0 0 0 1" ;;
     right)    m="0 1 0 -1 0 1 0 0 1" ;;
     inverted) m="-1 0 1 0 -1 1 0 0 1" ;;
     *) return ;;
   esac
+  want=$(echo "$m" | awk '{for(i=1;i<=NF;i++) printf "%d ", $i}')
   xinput list --short 2>/dev/null | grep -E "slave +pointer" | sed -E 's/.*id=([0-9]+).*/\1/' | while read -r id; do
     xinput list-props "$id" 2>/dev/null | grep -q "libinput Calibration Matrix" || continue
+    # Redan rätt? Då görs inget (loggen och X påverkas inte av upprepade anrop)
+    cur=$(xinput list-props "$id" 2>/dev/null | grep "Coordinate Transformation Matrix" | sed 's/.*://' | tr -d ',' | awk '{for(i=1;i<=NF;i++) printf "%d ", $i}')
+    [ "$cur" = "$want" ] && continue
     name=$(xinput list --name-only "$id" 2>/dev/null)
     # shellcheck disable=SC2086
     xinput set-prop "$id" "Coordinate Transformation Matrix" $m && log_message "Pekskärm $id ($name) följer skärmens riktning ($1)"
+  done
+}
+
+# Pekskärmen kan försvinna och komma tillbaka under en session (USB-återanslutning, strömsparläge, uppvaknande ur vila).
+# X skapar då en ny enhet med grundmatrisen och pekningen hamnar fel tills datorn startats om. Därför kontrolleras matrisen
+# var 10:e sekund och sätts om vid behov.
+function watch_touch() {
+  while true; do
+    sleep 10
+    rotate_touch "$1"
   done
 }
 
@@ -148,6 +162,7 @@ if [ -n "$SCREEN_ROTATION" ] && [ "$SCREEN_ROTATION" != "normal" ]; then
     MONITOR=$(xrandr | grep " connected" | cut -d' ' -f1 | head -n1)
     xrandr --output "$MONITOR" --rotate "$SCREEN_ROTATION"
     rotate_touch "$SCREEN_ROTATION"
+    watch_touch "$SCREEN_ROTATION" &
 fi
 
 # Ta bort filen som innehåller starttiden för sessionen

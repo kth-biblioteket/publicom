@@ -191,24 +191,6 @@ if [ -f "$CHROME_SANDBOX" ] && [ "$(stat -c '%a %U' "$CHROME_SANDBOX")" != "4755
     chown root:root "$CHROME_SANDBOX" && chmod 4755 "$CHROME_SANDBOX" && echo "Installed $CHROME_SANDBOX (4755)"
 fi
 
-# TILLFÄLLIG paus av Chromium-uppdateringar (nov 2026): revision 3590 av Chromium-snappen byter GPU-del från mesa-2404 till
-# mesa-2604, som inte går att hämta när butiken inte svarar (och verkar bara finnas i kanalen edge). En dator som uppdateras då
-# får en Chromium som inte startar ("Content snap GPU wrapper ... not found"). Datorer som fortfarande kör mesa-2404
-# (plugget heter chromium:gpu-2404) hålls därför kvar tills HOLD_UNTIL. Pausen går ut av sig själv det datumet, och
-# deploy.sh förlänger den inte. Släpp den tidigare när mesa-2604 går att installera och en testdator startar Chromium:
-#   sudo snap install mesa-2604 && sudo snap refresh --unhold chromium && sudo snap refresh chromium
-# Ta bort det här blocket när det är löst.
-CHROMIUM_HOLD_UNTIL="2026-12-10"
-if [ "$(date +%F)" \< "$CHROMIUM_HOLD_UNTIL" ] && command -v snap > /dev/null; then
-    if timeout 30 snap connections chromium 2>/dev/null | grep -q 'chromium:gpu-2404' \
-        && ! timeout 30 snap list chromium 2>/dev/null | grep -qw held; then
-        HOLD_SECS=$(( $(date -d "$CHROMIUM_HOLD_UNTIL" +%s) - $(date +%s) ))
-        timeout 30 snap refresh --hold="${HOLD_SECS}s" chromium > /dev/null 2>&1 \
-            && echo "Chromium-uppdateringar pausade till $CHROMIUM_HOLD_UNTIL (gpu-2404)" \
-            || echo "Varning: kunde inte pausa Chromium-uppdateringar" 1>&2
-    fi
-fi
-
 # Spara vad som är installerat
 mkdir -p "$STATE_DIR"
 {

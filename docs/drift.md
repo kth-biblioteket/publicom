@@ -121,7 +121,6 @@ klartext under *Att göra*.
 - **Säkerhetsuppdateringar** installeras av `unattended-upgrades` (bara `-security`): paketlistor ca 01:30, installation ca 02:30.
 - Kräver en uppdatering omstart startar datorn om **kl. 03:30**, även med gästsessionen igång.
 - **Chromium (snap)** uppdateras bara mellan 02:00 och 04:00.
-  Tillfälligt (till 2026-12-10) pausas uppdateringarna på datorer som kör Chromium med `mesa-2404` (plugget `chromium:gpu-2404`), eftersom revision 3590 kräver `mesa-2604` och inte startar utan den. `deploy.sh` sätter pausen. Släpp den när `mesa-2604` går att installera och en testdator startar Chromium: `sudo snap install mesa-2604 && sudo snap refresh --unhold chromium && sudo snap refresh chromium`. Kontrollera med `snap list chromium` (Notes: `held`). Ta sedan bort blocket "TILLFÄLLIG paus" i `deploy.sh`.
 - Datorn behöver vara påslagen på natten. Är den avstängd körs uppdateringen när den startas, och en eventuell omstart sker natten efter.
 - Senaste körningen: `/var/log/unattended-upgrades/unattended-upgrades.log`.
 

@@ -12,6 +12,9 @@ Vid varje start kör `init.service` skriptet `init.sh`:
    Har `init.sh` själv ändrats startar den om sig själv med den nya versionen, så att allt nytt gäller direkt.
 3. **Skärmsläckarbilderna** i `SCREENSAVER_FILES` kopieras från `/usr/local/share/publicom/screensaver/` (de följer
    med koden). En tom lista ger KTH-bakgrunden. Saknas en bild lokalt hämtas den från GitHub; misslyckas det ändras ingenting.
+   En post kan också vara en https-adress till en PNG eller JPG (högst 15 MB) i publicomtools mediebibliotek, på samma värd som
+   `PUBLICOMTOOLS_URL`. Den hämtas vid start och sparas i `/var/lib/publicom/screensaver-cache/`; misslyckas hämtningen
+   (nätverk eller tjänsten nere) används den senast hämtade bilden, och finns ingen ändras ingenting. Cachen rensas på bilder som inte längre listas.
 4. **Chromiums grundpolicy** (`POLICY_FILE`) kopieras från `/usr/local/share/publicom/policies/` (följer med koden).
 
 Sedan bygger `allowlist_from_ezproxy.service` den slutliga policyn utifrån inställningarna, och sist startar
@@ -158,7 +161,7 @@ Nästa vanliga omstart är oförändrad.
 |---|---|
 | Inställning i admin har inte slagit igenom | Har datorn startat om? *Väntar på omstart* i admin. `journalctl -b -u init.service` |
 | Webbläsaren tillåter/spärrar fel | `chrome://policy`, `journalctl -b -u allowlist_from_ezproxy` |
-| Skärmsläckaren visar fel bilder | `ls /usr/local/bin/screensaver/`, *Bilder i skärmsläckaren* i admin |
+| Skärmsläckaren visar fel bilder | `ls /usr/local/bin/screensaver/`, *Bilder i skärmsläckaren* i admin. För en bild från mediebiblioteket: `ls /var/lib/publicom/screensaver-cache/` och `Error`-raderna i `journalctl -u init` (fel värd, ingen bild, för stor) |
 | Skärmsläckaren startar inte, eller avbryts av en stöt mot bordet | Inaktiv tid nollställs av alla inmatningshändelser. Se vilken enhet som skickar dem: `sudo -u guest env DISPLAY=:0 timeout 20 xinput test-xi2 --root \| grep -E "EVENT type\|device:"`. Enheter som ingen använder (`WMI`, `Video Bus`, `Power Button`, `Sleep Button`, `Lid Switch`) stängs av vid start (`disable_noise_devices` i `.xinitrc`, syns i `/tmp/guest_login.log`). En optisk mus kan ge brus och stängs inte av |
 | Ny kod har inte kommit ut | `cat /var/lib/publicom/deployed`, `PUBLICOM_BRANCH` i admin, `journalctl -b -u init.service \| grep -i deploy` |
 | Datorn syns inte i admin | `journalctl -u heartbeat.service -n 5`, `PUBLICOM_DEVICE_TOKEN` i `.secrets` |

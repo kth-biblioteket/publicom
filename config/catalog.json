@@ -69,9 +69,11 @@
         { "value": "screen_bg_kth_logo_navy_search_2.png", "label": "Sökdator (Primo), logga överst", "preview": "screensaver/screen_bg_kth_logo_navy_search_2.png" },
         { "value": "screen_bg_kth_logo_navy_guest.png", "label": "Gästdator, mörkblå", "preview": "screensaver/screen_bg_kth_logo_navy_guest.png" },
         { "value": "screen_bg_kth_logo_heaven_guest.png", "label": "Gästdator, ljusblå", "preview": "screensaver/screen_bg_kth_logo_heaven_guest.png" },
-        { "value": "screen_bg_kth_logo_navy_grupprum.png", "label": "Grupprum, boka här", "preview": "screensaver/screen_bg_kth_logo_navy_grupprum.png" }
+        { "value": "screen_bg_kth_logo_navy_grupprum.png", "label": "Grupprum, boka här", "preview": "screensaver/screen_bg_kth_logo_navy_grupprum.png" },
+        { "value": "screen_bg_kth_logo_heaven_grupprum.png", "label": "Grupprum, ljusblå", "preview": "screensaver/screen_bg_kth_logo_heaven_grupprum.png" }
       ],
-      "help": "Bilderna som visas när skärmsläckaren går, i den ordning de väljs. Bilderna följer med koden på datorn. Tom lista visar KTH-bakgrunden." },
+      "extra": "media",
+      "help": "Bilderna som visas när skärmsläckaren går, i den ordning de väljs. De färdiga bilderna följer med koden på datorn. Dessutom kan en post vara en https-adress till en bild (PNG eller JPG, högst 15 MB) i publicomtools mediebibliotek: den hämtas vid start och sparas på datorn, så att den visas även om tjänsten inte svarar. Adressen måste ligga på samma värd som publicomtools. Tom lista visar KTH-bakgrunden." },
 
     { "key": "LOGINTYPE", "label": "Inloggning med", "group": "session", "types": ["guestcomputer", "searchcomputer"], "type": "enum", "default": "password",
       "options": [

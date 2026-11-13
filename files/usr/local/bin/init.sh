@@ -124,17 +124,64 @@ if [ "$(cat "$HEARTBEAT_DROPIN" 2>/dev/null)" != "$heartbeat_conf" ]; then
 fi
 
 # Skärmsläckarfiler
-# Bilderna följer med koden (files.manifest) och kopieras därifrån; en bild som inte finns lokalt
+# En post i SCREENSAVER_FILES är antingen ett filnamn eller en https-adress till en bild i publicomtools mediebibliotek.
+# Filnamn följer med koden (files.manifest) och kopieras därifrån; en bild som inte finns lokalt
 # (äldre installation, eller en ny bild som inte rullats ut) hämtas från GitHub som förut.
+# Adresser hämtas bara från publicomtools värd (PUBLICOMTOOLS_URL) och måste vara en PNG eller JPG på högst 15 MB.
+# Senast hämtade bilden sparas i en cache, så att den finns kvar om hämtningen misslyckas (nätverk nere, tjänsten nere).
 # Allt samlas i en separat katalog och byts ut först om alla filer kom fram.
 SCREENSAVER_LOCAL_DIR=/usr/local/share/publicom/screensaver
+SCREENSAVER_CACHE=/var/lib/publicom/screensaver-cache
 SCREENSAVER_TMP=$(mktemp -d)
 SCREENSAVER_OK=true
+SCREENSAVER_HOST=$(printf '%s' "$PUBLICOMTOOLS_URL" | sed -nE 's#^https://([^/:]+).*#\1#p')
+mkdir -p "$SCREENSAVER_CACHE"
+SCREENSAVER_KEEP=" "
+
+# Skriver bildtypen (png eller jpg) om filen är en bild, annars inget och felkod
+function image_ext() {
+    case "$(head -c 3 "$1" | od -An -tx1 | tr -d ' \n')" in
+        ffd8ff) echo jpg ;;
+        89504e) [ "$(head -c 8 "$1" | od -An -tx1 | tr -d ' \n')" == "89504e470d0a1a0a" ] && echo png || return 1 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Hämtar en adress till $SCREENSAVER_TMP (via cachen). Skriver filnamnet som gavs, annars felkod.
+function fetch_screensaver_url() {
+    local url="$1" id tmp ext name
+    if [[ ! "$url" =~ ^https://[A-Za-z0-9._~:/?\&=%+@-]+$ ]]; then
+        echo "Error: ogiltig adress i SCREENSAVER_FILES: $url" >&2; return 1
+    fi
+    if [ -z "$SCREENSAVER_HOST" ] || [ "$(printf '%s' "$url" | sed -nE 's#^https://([^/:]+).*#\1#p')" != "$SCREENSAVER_HOST" ]; then
+        echo "Error: $url ligger inte på $SCREENSAVER_HOST" >&2; return 1
+    fi
+    id=$(printf '%s' "$url" | sha1sum | cut -c1-12)
+    tmp=$(mktemp "$SCREENSAVER_CACHE/dl.XXXXXX") || return 1
+    echo "Downloading $url..." >&2
+    if curl -fsSL --max-time 60 --max-filesize 15728640 --retry 2 --retry-delay 5 -o "$tmp" "$url" 2>/dev/null \
+        && ext=$(image_ext "$tmp"); then
+        rm -f "$SCREENSAVER_CACHE/media-$id".*
+        mv -f "$tmp" "$SCREENSAVER_CACHE/media-$id.$ext"
+    else
+        rm -f "$tmp"
+        echo "Error: kunde inte hämta en bild från $url" >&2
+    fi
+    # Cachen gäller både en ny hämtning och en tidigare (när hämtningen misslyckades)
+    for name in "$SCREENSAVER_CACHE/media-$id".*; do
+        [ -f "$name" ] || { echo "Error: ingen bild att visa för $url" >&2; return 1; }
+        cp "$name" "$SCREENSAVER_TMP/$(basename "$name")" || return 1
+        SCREENSAVER_KEEP="$SCREENSAVER_KEEP$(basename "$name") "
+    done
+}
+
 IFS=',' read -ra FILE_ARRAY <<< "$SCREENSAVER_FILES"
 for file in "${FILE_ARRAY[@]}"; do
     file="${file// /}"
     [ -z "$file" ] && continue
-    if [[ ! "$file" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    if [[ "$file" == https://* ]]; then
+        fetch_screensaver_url "$file" || SCREENSAVER_OK=false
+    elif [[ ! "$file" =~ ^[A-Za-z0-9._-]+$ ]]; then
         echo "Error: ogiltigt filnamn i SCREENSAVER_FILES: $file"
         SCREENSAVER_OK=false
     elif [ -f "$SCREENSAVER_LOCAL_DIR/$file" ]; then
@@ -146,6 +193,10 @@ for file in "${FILE_ARRAY[@]}"; do
             SCREENSAVER_OK=false
         fi
     fi
+done
+# Rensa cachen från bilder som inte längre används
+for cached in "$SCREENSAVER_CACHE"/*; do
+    [ -f "$cached" ] && [[ "$SCREENSAVER_KEEP" != *" $(basename "$cached") "* ]] && rm -f "$cached"
 done
 # Tom lista: visa KTH-bakgrunden i stället för skärmsläckarens inbyggda testbild
 if [ "$SCREENSAVER_OK" == "true" ] && [ -z "$(ls -A "$SCREENSAVER_TMP")" ]; then

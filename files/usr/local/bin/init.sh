@@ -127,14 +127,15 @@ fi
 # En post i SCREENSAVER_FILES är antingen ett filnamn eller en https-adress till en bild i publicomtools mediebibliotek.
 # Filnamn följer med koden (files.manifest) och kopieras därifrån; en bild som inte finns lokalt
 # (äldre installation, eller en ny bild som inte rullats ut) hämtas från GitHub som förut.
-# Adresser hämtas bara från publicomtools värd (PUBLICOMTOOLS_URL) och måste vara en PNG eller JPG på högst 15 MB.
+# Adresser hämtas bara från publicomtools värd (PUBLICOMTOOLS_URL, REMOTE_CONFIG_URL) och måste vara en PNG eller JPG på högst 15 MB.
 # Senast hämtade bilden sparas i en cache, så att den finns kvar om hämtningen misslyckas (nätverk nere, tjänsten nere).
 # Allt samlas i en separat katalog och byts ut först om alla filer kom fram.
 SCREENSAVER_LOCAL_DIR=/usr/local/share/publicom/screensaver
 SCREENSAVER_CACHE=/var/lib/publicom/screensaver-cache
 SCREENSAVER_TMP=$(mktemp -d)
 SCREENSAVER_OK=true
-SCREENSAVER_HOST=$(printf '%s' "$PUBLICOMTOOLS_URL" | sed -nE 's#^https://([^/:]+).*#\1#p')
+# Värdarna som får leverera bilder: den publicomtools som datorn hämtar sina inställningar från (referensmiljön har en egen värd)
+SCREENSAVER_HOSTS=" $(printf '%s\n%s\n' "$PUBLICOMTOOLS_URL" "$REMOTE_CONFIG_URL" | sed -nE 's#^https://([^/:]+).*#\1#p' | tr '\n' ' ')"
 mkdir -p "$SCREENSAVER_CACHE"
 SCREENSAVER_KEEP=" "
 
@@ -149,12 +150,13 @@ function image_ext() {
 
 # Hämtar en adress till $SCREENSAVER_TMP (via cachen). Skriver filnamnet som gavs, annars felkod.
 function fetch_screensaver_url() {
-    local url="$1" id tmp ext name
+    local url="$1" id tmp ext name host
     if [[ ! "$url" =~ ^https://[A-Za-z0-9._~:/?\&=%+@-]+$ ]]; then
         echo "Error: ogiltig adress i SCREENSAVER_FILES: $url" >&2; return 1
     fi
-    if [ -z "$SCREENSAVER_HOST" ] || [ "$(printf '%s' "$url" | sed -nE 's#^https://([^/:]+).*#\1#p')" != "$SCREENSAVER_HOST" ]; then
-        echo "Error: $url ligger inte på $SCREENSAVER_HOST" >&2; return 1
+    host=$(printf '%s' "$url" | sed -nE 's#^https://([^/:]+).*#\1#p')
+    if [ -z "$host" ] || [[ "$SCREENSAVER_HOSTS" != *" $host "* ]]; then
+        echo "Error: $url ligger inte på publicomtools (${SCREENSAVER_HOSTS# })" >&2; return 1
     fi
     id=$(printf '%s' "$url" | sha1sum | cut -c1-12)
     tmp=$(mktemp "$SCREENSAVER_CACHE/dl.XXXXXX") || return 1

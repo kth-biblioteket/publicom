@@ -52,7 +52,7 @@ En inställning skapas i koden här, och admin får veta om den via katalogen.
    `types` (valfri lista över datortyper, värden ur `COMPUTER_TYPE`) anger var nyckeln har någon betydelse; saknas den gäller nyckeln alla typer, och publicomtools döljer den för övriga.
    Ett val i `options` är `{ "value", "label" }` och kan ha `"preview"`: en sökväg i repot till en bild som publicomtools visar som miniatyr.
    En `csv`-nyckel med `options` väljs ur listan i den ordning valen görs (`SCREENSAVER_FILES`).
-   `"extra": "media"` på en `csv`-nyckel betyder att en post också får vara en https-adress till en bild i mediebiblioteket (publicomtools väljare eller uppladdning skriver adressen i fältet, blandat med filnamnen). `init.sh` hämtar den och kontrollerar värd, bildtyp och storlek.
+   `SCREENSAVER_FILES` kan också innehålla https-adresser till bilder i publicomtools mediebibliotek (`<värd>/api/sign/f/<id>?format=jpeg`, JPEG-versionen av en bild; biblioteket lagrar WebP). Väljaren och uppladdningen i fältet gör publicomtools, som känner igen nyckeln på namnet (`SCREENSAVER_KEY`); katalogen behöver inget särskilt. `init.sh` hämtar adressen och kontrollerar värd, bildtyp och storlek.
 3. `tools/check.sh` kontrollerar att varje nyckel i katalogen läses av koden.
 4. I publicomtools: *Inställningskatalog* → **Hämta från stable** efter releasen (eller **Läs in från fil…** med
    `config/catalog.json` innan dess). Granska de nya, ändrade och borttagna nycklarna och uppdatera.

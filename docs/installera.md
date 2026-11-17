@@ -61,8 +61,52 @@ skyddet: med tillgång till BIOS kan man starta från ett USB-minne och kringgå
 ## 3. Installera Ubuntu
 
 - [ ] Ubuntu Server 24.04 med användaren `kthb` och **OpenSSH**. Värdnamnet ska vara datorns namn i admin, enligt [namnstandarden](#namn-på-en-dator) nedan (`publicom01`, `publicom02`, …).
-- [ ] Eventuellt wifi: `sudo nmcli dev wifi connect "KTH-IoT" password "<lösenord>"`
+- [ ] Eventuellt wifi: se [Wifi](#wifi) nedan (Ubuntu Server har inte `nmcli`)
 - [ ] SSH fungerar från KTH-nätet: `ssh kthb@<dator>`
+
+### Wifi
+
+Ubuntu Server har ingen NetworkManager (`nmcli` finns inte). Nätverket sköts av `netplan` och `systemd-networkd`, så wifi läggs in i en netplan-fil. Det kräver paketet `wpasupplicant` (finns med i en vanlig serverinstallation; saknas det måste datorn ha kabel en stund för `sudo apt install wpasupplicant`).
+
+1. Se att datorn har ett wifi-kort och vad det heter: `networkctl list` (en rad av typen `wlan`, t.ex. `wlp2s0`). Saknas den: `rfkill list` (släpp ett blockerat kort med `sudo rfkill unblock wifi`) och `lspci | grep -i -E "network|wireless"`.
+2. Lägg in nätverket (byt gränssnitt, nätverksnamn och lösenord):
+
+   ```bash
+   sudo tee /etc/netplan/60-wifi.yaml >/dev/null <<'EOF'
+   network:
+     version: 2
+     wifis:
+       wlp2s0:
+         dhcp4: true
+         access-points:
+           "KTH-IoT":
+             password: "<lösenord>"
+   EOF
+   sudo chmod 600 /etc/netplan/60-wifi.yaml
+   sudo netplan try
+   ```
+
+   `netplan try` rullar tillbaka efter 120 sekunder om anslutningen tappas, så du kan inte låsa ute dig själv. Bekräfta med Enter när det fungerar. Filen innehåller lösenordet, därför `chmod 600`.
+3. **Har datorn en kabelport som inte används** (bara wifi): markera den som valfri, annars väntar uppstarten i två minuter på en kabel som aldrig kommer och `systemd-networkd-wait-online.service` misslyckas (syns som fel i statusrapporten, se [Felsökning](drift.md#felsökning)). Byt `eno1` mot portens namn från `networkctl list`:
+
+   ```bash
+   sudo tee /etc/netplan/61-eno1-optional.yaml >/dev/null <<'EOF'
+   network:
+     version: 2
+     ethernets:
+       eno1:
+         optional: true
+   EOF
+   sudo chmod 600 /etc/netplan/61-eno1-optional.yaml
+   sudo netplan try
+   ```
+
+   En egen fil slås ihop med de andra och skrivs inte över av cloud-init (`50-cloud-init.yaml`). Sätts en kabel i senare fungerar den som vanligt: `optional` betyder bara att uppstarten inte väntar på den.
+4. Kontrollera: `networkctl list` (wifi `routable`/`configured`), `networkctl status --no-pager | head`.
+
+Lösenordet hamnar i shellhistoriken med kommandot ovan; rensa det efteråt (`history -c`) om det är en delad kod. Nät med inloggning (WPA-Enterprise, t.ex. eduroam) kräver `auth` i netplan (användare, lösenord och metod) och är inte provat här.
+
+En dator med bara wifi är känsligare än en med kabel: tappar den nätet under dagen når den inte publicomtools förrän anslutningen är tillbaka (den sparade inställningen gäller under tiden). `init.sh` väntar på DNS vid uppstart, så den tål ett sent nät. Föredra kabel för publika datorer när det går.
 
 Lägg **inte** till `systemd.unified_cgroup_hierarchy=0` (behövdes för 22.04, fungerar inte på 24.04).
 

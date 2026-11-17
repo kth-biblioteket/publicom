@@ -159,6 +159,7 @@ Nästa vanliga omstart är oförändrad.
 
 | Symptom | Titta på |
 |---|---|
+| Statusrapporten visar `systemd-networkd-wait-online.service` som fel, och uppstarten tar två minuter längre | Datorn har en nätverksport som inte får nät (oftast en kabelport utan kabel på en dator som bara kör wifi). Se `networkctl list` (`no-carrier` / `configuring`) och markera porten `optional: true`, se [Wifi](installera.md#wifi) |
 | Inställning i admin har inte slagit igenom | Har datorn startat om? *Väntar på omstart* i admin. `journalctl -b -u init.service` |
 | Webbläsaren tillåter/spärrar fel | `chrome://policy`, `journalctl -b -u allowlist_from_ezproxy` |
 | Skärmsläckaren visar fel bilder | `ls /usr/local/bin/screensaver/`, *Bilder i skärmsläckaren* i admin. För en bild från mediebiblioteket: `ls /var/lib/publicom/screensaver-cache/` och `Error`-raderna i `journalctl -u init` (fel värd, ingen bild, för stor) |

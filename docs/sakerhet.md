@@ -31,7 +31,7 @@ Vad en angripare kan göra och vad som skyddar mot det.
 - **Delad device-token:** alla datorer har samma `PUBLICOM_DEVICE_TOKEN`. Den som har den kan hämta vilken dators
   inställningar som helst och skicka status i dess namn. Inställningarna är inte hemliga, men en token per dator vore bättre.
 - **EZproxy-token** (`EZPROXY_GITHUB_TOKEN` i publicomtools): fine-grained, endast *Contents: Read* på `kth-biblioteket/ezproxy`.
-  Den nuvarande (`publiccomputers`, användaren "kthbiblioteket") **går ut 23 november 2026**. Förnya i god tid.
+  Den nuvarande (`publiccomputers`, användaren "kthbiblioteket") **går ut 24 november 2027**. Förnya i god tid.
 - **Nät:** lägg publika datorer i ett eget nät (VLAN), så att interna tjänster inte nås bara för att trafiken kommer från KTH-nätet.
 
 ## Efterkontroll på datorn

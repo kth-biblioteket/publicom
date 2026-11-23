@@ -97,8 +97,7 @@ IFS=',' read -r -a ALLOWED_DOMAINS <<< "$WHITE_LIST"
 
 # Hämta stanzafilen (EZproxy-domäner) till STANZA_CACHE. Den kommer från publicomtools med
 # datorns device-token; servern har den enda GitHub-token som behövs (ezproxy-repot är privat).
-# GITHUB_TOKEN i .secrets används bara som reserv under övergången. Misslyckas allt behålls
-# den senaste lyckade kopian.
+# Misslyckas hämtningen behålls den senaste lyckade kopian.
 function fetch_stanzas() {
   local token="${PUBLICOM_DEVICE_TOKEN:-$HEARTBEAT_TOKEN}"
   mkdir -p "$(dirname "$STANZA_CACHE")"
@@ -109,16 +108,6 @@ function fetch_stanzas() {
     return
   fi
   rm -f "${STANZA_CACHE}.new"
-  if [ -n "$GITHUB_TOKEN" ]; then
-    echo "Warning: stanzafilen kunde inte hämtas från publicomtools, försöker GitHub (GITHUB_TOKEN)"
-    if curl -fsSL --max-time 30 -H "Authorization: token $GITHUB_TOKEN" -o "${STANZA_CACHE}.new" \
-        "https://raw.githubusercontent.com/kth-biblioteket/ezproxy/main/db_stanzas.txt" \
-       && grep -qE '^(URL|HJ|DJ)[[:space:]]' "${STANZA_CACHE}.new"; then
-      mv -f "${STANZA_CACHE}.new" "$STANZA_CACHE"
-      return
-    fi
-    rm -f "${STANZA_CACHE}.new"
-  fi
   echo "Error: kunde inte hämta stanzafilen, använder sparad kopia om den finns"
 }
 

@@ -175,7 +175,7 @@ sudo chmod 700 /usr/local/bin/secrets
 - `VNC_PASSWORD` krävs av `install.sh`.
 - `GRUB_PASSWORD_HASH` skapas med `grub-mkpasswd-pbkdf2` (kopiera allt från `grub.pbkdf2...`). Välj ett lösenord med **bara a–z och siffror**: GRUB använder alltid amerikansk tangentbordslayout. Saknas den startar datorn som vanligt, men GRUB-menyn skyddas inte.
 - `BOOKING_API_KEY` behövs bara på gästdatorer med inloggningsskärmen som program (Electron), och som reserv för webbinloggningen.
-- `GITHUB_TOKEN` behövs **inte** längre. EZproxy-listan hämtas från publicomtools, se [Drift](drift.md#webbläsarens-regler).
+- `GITHUB_TOKEN` används inte längre och ska inte finnas i `.secrets` (finns den kvar på en äldre dator: ta bort raden och återkalla token i GitHub). EZproxy-listan hämtas från publicomtools, se [Drift](drift.md#webbläsarens-regler).
 
 ## 5. Inställningar och installation
 

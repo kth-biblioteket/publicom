@@ -83,6 +83,11 @@ I Chromium visar `chrome://policy` vilka regler som gäller.
 På gästdatorer med inloggning kan inloggningsskärmen visas som en webbsida i publicomtools i stället för i
 Electron-appen. Väljs med *Inloggningsskärm* (`LOGIN_UI`): `electron` (standard) eller `web`.
 
+**Beslut (november 2026): gästdatorerna kör Electron-inloggningen.** `LOGIN_UI` lämnas osatt, så standarden `electron`
+gäller på alla gästdatorer. Webbvarianten nedan finns kvar som alternativ, men används inte i drift. Efter inloggningen är
+webbläsaren Chromium, och gästpolicyn (`policies_guest.json`) styr vad gästen får göra där. Kiosk och skylt är rena
+Electron-skal utan Chromium och har ingen webbläsarpolicy.
+
 1. När sessionen startar hämtar `login_session.sh` (root, `guest.service` ExecStartPre) en engångsbiljett från publicomtools
    och installerar en **inloggningspolicy** där allt är blockerat utom publicomtools och formuläret för att registrera konto.
 2. `.xinitrc` visar inloggningssidan i Chromium i kioskläge.

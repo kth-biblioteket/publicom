@@ -54,6 +54,7 @@ skyddet: med tillgång till BIOS kan man starta från ett USB-minne och kringgå
 - [ ] **Start från USB avstängt** (men **slå på det under installationen**, annars startar inte installationsminnet; stäng av det efteråt)
 - [ ] **Start från nätverk avstängt** (PXE / Network boot)
 - [ ] **Startmeny vid påslag avstängd eller lösenordsskyddad** (Boot menu, ofta F12)
+- [ ] **Dell: *Extend BIOS POST Time* på 5 sekunder** (under *POST Behavior*). Står den på 0 hinner inte tangentbordet startas före F12, och datorn går direkt in i GRUB. Då måste man hålla in Shift eller Esc för att nå menyn. Kontrollera också att *Fastboot* är *Thorough*.
 - [ ] **Secure Boot på**
 - [ ] Gärna: **tyst uppstart** (Quiet boot)
 - [ ] Gärna: **starta efter strömavbrott** (Restore on AC power loss: On)

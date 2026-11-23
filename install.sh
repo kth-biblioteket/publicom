@@ -320,4 +320,22 @@ fi
 # disable-usb-storage.conf installeras av deploy.sh
 update-initramfs -u
 
+# Kontrollera att webbläsaren blev komplett installerad innan datorn startas om. Faller nätverket under
+# installationen kan apt eller snap avbrytas utan att scriptet stannar, och datorn ser då färdig ut men
+# visar ingen webbläsare (chromium-browser saknas eller snapens innehållsgränssnitt, t.ex. gnome-core26, är inte kopplade).
+BROKEN=""
+command -v chromium-browser > /dev/null || BROKEN="$BROKEN\n  - kommandot chromium-browser saknas (apt install -y --no-install-recommends chromium-browser)"
+if snap list chromium > /dev/null 2>&1; then
+    UNLINKED=$(snap connections chromium 2>/dev/null | awk '$1 ~ /^content/ && $3 == "-" {print $2}')
+    for plug in $UNLINKED; do
+        BROKEN="$BROKEN\n  - Chromiums gränssnitt $plug saknar källa (snap install ${plug#chromium:}, sedan snap connections chromium)"
+    done
+else
+    BROKEN="$BROKEN\n  - snapen chromium är inte installerad"
+fi
+if [ -n "$BROKEN" ]; then
+    echo -e "FEL: installationen är inte komplett, datorn startas inte om. Åtgärda och kör install.sh igen:$BROKEN" 1>&2
+    exit 1
+fi
+
 reboot

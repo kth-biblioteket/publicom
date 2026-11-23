@@ -3,8 +3,8 @@
 > **Läget (oktober 2026):** faserna 1–3 är genomförda och admin-gränssnittet är omgjort (formulär med arv,
 > granskning, ändringslogg med ångra, profiler, inställningskatalog). Nyckelkatalogen är inte längre en tabell
 > man fyller i för hand, utan `config/catalog.json` i det här repot. **Fas 4 och 5 ersätts:** den gamla flottan
-> flyttas inte över utan installeras om på Ubuntu 24.04 ([Installera](installera.md)), och de gamla
-> configfilerna tas bort när den sista är ominstallerad. Grenarna: [Utveckling](utveckling.md).
+> flyttades inte över utan installerades om på Ubuntu 24.04 ([Installera](installera.md)), och de gamla
+> configfilerna och grenen `main` är borttagna (november 2026). Grenarna: [Utveckling](utveckling.md).
 > Dokumentet nedan är den ursprungliga planen och beskriver inte nuvarande datamodell i detalj.
 
 Plan för att flytta **konfigurationen** för gästdatorerna från statiska filer i GitHub till

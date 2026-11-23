@@ -6,7 +6,6 @@
 |---|---|---|
 | `stable` | Alla datorer i drift (Ubuntu 24.04) | **Manuell release**: flyttas fram när ändringen är testad på piloten |
 | `pilot` | Pilotdatorn gc3 och testdatorer | Ny kod hamnar här först |
-| `main` | Den gamla flottan (Ubuntu 22, `.config_*` i roten) | **Fryst.** Ändras inte förrän den sista gamla datorn är ominstallerad |
 
 Varje dator laddar ner koden från sin gren vid varje start (`deploy.sh`). **En push till `stable` är därför en
 utrullning till alla datorer** vid deras nästa omstart, och görs medvetet.
@@ -67,18 +66,16 @@ En borttagen nyckel raderar inga värden i admin. De visas som *Används inte l�
 - att `load_config` i `install.sh` och `config_lib.sh` är lika
 - att `files.manifest` stämmer med `files/`, och att alla skärmsläckarbilder finns i manifestet
 - att `/home/guest`-filer behålls av `clean-up.sh`
-- inställningskatalogen: att varje nyckel i `config/` finns i katalogen och läses av koden
-- (gamla flottan) att `.config_*` är genererade från `config/`
+- inställningskatalogen: att varje nyckel i katalogen läses av koden
 
 Kör den innan commit. Samma kontroller körs i GitHub Actions (`.github/workflows/ci.yml`). Merga inte till `pilot` eller
 `stable` om de misslyckas.
 
 ## Gamla flottan
 
-Tills den sista gamla datorn är ominstallerad finns de gamla configfilerna kvar:
-`config/base.env`, `config/profiles/`, `config/hosts/` och de genererade `.config_*` i roten (`tools/build-configs.sh`).
-De gamla datorerna läser `.config_*` och `policies_*.json` från `main`, därför får **`main` inte ändras**.
-När alla är ominstallerade tas filerna bort och `main` kan bli utvecklingsgren igen.
+Den gamla flottan (Ubuntu 22) är ominstallerad. Grenen `main` och de gamla configfilerna (`.config_*`, `config/base.env`,
+`config/profiles/`, `config/hosts/`, `tools/build-configs.sh`) är borttagna (november 2026). Alla datorer hämtar sina
+inställningar från publicomtools. Standardgren på GitHub är `stable`.
 
 ## Uppdatera ikonerna
 

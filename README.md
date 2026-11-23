@@ -38,11 +38,8 @@ flowchart LR
 ## Läget just nu
 
 - **Ny flotta:** Ubuntu 24.04, inställningar från publicomtools, kod från `stable`. gc3 är pilot och kör `pilot`.
-- **Gamla flottan:** de gamla datorerna kör Ubuntu 22 med kod och inställningar från `main` på GitHub
-  (`.config_*` i roten). De flyttas inte över, utan **installeras om** en och en enligt
-  [Installera en dator](docs/installera.md). Tills den sista är ominstallerad får **`main` inte ändras**.
-- När alla är ominstallerade tas `.config_*`, `config/base.env`, `config/profiles/`, `config/hosts/` och
-  `tools/build-configs.sh` bort, och `main` blir utvecklingsgren igen.
+- **Gamla flottan** (Ubuntu 22, kod och inställningar från `main`) är ominstallerad och grenen `main` är borttagen
+  (november 2026). Standardgren på GitHub är `stable`. Historiken finns kvar i `stable`.
 
 ## Struktur i repot
 
@@ -57,6 +54,4 @@ config/catalog.json        Vilka inställningar datorerna förstår, läses in i
 tools/check.sh             Kontroller, körs av CI
 docs/                      Dokumentationen
 
-Bara för den gamla flottan (tas bort när den är ominstallerad):
-config/base.env, config/profiles/, config/hosts/, .config_*, tools/build-configs.sh
 ```

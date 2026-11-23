@@ -48,14 +48,10 @@ echo "== Inställningskatalog (config/catalog.json)"
 if jq -e '.version == 1 and (.keys | length > 0)' config/catalog.json > /dev/null 2>&1; then
     CAT_FAIL=$FAIL
     catalog_keys=" $(jq -r '.keys[].key' config/catalog.json | tr '\n' ' ') "
-    for key in $(grep -hoE '^[A-Z_][A-Z0-9_]*=' config/base.env config/profiles/*.env config/hosts/*.env | tr -d '=' | sort -u); do
-        [ "$key" = PROFILE ] && continue
-        [[ "$catalog_keys" == *" $key "* ]] || fail "$key används i config/ men saknas i config/catalog.json"
-    done
     for key in $catalog_keys; do
         grep -rqw "$key" files install.sh || fail "$key finns i catalog.json men läses inte av någon kod"
     done
-    [ $FAIL -eq "$CAT_FAIL" ] && ok "alla nycklar i config/ finns i katalogen och läses av koden"
+    [ $FAIL -eq "$CAT_FAIL" ] && ok "alla nycklar i katalogen läses av koden"
 else
     fail "config/catalog.json: ogiltig JSON eller fel format"
 fi
@@ -116,9 +112,6 @@ else
     echo "  (node är för gammal för node --test, hoppar över)"
 fi
 
-echo "== Genererade configfiler"
-tools/build-configs.sh --check && ok ".config_* är aktuella" || fail "kör tools/build-configs.sh"
-
 echo "== files.manifest"
 while read -r mode owner dest src; do
     [[ -z "$mode" || "$mode" == \#* ]] && continue
@@ -156,12 +149,9 @@ while read -r _ _ dest _; do
 done < <(grep -E '^[0-7]{4}[[:space:]]+[^[:space:]]+[[:space:]]+/home/guest/' files.manifest)
 [ $FAIL -eq "$CLEAN_FAIL" ] && ok "alla filer i /home/guest behålls"
 
-echo "== Filer som datorerna hämtar direkt från GitHub"
-for f in $(grep -ho '^POLICY_FILE="[^"]*"' .config_* | cut -d'"' -f2 | sort -u); do
-    [ -f "$f" ] && ok "$f" || fail "$f (POLICY_FILE) saknas"
-done
-for f in $(grep -ho '^SCREENSAVER_FILES="[^"]*"' .config_* | cut -d'"' -f2 | tr ',' '\n' | sort -u | grep .); do
-    [ -f "screensaver/$f" ] && ok "screensaver/$f" || fail "screensaver/$f (SCREENSAVER_FILES) saknas"
+echo "== Webbläsarpolicyer som datorerna hämtar direkt från GitHub"
+for f in $(jq -r '.keys[] | select(.key=="POLICY_FILE") | .options[]?.value' config/catalog.json); do
+    [ -f "$f" ] && ok "$f" || fail "$f (val i POLICY_FILE) saknas"
 done
 
 echo

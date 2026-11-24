@@ -154,6 +154,11 @@ done
 if [ -f /etc/tmpfiles.d/publicom-guest.conf ]; then
     systemd-tmpfiles --create /etc/tmpfiles.d/publicom-guest.conf
 fi
+# Regeln för diskens energisparläge gäller direkt (och efter varje start)
+if changed "/etc/udev/rules.d/*" || changed "/usr/local/bin/disk-apm.sh"; then
+    udevadm control --reload
+    udevadm trigger --subsystem-match=block --action=change
+fi
 if changed "/etc/sysctl.d/*"; then
     sysctl --system > /dev/null
 fi

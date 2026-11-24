@@ -1,0 +1,2 @@
+# Stäng av APM-parkeringen på roterande diskar (se /usr/local/bin/disk-apm.sh)
+ACTION=="add|change", SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", KERNEL=="sd[a-z]", RUN+="/usr/local/bin/disk-apm.sh %k"
